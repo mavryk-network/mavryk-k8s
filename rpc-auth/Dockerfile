@@ -4,7 +4,7 @@ RUN mkdir -p /var/rpc-auth/
 
 WORKDIR /var/rpc-auth/
 
-# Installing pytezos deps
+# Installing pymavryk deps
 RUN apt-get update -y \
   && apt-get install --no-install-recommends -y \
   automake \
@@ -26,7 +26,7 @@ FROM python:3.9-slim AS src
 
 WORKDIR /var/rpc-auth/
 
-# Installing pytezos deps
+# Installing pymavryk deps
 RUN apt-get update -y \
   && apt-get install --no-install-recommends -y \
   libffi-dev \

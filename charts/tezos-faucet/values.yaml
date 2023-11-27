@@ -18,7 +18,7 @@ config:
     name: Custom
     # Default value assumes node RPC is available on localhost.
     rpcUrl: http://localhost:8732
-    faucetAddress: "" # tz1PW...
+    faucetAddress: "" # mv1PW...
     viewer: "" # https://network.tzstats.com
 
 # Value the server sets for the "Access-Control-Allow-Origin" header for CORS.

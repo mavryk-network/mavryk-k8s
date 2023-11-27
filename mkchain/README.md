@@ -9,7 +9,7 @@ Helper program to generate values for the Tezos chain Helm chart
 
 ## Prerequisites
 
-To run `mkchain`, you must either have docker or pytezos installed.
+To run `mkchain`, you must either have docker or pymavryk installed.
 
 ### Installing Docker
 
@@ -30,7 +30,7 @@ minikube start
 eval $(minikube docker-env)
 ```
 
-### Installing pytezos
+### Installing pymavryk
 
 This is documented at:
 https://pytezos.org/quick_start.html#requirements
@@ -87,7 +87,7 @@ You can explicitly specify some values by:
 | bootstrap_peers                  | --bootstrap-peers        | Peer ips to connect to                                         | []                      |
 | expected_proof_of_work           | --expected-proof-of-work | Node identity generation difficulty                            | 0                       |
 | images.octez                     | --octez-docker-image     | Version of the Octez docker image to run                       | tezos/tezos:v17.3 |
-|                                  | --use-docker (--no...)   | Use (or don't use) docker to generate keys rather than pytezos | autodetect              |
+|                                  | --use-docker (--no...)   | Use (or don't use) docker to generate keys rather than pymavryk | autodetect              |
 | zerotier_config.zerotier_network | --zerotier-network       | Zerotier network id for external chain access                  |                         |
 | zerotier_config.zerotier_token   | --zerotier-token         | Zerotier token for external chain access                       |                         |
 

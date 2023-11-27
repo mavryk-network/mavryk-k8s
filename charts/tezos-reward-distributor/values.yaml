@@ -48,15 +48,15 @@ extra_trd_args: "--do_not_publish_stats"
 #  https://tezos-reward-distributor-organization.github.io/tezos-reward-distributor/
 trd_config:
   # version: 1.0
-  # baking_address: tz1WrZpjVRpsmjv8VL3781RhyLi5JyHsGXK2
-  # payment_address: tz1WrZpjVRpsmjv8VL3781RhyLi5JyHsGXK2
+  # baking_address: mv1PrNm1ovqs396uKKcKNwzVbbtmyHd2EDcp
+  # payment_address: mv1PrNm1ovqs396uKKcKNwzVbbtmyHd2EDcp
   # rewards_type: actual
   # service_fee: 4.5
   # founders_map:
-  #   {'tz1WrZpjVRpsmjv8VL3781RhyLi5JyHsGXK2' : 1.0}
+  #   {'mv1PrNm1ovqs396uKKcKNwzVbbtmyHd2EDcp' : 1.0}
   # owners_map:
-  #   {'tz1eawTP2ueRCqsYZq3DebwW9PkthdCqcZa8' : 0.3,
-  #    'tz1WrZpjVRpsmjv8VL3781RhyLi5JyHsGXK2' : 0.7}
+  #   {'mv1TEvAifHm6LCXXtG1gKXoJ53vmQ9QaHJHH' : 0.3,
+  #    'mv1PrNm1ovqs396uKKcKNwzVbbtmyHd2EDcp' : 0.7}
   # specials_map: {}
   # supporters_set: {}
   # min_delegation_amt: 100

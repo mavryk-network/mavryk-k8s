@@ -15,7 +15,7 @@ from typing import Union
 
 import requests
 from base58 import b58encode_check
-from pytezos import Key
+from pymavryk import Key
 
 with open("/etc/secret-volume/ACCOUNTS", "r") as secret_file:
     ACCOUNTS = json.loads(secret_file.read())
@@ -221,7 +221,7 @@ def get_baking_accounts(baker_values):
 def fill_in_missing_accounts():
     print("\nFilling in any missing accounts...")
     new_accounts = {}
-    init_balance = CHAIN_PARAMS["default_bootstrap_mutez"]
+    init_balance = CHAIN_PARAMS["default_bootstrap_mumav"]
     for baker_name, baker_values in BAKING_NODES.items():
         accts = get_baking_accounts(baker_values)
 
@@ -245,7 +245,7 @@ def fill_in_missing_accounts():
         if acct not in ACCOUNTS and acct not in new_accounts:
             print(f"Creating activation account: {acct}")
             new_accounts[acct] = {
-                "bootstrap_balance": CHAIN_PARAMS["default_bootstrap_mutez"],
+                "bootstrap_balance": CHAIN_PARAMS["default_bootstrap_mumav"],
             }
     except:
         pass

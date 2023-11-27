@@ -18,7 +18,7 @@ RUN     PIP="pip --no-cache install"					\
   && $APK_ADD libsodium-dev libsecp256k1-dev gmp-dev			\
   && $APK_ADD zeromq-dev findmnt						\
   && $PIP install base58 pynacl					\
-  && $PIP install mnemonic pytezos requests				\
+  && $PIP install mnemonic pymavryk requests				\
   && $PIP install pyblake2 pysodium flask \
   && apk del .build-deps \
   && $APK_ADD jq netcat-openbsd curl binutils \

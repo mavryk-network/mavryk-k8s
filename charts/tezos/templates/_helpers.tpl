@@ -187,7 +187,7 @@ metadata:
 {{- end }}
 
 {{- define "tezos.hasKeyHashPrefix" }}
-  {{- $keyHashPrefixes := list "tz1" "tz2" "tz3" }}
+  {{- $keyHashPrefixes := list "mv1" "mv2" "mv3" }}
   {{- has (substr 0 3 .) $keyHashPrefixes | ternary "true" "" }}
 {{- end }}
 

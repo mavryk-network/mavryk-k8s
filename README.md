@@ -1,8 +1,10 @@
-# Tezos k8s
+# Mavryk k8s
 
-Tezos-k8s is a collection of Helm charts and container images that can be used to deploy Tezos blockchain infrastructure on a Kubernetes cluster.
+Fork of [Tezos K8s](https://github.com/oxheadalpha/tezos-k8s)
 
-Tezos-k8s is actively maintained by the team at Oxhead Alpha, a Tezos core development company.
+Mavryk-k8s is a collection of Helm charts and container images that can be used to deploy Mavryk blockchain infrastructure on a Kubernetes cluster.
+
+Mavryk-k8s is actively maintained by the team at Mavryk Dynamics.
 
 ## Documentation
 

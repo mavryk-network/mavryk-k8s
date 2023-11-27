@@ -7,7 +7,7 @@ import logging
 import sys
 from os import path
 
-from pytezos import Key
+from pymavryk import Key
 
 config_path = "./signer-config"
 accounts_json_path = f"{config_path}/accounts.json"

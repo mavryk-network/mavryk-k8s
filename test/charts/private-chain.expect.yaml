@@ -43,7 +43,7 @@ data:
   CHAIN_PARAMS: |
     {
       "bootstrap_peers": [],
-      "default_bootstrap_mutez": "4000000000000",
+      "default_bootstrap_mumav": "4000000000000",
       "expected-proof-of-work": 0,
 
       "should_generate_unsafe_deterministic_data": true,
@@ -434,7 +434,7 @@ spec:
              import sys
              from os import path
              
-             from pytezos import Key
+             from pymavryk import Key
              
              config_path = "./signer-config"
              accounts_json_path = f"{config_path}/accounts.json"

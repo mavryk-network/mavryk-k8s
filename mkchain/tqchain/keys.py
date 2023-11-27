@@ -3,7 +3,7 @@ import subprocess
 use_docker = False
 
 try:
-    from pytezos import pytezos
+    from pymavryk import pymavryk
 except (ImportError, NotImplementedError):
     use_docker = True
 
@@ -50,7 +50,7 @@ def extract_key(keys, index: int) -> bytes:
 
 def gen_key(image):
     if not use_docker:
-        key = pytezos.key.generate(export=False)
+        key = pymavryk.key.generate(export=False)
         return {"public": key.public_key(), "secret": key.secret_key()}
 
     keys = run_docker(
