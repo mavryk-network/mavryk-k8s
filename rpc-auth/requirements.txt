@@ -19,7 +19,7 @@ ply==3.11
 pyblake2==1.1.2
 pycparser==2.20
 pysodium==0.7.5
-pymavryk==2.5.11
+pymavryk==3.10.2
 python-dateutil==2.8.1
 pytzdata==2020.1
 PyYAML==6.0.1

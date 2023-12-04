@@ -11,16 +11,14 @@ ENV PYTHONUNBUFFERED=1
 # We re-install binutils at the end because Python execve(2)s ld(1) to
 # load zeromq.
 
+COPY requirements.txt /requirements.txt
 RUN     PIP="pip --no-cache install"					\
   APK_ADD="apk add --no-cache";					\
   $APK_ADD --virtual .build-deps gcc python3-dev			\
   libffi-dev musl-dev make		\
   && $APK_ADD libsodium-dev libsecp256k1-dev gmp-dev			\
   && $APK_ADD zeromq-dev findmnt						\
-  && $PIP install base58 pynacl					\
-  && $PIP install mnemonic pymavryk requests				\
-  && $PIP install pyblake2 pysodium flask \
-  && apk del .build-deps \
+  && $PIP install -r requirements.txt				\
   && $APK_ADD jq netcat-openbsd curl binutils \
   && $APK_ADD lz4
 
