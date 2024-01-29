@@ -6,15 +6,15 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Tezos K8s',
-  tagline: 'Deploy a Tezos Blockchain on Kubernetes',
-  url: 'https://tezos-k8s.xyz',
+  title: 'Mavryk K8s',
+  tagline: 'Deploy a Mavryk Blockchain on Kubernetes',
+  url: 'https://kubernetes.mavryk.org',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'oxheadalpha', // Usually your GitHub org/user name.
-  projectName: 'tezos-k8s', // Usually your repo name.
+  organizationName: 'mavryk-network', // Usually your GitHub org/user name.
+  projectName: 'mavryk-k8s', // Usually your repo name.
 
   presets: [
     [
@@ -39,7 +39,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'Tezos-k8s',
+        title: 'Mavryk-k8s',
         logo: {
           alt: 'Oxhead Alpha Logo',
           src: 'img/logo.svg',
@@ -53,7 +53,7 @@ const config = {
           // },
           // {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/oxheadalpha/tezos-k8s',
+            href: 'https://github.com/mavryk-network/mavryk-k8s',
             label: 'GitHub',
             position: 'right',
           },
@@ -80,7 +80,7 @@ const config = {
               },
               {
                 label: 'Twitter',
-                href: 'https://twitter.com/oxheadalpha',
+                href: 'https://twitter.com/mavryk-network',
               },
             ],
           },

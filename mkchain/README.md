@@ -1,11 +1,11 @@
 - [Install mkchain](#install-mkchain)
 - [Generate Helm Values](#generate-helm-values)
   - [mkchain parameters](#mkchain-parameters)
-- [Create Tezos Chain](#create-tezos-chain)
+- [Create Mavryk Chain](#create-mavryk-chain)
 
 # mkchain
 
-Helper program to generate values for the Tezos chain Helm chart
+Helper program to generate values for the Mavryk chain Helm chart
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ eval $(minikube docker-env)
 ### Installing pymavryk
 
 This is documented at:
-https://pytezos.org/quick_start.html#requirements
+https://pymavryk.mavryk.org/quick_start.html#requirements
 
 ## Install mkchain
 
@@ -86,23 +86,23 @@ You can explicitly specify some values by:
 |                                  | --number-of-nodes        | Number of non-baking nodes in the cluster                      | 0                       |
 | bootstrap_peers                  | --bootstrap-peers        | Peer ips to connect to                                         | []                      |
 | expected_proof_of_work           | --expected-proof-of-work | Node identity generation difficulty                            | 0                       |
-| images.octez                     | --octez-docker-image     | Version of the Octez docker image to run                       | tezos/tezos:v17.3 |
+| images.octez                     | --octez-docker-image     | Version of the Octez docker image to run                       | mavrykdynamics/mavryk:v17.3 |
 |                                  | --use-docker (--no...)   | Use (or don't use) docker to generate keys rather than pymavryk | autodetect              |
 | zerotier_config.zerotier_network | --zerotier-network       | Zerotier network id for external chain access                  |                         |
 | zerotier_config.zerotier_token   | --zerotier-token         | Zerotier token for external chain access                       |                         |
 
-## Create Tezos Chain
+## Create Mavryk Chain
 
-Make sure you have the Tezos Helm chart repo:
+Make sure you have the Mavryk Helm chart repo:
 
 ```shell
-helm repo add oxheadalpha https://oxheadalpha.github.io/tezos-helm-charts
+helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts
 ```
 
-Then install the Tezos Helm chart:
+Then install the Mavryk Helm chart:
 
 ```shell
-helm install $CHAIN_NAME oxheadalpha/tezos-chain \
+helm install $CHAIN_NAME mavryk-network/mavryk-chain \
 --values ./${CHAIN_NAME}_values.yaml \
---namespace oxheadalpha --create-namespace
+--namespace mavryk-network --create-namespace
 ```

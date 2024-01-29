@@ -1,6 +1,6 @@
 apiVersion: v2
 name: snapshotEngine
-description: Produces filesystem artifacts (tarballs and snapshots) that Tezos Nodes can use to sync quickly.
+description: Produces filesystem artifacts (tarballs and snapshots) that Mavryk Nodes can use to sync quickly.
 
 # A chart can be either an 'application' or a 'library' chart.
 #

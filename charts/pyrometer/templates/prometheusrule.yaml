@@ -12,7 +12,7 @@ spec:
     - alert: BakersUnhealthy
       annotations:
         description: '{{ .Values.prometheusRule.numberOfUnhealthyBakersAlertThreshold }} or more unhealthy bakers'
-        summary: "{{ .Values.prometheusRule.numberOfUnhealthyBakersAlertThreshold }} or more unhealthy Tezos baker according to Pyrometer external monitoring"
+        summary: "{{ .Values.prometheusRule.numberOfUnhealthyBakersAlertThreshold }} or more unhealthy Mavryk baker according to Pyrometer external monitoring"
       expr: pyrometer_unhealthy_bakers_total{namespace="{{ .Release.Namespace }}"} >= {{ .Values.prometheusRule.numberOfUnhealthyBakersAlertThreshold }}
       for: 1m
       labels:

@@ -3,7 +3,7 @@
 # When the octez-node boots for the first time, if one of the bootstrap
 # nodes can't be contacted, then octez-node will give up.
 # So at first boot (when peers.json is empty) we wait for bootstrap node.
-# This is probably a bug in tezos core, though.
+# This is probably a bug in mavryk core, though.
 
 if [ -s /var/tezos/node/peers.json ] && [ "$(jq length /var/tezos/node/peers.json)" -gt "0" ]; then
     printf "Node already has an internal list of peers, no need to wait for bootstrap \n"

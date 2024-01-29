@@ -124,7 +124,7 @@ spec:
     spec:
       containers:
         - name: rpc-auth
-          image: {{ .Values.tezos_k8s_images.rpc_auth | quote }}
+          image: {{ .Values.mavryk_k8s_images.rpc_auth | quote }}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -133,9 +133,9 @@ spec:
               value: {{ .Values.redis.host | quote }}
             - name: REDIS_PORT
               value: {{ .Values.redis.port | quote }}
-            - name: TEZOS_RPC_SERVICE
-              value: tezos-node-rpc
-            - name: TEZOS_RPC_SERVICE_PORT
+            - name: MAVRYK_RPC_SERVICE
+              value: mavryk-node-rpc
+            - name: MAVRYK_RPC_SERVICE_PORT
               value: "8732"
 ---
 apiVersion: networking.k8s.io/v1beta1
@@ -165,7 +165,7 @@ spec:
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: tezos-rpc-ingress
+  name: mavryk-rpc-ingress
   namespace: {{ .Release.Namespace }}
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -185,5 +185,5 @@ spec:
           - path: /tezos-node-rpc/(.*?)/(.*)
             pathType: Exact
             backend:
-              serviceName: tezos-node-rpc
+              serviceName: mavryk-node-rpc
               servicePort: 8732

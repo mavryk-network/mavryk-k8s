@@ -9,18 +9,18 @@ deployments:
 
 images:
   zerotier:
-    image: tezos-k8s-zerotier
+    image: mavryk-k8s-zerotier
     dockerfile: ./zerotier/Dockerfile
     context: ./zerotier
   utils:
-    image: tezos-k8s-utils
+    image: mavryk-k8s-utils
     dockerfile: ./utils/Dockerfile
     context: ./utils
 
 dev:
   ports:
     - labelSelector:
-        app: tezos-baking-node
+        app: mavryk-baking-node
       forward:
         - port: 8732
           remotePort: 8732
@@ -64,7 +64,7 @@ profiles:
     strategicMerge:
       images:
         rpc-auth:
-          image: tezos-k8s-rpc-auth
+          image: mavryk-k8s-rpc-auth
           dockerfile: ./rpc-auth/Dockerfile
           context: ./rpc-auth
           build:

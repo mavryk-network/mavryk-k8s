@@ -1,0 +1,25 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- range .Values.signers }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: mavryk-signer-forwarder
+  name: mavryk-remote-signer-monitoring-{{ .name }}
+spec:
+  endpoints:
+  - port: metrics
+    path: /metrics
+    # default scrape timeout of 10 can be too small for remote raspberry pis
+    scrapeTimeout: "20s"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mavryk-signer-forwarder
+      mavryk_baker_name: {{ .name }}
+  targetLabels:
+  - mavryk_baker_name
+  podTargetLabels:
+  - mavryk_endpoint_name
+---
+{{- end }}
+{{- end }}

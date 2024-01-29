@@ -24,8 +24,8 @@ extract_markdown() {
 }
 
 lines=$(cat ../charts/tezos/values.yaml  | awk '/# Nodes/,/End nodes/' | sed '$d' )
-extract_markdown "$lines"  > 01-Tezos-Nodes.md
+extract_markdown "$lines"  > 01-Mavryk-Nodes.md
 lines=$(cat ../charts/tezos/values.yaml  | awk '/# Accounts/,/End Accounts/' | sed '$d' )
-extract_markdown "$lines"  > 02-Tezos-Accounts.md
+extract_markdown "$lines"  > 02-Mavryk-Accounts.md
 lines=$(cat ../charts/tezos/values.yaml  | awk '/# Signers/,/End Signers/' | sed '$d' )
-extract_markdown "$lines"  > 03-Tezos-Signers.md
+extract_markdown "$lines"  > 03-Mavryk-Signers.md

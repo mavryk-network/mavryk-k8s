@@ -5,7 +5,7 @@ const sidebars = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
 
   // But you can create a sidebar manually
-  tezosK8sSidebar: [
+  mavrykK8sSidebar: [
     'index',
     'Prerequisites',
     {
@@ -20,12 +20,12 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Tezos-k8s helm chart',
+      label: 'Mavryk-k8s helm chart',
       collapsed: false,
       items: ['helm-chart',
-        'Tezos-Accounts',
-        'Tezos-Nodes',
-        'Tezos-Signers',
+        'Mavryk-Accounts',
+        'Mavryk-Nodes',
+        'Mavryk-Signers',
       ],
     },
     'other-helm-charts'

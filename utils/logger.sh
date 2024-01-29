@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# This script polls the local Tezos node and will emit a single line
+# This script polls the local Mavryk node and will emit a single line
 # of JSON each time a block is baked.  Each line will be of the form:
 #	{
 #		"logtype": "new-block-on-node",

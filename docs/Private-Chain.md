@@ -2,7 +2,7 @@
 
 ## Zerotier
 
-Zerotier is a VPN service that the Tezos nodes in your cluster will use to communicate with each other.
+Zerotier is a VPN service that the Mavryk nodes in your cluster will use to communicate with each other.
 
 Create a ZeroTier network:
 
@@ -24,7 +24,7 @@ export ZT_NET=1c33c1ced02a5eee
 
 ## mkchain
 
-mkchain is a python script that generates Helm values, which Helm then uses to create your Tezos chain on k8s.
+mkchain is a python script that generates Helm values, which Helm then uses to create your Mavryk chain on k8s.
 
 Follow _just_ the Install mkchain step in `./mkchain/README.md`. See there for more info on how you can customize your chain.
 
@@ -60,9 +60,9 @@ The former is what you will use to create your chain, and the latter is for invi
 Create a Helm release that will start your chain:
 
 ```shell
-helm install $CHAIN_NAME oxheadalpha/tezos-chain \
+helm install $CHAIN_NAME mavryk-network/mavryk-chain \
 --values ./${CHAIN_NAME}_values.yaml \
---namespace oxheadalpha --create-namespace
+--namespace mavryk-network --create-namespace
 ```
 
 Your kubernetes cluster will now be running a series of jobs to
@@ -76,19 +76,19 @@ perform the following tasks:
 - activate the protocol
 - bake the first block
 
-You can find your node in the oxheadalpha namespace with some status information using kubectl.
+You can find your node in the mavryk-network namespace with some status information using kubectl.
 
 ```shell
-kubectl -n oxheadalpha get pods -l appType=octez-node
+kubectl -n mavryk-network get pods -l appType=octez-node
 ```
 
 You can view (and follow using the `-f` flag) logs for your node using the following command:
 
 ```shell
-kubectl -n oxheadalpha logs -l appType=octez-node -c octez-node -f --prefix
+kubectl -n mavryk-network logs -l appType=octez-node -c octez-node -f --prefix
 ```
 
-Congratulations! You now have an operational Tezos based permissioned
+Congratulations! You now have an operational Mavryk based permissioned
 chain running one node.
 
 ## Adding nodes within the cluster
@@ -117,7 +117,7 @@ At the statefulset level, the following parameters are allowed:
      - `is_bootstrap_node`: Is this node a bootstrap peer.
      - config: The `config` property should mimic the structure
                of a node's config.json.
-               Run `tezos-node config --help` for more info.
+               Run `mavryk-node config --help` for more info.
 
 defaults are filled in for most values.
 
@@ -154,14 +154,14 @@ with no extras.
 To upgrade your Helm release run:
 
 ```shell
-helm upgrade $CHAIN_NAME oxheadalpha/tezos-chain \
+helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 --values ./${CHAIN_NAME}_values.yaml \
---namespace oxheadalpha
+--namespace mavryk-network
 ```
 
 The nodes will start up and establish peer-to-peer connections in a full mesh topology.
 
-List all of your running nodes: `kubectl -n oxheadalpha get pods -l appType=octez-node`
+List all of your running nodes: `kubectl -n mavryk-network get pods -l appType=octez-node`
 
 ## Adding external nodes to the cluster
 
@@ -182,24 +182,24 @@ The member needs to:
 Then run:
 
 ```shell
-helm repo add oxheadalpha https://oxheadalpha.github.io/tezos-helm-charts
+helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts
 
-helm install $CHAIN_NAME oxheadalpha/tezos-chain \
+helm install $CHAIN_NAME mavryk-network/mavryk-chain \
 --values <LOCATION OF ${CHAIN_NAME}_invite_values.yaml> \
---namespace oxheadalpha --create-namespace
+--namespace mavryk-network --create-namespace
 ```
 
 At this point additional nodes will be added in a full mesh
 topology.
 
-Congratulations! You now have a multi-node Tezos based permissioned chain.
+Congratulations! You now have a multi-node Mavryk based permissioned chain.
 
 On each computer, run this command to check that the nodes have matching heads by comparing their hashes (it may take a minute for the nodes to sync up):
 
 ```shell
-kubectl get pod -n oxheadalpha -l appType=octez-node -o name |
+kubectl get pod -n mavryk-network -l appType=octez-node -o name |
 while read line;
-  do kubectl -n oxheadalpha exec $line -c octez-node -- /usr/local/bin/octez-client rpc get /chains/main/blocks/head/hash;
+  do kubectl -n mavryk-network exec $line -c octez-node -- /usr/local/bin/octez-client rpc get /chains/main/blocks/head/hash;
 done
 ```
 

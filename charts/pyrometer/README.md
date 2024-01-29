@@ -1,6 +1,6 @@
 ## Pyrometer chart
 
-A chart to deploy the [pyrometer](https://gitlab.com/tezos-kiln/pyrometer) Tezos monitoring tool.
+A chart to deploy the [pyrometer](https://gitlab.com/tezos-kiln/pyrometer) Mavryk monitoring tool.
 
 Pass a complete pyrometer configuration with the `config` key in values, yaml, it will be transparently applied to pyrometer.
 

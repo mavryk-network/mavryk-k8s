@@ -1,6 +1,6 @@
 # Snapshot Engine
 
-A Helm chart for creating Tezos snapshots and tarballs for faster node sync, all in kubernetes, and deploy them to a bucket with a static website.
+A Helm chart for creating Mavryk snapshots and tarballs for faster node sync, all in kubernetes, and deploy them to a bucket with a static website.
 
 Check out [xtz-shots.io](xtz-shots.io) for an example.
 
@@ -22,13 +22,13 @@ Check out [xtz-shots.io](xtz-shots.io) for an example.
     - [Containers](#containers)
       - [Docker & ECR](#docker--ecr)
       - [Kubernetes Containers](#kubernetes-containers)
-        - [init-tezos-filesystem Container](#init-tezos-filesystem-container)
-        - [create-tezos-rolling-snapshot Container](#create-tezos-rolling-snapshot-container)
+        - [init-mavryk-filesystem Container](#init-mavryk-filesystem-container)
+        - [create-mavryk-rolling-snapshot Container](#create-mavryk-rolling-snapshot-container)
         - [zip-and-upload Container](#zip-and-upload-container)
 
 ## What is it?
 
-The Snapshot Engine is a Helm Chart to be deployed on a Kubernetes Cluster.  It will deploy snapshottable Tezos nodes [tezos-k8s](https://github.com/oxheadalpha/tezos-k8s) and produce Tezos `.rolling` snapshot files as well as a new archive and rolling finalized filesystem tarballs in LZ4 format for fast Tezos node syncing.
+The Snapshot Engine is a Helm Chart to be deployed on a Kubernetes Cluster.  It will deploy snapshottable Mavryk nodes [mavryk-k8s](https://github.com/mavryk-network/mavryk-k8s) and produce Mavryk `.rolling` snapshot files as well as a new archive and rolling finalized filesystem tarballs in LZ4 format for fast Mavryk node syncing.
 
 ## Requirements
 
@@ -39,7 +39,7 @@ The Snapshot Engine is a Helm Chart to be deployed on a Kubernetes Cluster.  It 
 8. [Amazon EBS CSI Driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver)*
 9. [Kubernetes VolumeSnapshot CRDs, and a new Storage Class](https://aws.amazon.com/blogs/containers/using-ebs-snapshots-for-persistent-storage-with-your-eks-cluster/)
 
-*&ast;We run our Tezos nodes on EKS.  It may be possible to deploy the Snapshot Engine on other Kubernetes Clusters at this time, but we have not tested these options.*
+*&ast;We run our Mavryk nodes on EKS.  It may be possible to deploy the Snapshot Engine on other Kubernetes Clusters at this time, but we have not tested these options.*
 
 *&ast;We are hoping to make the Snapshot Engine cloud-agnostic, but for now AWS is required.*
 
@@ -104,7 +104,7 @@ The Snapshot Engine is a Helm Chart to be deployed on a Kubernetes Cluster.  It 
 
 3. Scope this new IAM role with a Trust Policy with the following content:
 
-:warning: You will need to update `SERVICE_ACCOUNT_NAMESPACE` with the name of Kubernetes namespace you will like your snapshottable Tezos nodes and Snapshot Engine chart to.
+:warning: You will need to update `SERVICE_ACCOUNT_NAMESPACE` with the name of Kubernetes namespace you will like your snapshottable Mavryk nodes and Snapshot Engine chart to.
 
 ```json
 {
@@ -129,7 +129,7 @@ The Snapshot Engine is a Helm Chart to be deployed on a Kubernetes Cluster.  It 
 5. Add our Helm repository.
 
 ```bash
-helm repo add oxheadalpha https://oxheadalpha.github.io/tezos-helm-charts/
+helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts/
 ```
 
 6. Deploy the chart feeding in the ARN of the IAM role you created above inline, or as as value in a values.yaml file.
@@ -148,7 +148,7 @@ EOF
 helm install snapshotEngine -f values.yaml
 ```
 
-7. Depending on the chain size (mainnet more time, testnet less time) you should have `LZ4` tarballs, and if you are deploying to a rolling node Tezos `.rolling` snapshots as well in your S3 bucket.
+7. Depending on the chain size (mainnet more time, testnet less time) you should have `LZ4` tarballs, and if you are deploying to a rolling node Mavryk `.rolling` snapshots as well in your S3 bucket.
 
 :warning: Testnet artifacts may appear in as soon as 20-30 minutes or less depending on the size of the chain.   Rolling mainnet artifacts will take a few hours, and mainnet archive tarballs could take up to 24 hours.
 
@@ -190,7 +190,7 @@ These are metadata files containing information about the uploaded artifact. Eve
 
 There are 6 - 0 byte files that are uploaded as redirects. These files are updated in S3 to redirect to the latest artifact for each.
 
-* rolling >> latest `.rolling` Tezos **rolling** snapshot file.
+* rolling >> latest `.rolling` Mavryk **rolling** snapshot file.
 * rolling-tarball >> latest **rolling** `.lz4` tarball
 * archive-tarball >> latest **archive** `.lz4` tarball
 * rolling-metadata >> latest `.rolling.json` metadata file
@@ -210,7 +210,7 @@ For 1 Kubernetes Namespace this Helm Chart creates -
 
 ### Snapshot Warmer Deployment
 
-This Kubernetes Deployment runs the `snapshotEngine` container located in the root of the `tezos-k8s` repository.
+This Kubernetes Deployment runs the `snapshotEngine` container located in the root of the `mavryk-k8s` repository.
 
 The entrypoint is overridden and the `snapshot-warmer/scripts/snapshotwarmer.sh` script is provided as the container entrypoint.
 
@@ -239,7 +239,7 @@ Triggered by Snapshot Scheduler Kubernetes Deployment.
 
 Steps this Job performs -
 
-1. Waits until targeted Tezos Node is ready and healthy in Kubernetes.
+1. Waits until targeted Mavryk Node is ready and healthy in Kubernetes.
 2. Deletes zip-and-upload job if it exists.  This cleans up errored jobs and completed jobs.
 3. Deletes rolling tarball restore PVC.
 4. Deletes snapshot cache PVC.
@@ -256,7 +256,7 @@ Steps this Job performs -
 
 Triggered by Snapshot Maker Kubernetes Job.
 
-This job initializes the Tezos storage that was restored to a new PVC, creates rolling Tezos snapshot if targeted Tezos Node is rolling history mode, then LZ4s and uploads artifacts to S3, and finally builds the xtz-shots website.
+This job initializes the Mavryk storage that was restored to a new PVC, creates rolling Mavryk snapshot if targeted Mavryk Node is rolling history mode, then LZ4s and uploads artifacts to S3, and finally builds the xtz-shots website.
 
 ### Containers
 
@@ -264,7 +264,7 @@ Overview of containers built by Docker and stored in ECR as well as a descriptio
 
 #### Docker & ECR
 
-One container is used for all Kubernetes Jobs and Pods.  The Dockerfile is located in `tezos-k8s/snapshotEngine`.
+One container is used for all Kubernetes Jobs and Pods.  The Dockerfile is located in `mavryk-k8s/snapshotEngine`.
 
 Container is based on `jekyll` container.
 
@@ -280,7 +280,7 @@ Tools installed include -
 
 The different functionality is accomplished by `sh` scripts located in this directory, and supplied by `args` in the deployments and jobs via `entrypoint.sh` in the same directory.
 
-`tezos-k8s/snapshotEngine/entrypoint.sh`
+`mavryk-k8s/snapshotEngine/entrypoint.sh`
 
 ```sh
 case "$CMD" in
@@ -290,7 +290,7 @@ case "$CMD" in
 esac
 ```
 
-`tezos-k8s/snapshotEngine/snapshotMakerJob.yaml`
+`mavryk-k8s/snapshotEngine/snapshotMakerJob.yaml`
 
 ```yaml
       containers:
@@ -300,7 +300,7 @@ esac
               - "snapshot-maker"
 ```
 
-`tezos-k8s/snapshotEngine/mainJob.yaml`
+`mavryk-k8s/snapshotEngine/mainJob.yaml`
 
 ```yaml
       containers:
@@ -318,7 +318,7 @@ Snapshot Maker Docker container is built and uploaded to ECR.
 
 Overview of functionality of containers in Kubernetes Job Pods.
 
-##### init-tezos-filesystem Container
+##### init-mavryk-filesystem Container
 
 In order for the storage to be imported successfully to a new node, the storage needs to be initialized by the `octez-node` application.
 
@@ -326,11 +326,11 @@ This container performs the following steps -
 
 1. Chowns the history-mode-snapshot-cache-volume to 100 so subsequent containers can access files created in them.
 2. Sets a trap so that we can exit this container after 2 minutes.  `octez-node` does not provide exit criteria if there is an error. Around 20%-40% of the time there will be an error because the EC2 instance would normally need to be shut down before an EBS snapshot is taken. With Kubernetes this is not possible, so we time the filesystem initialization and kill it if it takes longer than 2 minutes.
-3. Runs a headless Tezos RPC endpoint to initialize the storage.
+3. Runs a headless Mavryk RPC endpoint to initialize the storage.
 4. Waits until RPC is available.
 5. Writes `BLOCK_HASH`, `BLOCK_HEIGHT`, and `BLOCK_TIME` for later use to snapshot cache.
 
-##### create-tezos-rolling-snapshot Container
+##### create-mavryk-rolling-snapshot Container
 
 This container only exists for a rolling history mode workflow.
 
@@ -374,7 +374,7 @@ This container performs the following steps -
 
 #### Rebuilding containers
 
-You may want to rebuild these containers instead of using the ones released as part of tezos-k8s.
+You may want to rebuild these containers instead of using the ones released as part of mavryk-k8s.
 
 You can build and push your images to a repo of your choosing, but this is how it can be done without automation to ECR with Docker. We recommend utilizing a configuration management tool to help with container orchestration such as Terraform or Pulumi.
 
@@ -396,6 +396,6 @@ Then pass the URI of the image as helm values:
 
 ```bash
 helm install snapshotEngine \
---set tezos_k8s_images.snapshotEngine="YOUR_ECR_URL/snapshotEngine:latest"
+--set mavryk_k8s_images.snapshotEngine="YOUR_ECR_URL/snapshotEngine:latest"
 # <add more helm parameters here>
 ```

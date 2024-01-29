@@ -84,12 +84,12 @@ usage() {
 }
 
 #
-# First, get to the top level and ensure that we're tezos-k8s to
+# First, get to the top level and ensure that we're mavryk-k8s to
 # some degree.
 
 GIT_BASE="$(git rev-parse --show-toplevel)"
 if [ -z "$GIT_BASE" -o ! -d "$GIT_BASE/charts/tezos" ]; then
-	usage "Not in a tezos-k8s git repo, failing"
+	usage "Not in a mavryk-k8s git repo, failing"
 fi
 cd "$GIT_BASE"
 

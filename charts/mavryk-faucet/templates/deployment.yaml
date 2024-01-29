@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mavryk-faucet
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mavryk-faucet
+  template:
+    metadata:
+      labels:
+        app: mavryk-faucet
+      annotations:
+        # ensure that the pod bounces each time configmap changes
+        # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      restartPolicy: Always
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "mavryk-faucet.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: faucet-backend
+          image: {{ .Values.images.mavrykFaucetBackend }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: backend
+              containerPort: 3000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: faucet-backend-config
+            - secretRef:
+                name: faucet-backend-secret
+      {{- if .Values.enableUI }}
+        - name: faucet
+          image: {{ .Values.images.mavrykFaucet }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: frontend
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: faucet-config
+              mountPath: /app/public/config.json
+              subPath: config.json
+              readOnly: true
+      {{- end }}
+      volumes:
+        - name: faucet-backend-config
+          configMap:
+            name: faucet-backend-config
+      {{- if .Values.enableUI }}
+        - name: faucet-config
+          configMap:
+            name: faucet-config
+      {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

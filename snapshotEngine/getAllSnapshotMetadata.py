@@ -7,7 +7,7 @@ from datetime import datetime
 schemaURL = os.environ["SCHEMA_URL"]
 allSubDomains = os.environ["ALL_SUBDOMAINS"].split(",")
 s3Endpoint = "nyc3.digitaloceanspaces.com"
-filename = "tezos-snapshots.json"
+filename = "mavryk-snapshots.json"
 
 # Write empty top-level array to initialize json
 artifact_metadata = []

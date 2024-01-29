@@ -1,9 +1,9 @@
 apiVersion: v2
-name: authenticated-rpc-tezos-chain
-description: A Helm chart for Tezos RPC authentication for a private chain
+name: authenticated-rpc-mavryk-chain
+description: A Helm chart for Mavryk RPC authentication for a private chain
 type: application
 version: 0.0.0
 keywords:
-  - tezos
+  - mavryk
   - blockchain
-home: https://github.com/oxheadalpha/tezos-k8s
+home: https://github.com/mavryk-network/mavryk-k8s

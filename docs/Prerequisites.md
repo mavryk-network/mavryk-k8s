@@ -22,7 +22,7 @@ This section varies depending on OS.
 
 - Install [Docker Desktop](https://docs.docker.com/docker-for-mac/install/).
 
-- Start Docker Desktop and follow the setup instructions. Note: You may quit Docker after it has finished setting up. It is not required that Docker Desktop is running for you to run a Tezos chain.
+- Start Docker Desktop and follow the setup instructions. Note: You may quit Docker after it has finished setting up. It is not required that Docker Desktop is running for you to run a Mavryk chain.
 
 - Install [homebrew](https://brew.sh/):
 
@@ -94,12 +94,12 @@ eval $(minikube docker-env -u)
 ## Adding the Oxhead Alpha Helm Chart Repository
 
 ```
-helm repo add oxheadalpha https://oxheadalpha.github.io/tezos-helm-charts/
+helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts/
 ```
 
-## Using a custom Tezos build
+## Using a custom Mavryk build
 
-Create a clone of the `[tezos](https://gitlab.com/tezos/tezos)`
+Create a clone of the `[mavryk](https://gitlab.com/mavryk-network/mavryk-protocol)`
 repository.  [Set up your development environment as usual](https://tezos.gitlab.io/introduction/howtoget.html#setting-up-the-development-environment-from-scratch).  Then run:
 
 ```shell
@@ -107,7 +107,7 @@ eval $(minikube docker-env)
 make docker-image
 ```
 
-This will create a docker image called `tezos:latest` and install it
+This will create a docker image called `mavryk:latest` and install it
 into the minikube environment.
 
 Or, if you prefer, you can build the image using:
@@ -115,7 +115,7 @@ Or, if you prefer, you can build the image using:
 ./scripts/create_docker_image.sh
 ```
 
-This will create an image with a name like `tezos/tezos:v16.0`.
+This will create an image with a name like `mavrykdynamics/mavryk:v16.0`.
 Then you install it thus:
 ```shell
 docker image save <image> | ( eval $(minikube docker-env); docker image load )
@@ -128,12 +128,12 @@ images:
   octez: <image>
 ```
 
-where image is `tezos:latest` or whatever.
+where image is `mavryk:latest` or whatever.
 
 Then install the chart as above.
 
 ## Notes
 
-- We recommend using a very nice GUI for your k8s Tezos chain infrastructure called [Lens](https://k8slens.dev/). This allows you to easily see all of the k8s resources that have been spun up as well as to view the logs for your Tezos nodes. Checkout a similar tool called [k9s](https://k9scli.io/) that works in the CLI.
+- We recommend using a very nice GUI for your k8s Mavryk chain infrastructure called [Lens](https://k8slens.dev/). This allows you to easily see all of the k8s resources that have been spun up as well as to view the logs for your Mavryk nodes. Checkout a similar tool called [k9s](https://k9scli.io/) that works in the CLI.
 
-- Check out Oxheadalpha's Typescript node module [tezos-pulumi](https://github.com/oxheadalpha/tezos-pulumi) to deploy tezos-k8s in [AWS EKS](https://aws.amazon.com/eks/).
+- Check out Oxheadalpha's Typescript node module [tezos-pulumi](https://github.com/oxheadalpha/tezos-pulumi) to deploy mavryk-k8s in [AWS EKS](https://aws.amazon.com/eks/).

@@ -14,7 +14,7 @@ set +e
 # Next we write the current baker account into /etc/tezos/baking-account.
 # We do it here because we shall use jq to process some of the environment
 # variables and we are not guaranteed to have jq available on an arbitrary
-# tezos docker image.
+# mavryk docker image.
 
 MY_CLASS=$(echo $NODES | jq -r ".\"${MY_NODE_CLASS}\"")
 
@@ -49,5 +49,5 @@ if [ "$AM_I_BAKER" -eq 1 ]; then
     echo "$my_baker_account" > /etc/tezos/baker-account
 fi
 
-# make sure tezos user owns everything in /var/tezos
+# make sure mavryk user owns everything in /var/tezos
 chown -R 1000:1000 /var/tezos

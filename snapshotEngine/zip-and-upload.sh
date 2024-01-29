@@ -3,15 +3,15 @@
 BLOCK_HEIGHT=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HEIGHT)
 BLOCK_HASH=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HASH)
 BLOCK_TIMESTAMP=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP)
-#TEZOS_VERSION=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/TEZOS_VERSION)
+#TEZOS_VERSION=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_VERSION)
 NETWORK="${NAMESPACE%%-*}"
 # Export for python
 export S3_BUCKET="${NAMESPACE}"
-TEZOS_RPC_VERSION_INFO="$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/TEZOS_RPC_VERSION_INFO)"
+MAVRYK_RPC_VERSION_INFO="$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_RPC_VERSION_INFO)"
 
-TEZOS_VERSION="$(echo "${TEZOS_RPC_VERSION_INFO}" | jq -r .version)"
-TEZOS_VERSION_COMMIT_HASH="$(echo "${TEZOS_RPC_VERSION_INFO}" | jq -r .commit_info.commit_hash)"
-TEZOS_VERSION_COMMIT_DATE="$(echo "${TEZOS_RPC_VERSION_INFO}" | jq -r .commit_info.commit_date)"
+TEZOS_VERSION="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .version)"
+TEZOS_VERSION_COMMIT_HASH="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .commit_info.commit_hash)"
+TEZOS_VERSION_COMMIT_DATE="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .commit_info.commit_date)"
 
 # Needed for alternate cloud providers
 AWS_S3_BUCKET="${NAMESPACE%-*}.${SNAPSHOT_WEBSITE_DOMAIN_NAME}"
@@ -61,7 +61,7 @@ printf "%s BLOCK_TIMESTAMP is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/B
 # Do not take archive tarball in rolling namespace
 if [[ "${HISTORY_MODE}" = archive ]]; then
     printf "%s ********************* Archive Tarball *********************\n" "$(date "+%Y-%m-%d %H:%M:%S")"
-    ARCHIVE_TARBALL_FILENAME=tezos-"${NETWORK}"-archive-tarball-"${BLOCK_HEIGHT}".lz4
+    ARCHIVE_TARBALL_FILENAME=mavryk-"${NETWORK}"-archive-tarball-"${BLOCK_HEIGHT}".lz4
     printf "%s Archive tarball filename is ${ARCHIVE_TARBALL_FILENAME}\n" "$(date "+%Y-%m-%d %H:%M:%S")"
 
     # If you upload a file bigger than 50GB, you have to do a multipart upload with a part size between 1 and 10000.
@@ -127,7 +127,7 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
             "chain_name": $NETWORK,
             "history_mode": $HISTORY_MODE,
             "artifact_type": $ARTIFACT_TYPE,
-            "tezos_version": {
+            "mavryk_version": {
                 "implementation": "octez",
                 "version": "",
                 "commit_info": {
@@ -141,7 +141,7 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
         # Since version.additional_info will either be another object or "release" we just overwrite it from whatever we got above
         # JQ has trouble inserting a key into a file this is the way we opted to insert it
         tmp=$(mktemp)
-        jq --arg version "$TEZOS_VERSION" '.tezos_version.version = ($version|fromjson)' "${ARCHIVE_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ARCHIVE_TARBALL_FILENAME}".json
+        jq --arg version "$TEZOS_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ARCHIVE_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ARCHIVE_TARBALL_FILENAME}".json
 
         # Check metadata json exists
         if [[ -s "${ARCHIVE_TARBALL_FILENAME}".json ]]; then
@@ -195,7 +195,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
     # Rolling snapshot and tarball vars
     ROLLING_SNAPSHOT_FILENAME="${NETWORK}"-"${BLOCK_HEIGHT}".rolling
     ROLLING_SNAPSHOT=/"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_FILENAME}"
-    ROLLING_TARBALL_FILENAME=tezos-"${NETWORK}"-rolling-tarball-"${BLOCK_HEIGHT}".lz4
+    ROLLING_TARBALL_FILENAME=mavryk-"${NETWORK}"-rolling-tarball-"${BLOCK_HEIGHT}".lz4
     IMPORT_IN_PROGRESS=/rolling-tarball-restore/snapshot-import-in-progress
 
     # Wait for rolling snapshot file
@@ -309,7 +309,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             "chain_name": $NETWORK,
             "history_mode": $HISTORY_MODE,
             "artifact_type": $ARTIFACT_TYPE,
-            "tezos_version": {
+            "mavryk_version": {
                 "implementation": "octez",
                 "version": "",
                 "commit_info": {
@@ -323,7 +323,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
         # Since version.additional_info will either be another object or "release" we just overwrite it from whatever we got above
         # JQ has trouble inserting a key into a file this is the way we opted to insert it
         tmp=$(mktemp)
-        jq --arg version "$TEZOS_VERSION" '.tezos_version.version = ($version|fromjson)' "${ROLLING_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_TARBALL_FILENAME}".json
+        jq --arg version "$TEZOS_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ROLLING_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_TARBALL_FILENAME}".json
         
         # Check metadata exists
         if [[ -s "${ROLLING_TARBALL_FILENAME}".json ]]; then
@@ -371,18 +371,18 @@ if [ "${HISTORY_MODE}" = rolling ]; then
     #
     # Rolling Snapshot
     #
-    printf "%s ********************* Rolling Tezos Snapshot *********************\\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+    printf "%s ********************* Rolling Mavryk Snapshot *********************\\n" "$(date "+%Y-%m-%d %H:%M:%S")"
     # If rolling snapshot exists locally
     if test -f "${ROLLING_SNAPSHOT}"; then
         printf "%s ${ROLLING_SNAPSHOT} exists!\n" "$(date "+%Y-%m-%d %H:%M:%S")"
 
         # Upload rolling snapshot to S3 and error on failure
         if ! eval "$(set_aws_command_creds)" s3 cp "${ROLLING_SNAPSHOT}" s3://"${S3_BUCKET}" --acl public-read; then
-            printf "%s Rolling Tezos : Error uploading ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+            printf "%s Rolling Mavryk : Error uploading ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
         else
-            printf "%s Rolling Tezos : Successfully uploaded ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+            printf "%s Rolling Mavryk : Successfully uploaded ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
 
-            printf "%s Rolling Tezos : Uploading redirect...\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+            printf "%s Rolling Mavryk : Uploading redirect...\n" "$(date "+%Y-%m-%d %H:%M:%S")"
 
             FILESIZE_BYTES=$(stat -c %s "${ROLLING_SNAPSHOT}")
             printf "FILESIZE_BYTES COMMAND=%s\n" "$(stat -c %s "${ROLLING_SNAPSHOT}")"
@@ -391,7 +391,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             FILESIZE=$(echo "${FILESIZE_BYTES}" | awk '{ suffix="KMGT"; for(i=0; $1>1024 && i < length(suffix); i++) $1/=1024; print int($1) substr(suffix, i, 1), $3; }' | xargs )
             SHA256=$(sha256sum "${ROLLING_SNAPSHOT}" | awk '{print $1}')
             
-            TEZOS_VERSION_MAJOR="$(echo "${TEZOS_RPC_VERSION_INFO}" | jq .version.major)"
+            TEZOS_VERSION_MAJOR="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq .version.major)"
 
             if [[ $TEZOS_VERSION_MAJOR -lt 16 ]]; then
                 SNAPSHOT_VERSION=4
@@ -411,7 +411,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             --arg FILESIZE "$FILESIZE" \
             --arg NETWORK "$NETWORK" \
             --arg HISTORY_MODE "rolling" \
-            --arg ARTIFACT_TYPE "tezos-snapshot" \
+            --arg ARTIFACT_TYPE "mavryk-snapshot" \
             --arg TEZOS_VERSION_COMMIT_HASH "${TEZOS_VERSION_COMMIT_HASH}" \
             --arg TEZOS_VERSION_COMMIT_DATE "${TEZOS_VERSION_COMMIT_DATE}" \
             --arg SNAPSHOT_VERSION "$SNAPSHOT_VERSION" \
@@ -427,7 +427,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
                 "chain_name": $NETWORK,
                 "history_mode": $HISTORY_MODE,
                 "artifact_type": $ARTIFACT_TYPE,
-                "tezos_version":{
+                "mavryk_version":{
                     "implementation": "octez",
                     "version": "",
                     "commit_info": {
@@ -442,7 +442,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             # Since version.additional_info will either be another object or "release" we just overwrite it from whatever we got above
             # JQ has trouble inserting a key into a file this is the way we opted to insert it
             tmp=$(mktemp)
-            jq --arg version "$TEZOS_VERSION" '.tezos_version.version = ($version|fromjson)' "${ROLLING_SNAPSHOT_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_SNAPSHOT_FILENAME}".json
+            jq --arg version "$TEZOS_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ROLLING_SNAPSHOT_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_SNAPSHOT_FILENAME}".json
 
             # Check metadata json exists
             if [[ -s "${ROLLING_SNAPSHOT_FILENAME}".json ]]; then
@@ -461,11 +461,11 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             # Rolling snapshot redirect object
             touch rolling
 
-            # Upload rolling tezos snapshot redirect object
+            # Upload rolling mavryk snapshot redirect object
             if ! eval "$(set_aws_command_creds "aws")" s3 cp rolling s3://"${AWS_S3_BUCKET}" --website-redirect "${REDIRECT_ROOT}${ROLLING_SNAPSHOT_FILENAME}" --cache-control 'no-cache'; then
-                printf "%s Rolling Tezos : Error uploading redirect object for ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+                printf "%s Rolling Mavryk : Error uploading redirect object for ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
             else
-                printf "%s Rolling Tezos : Successfully uploaded redirect object for ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+                printf "%s Rolling Mavryk : Successfully uploaded redirect object for ${ROLLING_SNAPSHOT} to S3.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
             fi
 
             # Rolling snapshot json redirect file
@@ -483,7 +483,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             fi
         fi
     else
-        printf "%s Rolling Tezos : ${ROLLING_SNAPSHOT} does not exist.  Not uploading.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
+        printf "%s Rolling Mavryk : ${ROLLING_SNAPSHOT} does not exist.  Not uploading.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
     fi
 else
   printf "%s Skipping rolling snapshot import and export because this is an archive job.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
@@ -521,7 +521,7 @@ if [[ -n "${SNAPSHOT_WEBSITE_DOMAIN_NAME}" ]]; then
     echo '[]' > "base.json"
 
     printf "%s Building base.json... this may take a while.\n" "$(date "+%Y-%m-%d %H:%M:%S")"
-    eval "$(set_aws_command_creds)" s3 ls s3://"${S3_BUCKET}" |  grep '\.json'| sort | awk '{print $4}' | awk -F '\\\\n' '{print $1}' | tr ' ' '\n' | grep -v -e base.json -e tezos-snapshots.json | while read ITEM; do
+    eval "$(set_aws_command_creds)" s3 ls s3://"${S3_BUCKET}" |  grep '\.json'| sort | awk '{print $4}' | awk -F '\\\\n' '{print $1}' | tr ' ' '\n' | grep -v -e base.json -e mavryk-snapshots.json | while read ITEM; do
         tmp=$(mktemp) && cp base.json "${tmp}" && jq --argjson file "$(curl -s https://"${FQDN}"/$ITEM)" '. += [$file]' "${tmp}" > base.json
     done
 
@@ -545,23 +545,23 @@ if [[ -n "${SNAPSHOT_WEBSITE_DOMAIN_NAME}" ]]; then
         exit 1
     fi
 
-    # Check if tezos-snapshots.json exists
-    # tezos-snapshots.json is a list of all snapshots in all buckets
-    if [[ ! -f tezos-snapshots.json ]]; then
-        printf "%s ERROR tezos-snapshots.json does not exist locally.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
+    # Check if mavryk-snapshots.json exists
+    # mavryk-snapshots.json is a list of all snapshots in all buckets
+    if [[ ! -f mavryk-snapshots.json ]]; then
+        printf "%s ERROR mavryk-snapshots.json does not exist locally.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
         sleep 5
         exit 1
     fi
 
-    # Upload tezos-snapshots.json
-    if ! eval "$(set_aws_command_creds "aws")" s3 cp tezos-snapshots.json s3://"${SNAPSHOT_WEBSITE_DOMAIN_NAME}"/tezos-snapshots.json; then
-        printf "%s Upload tezos-snapshots.json : Error uploading file tezos-snapshots.json to S3.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
+    # Upload mavryk-snapshots.json
+    if ! eval "$(set_aws_command_creds "aws")" s3 cp mavryk-snapshots.json s3://"${SNAPSHOT_WEBSITE_DOMAIN_NAME}"/tezos-snapshots.json; then
+        printf "%s Upload mavryk-snapshots.json : Error uploading file mavryk-snapshots.json to S3.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
     else
-        printf "%s Upload tezos-snapshots.json : File tezos-snapshots.json successfully uploaded to S3.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
+        printf "%s Upload mavryk-snapshots.json : File mavryk-snapshots.json successfully uploaded to S3.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
     fi
 
     # Separate python for web page build
-    # Needs tezos-snapshots.json to exist before pages are built
+    # Needs mavryk-snapshots.json to exist before pages are built
     python /getLatestSnapshotMetadata.py
 
     # Generate HTML from markdown and metadata

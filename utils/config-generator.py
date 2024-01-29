@@ -504,7 +504,7 @@ def create_node_identity_json():
     identity_file_path = f"{DATA_DIR}/identity.json"
 
     # Manually create the data directory and identity.json, and give the
-    # same dir/file permissions that tezos gives when it creates them.
+    # same dir/file permissions that mavryk gives when it creates them.
     print("\nWriting identity.json file from the instance config")
     print(f"Node id: {NODE_IDENTITIES.get(MY_POD_NAME)['peer_id']}")
 
@@ -690,7 +690,7 @@ def create_node_snapshot_config_json(history_mode):
         "1",
         "t",
     )
-    artifact_type = "tarball" if prefer_tarballs else "tezos-snapshot"
+    artifact_type = "tarball" if prefer_tarballs else "mavryk-snapshot"
     rolling_tarball_url = os.environ.get("ROLLING_TARBALL_URL")
     full_tarball_url = os.environ.get("FULL_TARBALL_URL")
     archive_tarball_url = os.environ.get("ARCHIVE_TARBALL_URL")
@@ -711,14 +711,14 @@ def create_node_snapshot_config_json(history_mode):
                 elif rolling_snapshot_url:
                     return {
                         "url": rolling_snapshot_url,
-                        "artifact_type": "tezos-snapshot",
+                        "artifact_type": "mavryk-snapshot",
                     }
                 return
             case "full":
                 if full_tarball_url:
                     return {"url": full_tarball_url, "artifact_type": "tarball"}
                 elif full_snapshot_url:
-                    return {"url": full_snapshot_url, "artifact_type": "tezos-snapshot"}
+                    return {"url": full_snapshot_url, "artifact_type": "mavryk-snapshot"}
                 return
             case "archive":
                 if archive_tarball_url:
@@ -765,7 +765,7 @@ and octez version {octez_version}.
         version_matching_snapshots = [
             s
             for s in matching_snapshots
-            if int(octez_version) == s.get("tezos_version").get("version").get("major")
+            if int(octez_version) == s.get("mavryk_version").get("version").get("major")
         ]
         if len(version_matching_snapshots):
             # If we can't find snapshots of the right octez version, we just pick the most recent available.

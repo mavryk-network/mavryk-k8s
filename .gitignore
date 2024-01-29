@@ -17,4 +17,4 @@ build
 *_values.yaml
 *-values.yaml
 
-charts/tezos/charts
+charts/mavryk/charts

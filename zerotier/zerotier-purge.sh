@@ -39,7 +39,7 @@ echo "Done"
   "hidden": false,
   "name": "my-chain_bootstrap",
   "online": false,
-  "description": "Bootstrap node tezos-baking-node-1 for chain my-chain",
+  "description": "Bootstrap node mavryk-baking-node-1 for chain my-chain",
   "config": {
     "activeBridge": false,
     "address": "fd72385a73",

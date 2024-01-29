@@ -39,7 +39,7 @@ ROLLING_REGULAR_NODE_NAME = "rolling-node"
 cli_args = {
     "should_generate_unsafe_deterministic_data": {
         "help": (
-            "Should tezos-k8s generate deterministic account keys and genesis"
+            "Should mavryk-k8s generate deterministic account keys and genesis"
             " block hash instead of mkchain using octez-client to generate"
             " random ones. This option is helpful for testing purposes."
         ),
@@ -70,7 +70,7 @@ cli_args = {
     },
     "octez_docker_image": {
         "help": "Version of the Octez docker image",
-        "default": "tezos/tezos:v17.3",
+        "default": "mavrykdynamics/mavryk:v17.3",
     },
     "use_docker": {
         "action": "store_true",
@@ -93,7 +93,7 @@ class ExtendAction(argparse.Action):
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description="Generate helm values for use with the tezos-chain helm chart"
+        description="Generate helm values for use with the mavryk-chain helm chart"
     )
 
     parser.register("action", "extend", ExtendAction)
@@ -279,7 +279,7 @@ def main():
         }
 
     octezSigners = {
-        "tezos-signer-0": {
+        "mavryk-signer-0": {
             "accounts": [
                 f"{ARCHIVE_BAKER_NODE_NAME}-{n}" for n in range(args.number_of_bakers)
             ],

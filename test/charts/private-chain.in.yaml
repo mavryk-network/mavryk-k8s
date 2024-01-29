@@ -74,10 +74,10 @@ bootstrap_peers: []
 expected_proof_of_work: 0
 snapshot_source: null
 images:
-  octez: 'tezos/tezos:v15-release'
+  octez: 'mavrykdynamics/mavryk:v15-release'
 is_invitation: false
 node_config_network:
-  activation_account_name: tezos-baking-node-0
+  activation_account_name: mavryk-baking-node-0
   chain_name: elric
   genesis:
     block: BKupwQVt7UoyuBDDpj17NEtT3M8a1hKDTuw1HahdANAMXznC5YC
@@ -86,11 +86,11 @@ node_config_network:
 nodes:
   eu:
     images:
-      octez: tezos/tezos:v15-release
+      octez: mavrykdynamics/mavryk:v15-release
     labels:
       rpc_node: "true"
     instances:
-    - bake_using_accounts: [tezos-baking-node-0, a, b, c, d]
+    - bake_using_accounts: [mavryk-baking-node-0, a, b, c, d]
       config:
         shell: {history_mode: archive}
       is_bootstrap_node: true
@@ -119,9 +119,9 @@ accounts:
     key: sppk...
     key_id: alias/...
 octezSigners:
- tezos-signer-0:
+ mavryk-signer-0:
    accounts:
-    - tezos-baking-node-0
+    - mavryk-baking-node-0
 tacoinfraSigners:
   tacoinfra-signer:
     accounts:

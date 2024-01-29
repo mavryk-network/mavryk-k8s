@@ -1,9 +1,9 @@
-# Images not part of the tezos-k8s repo go here
+# Images not part of the mavryk-k8s repo go here
 images:
 
-# Images that are part of the tezos-k8s repo go here
-tezos_k8s_images:
-  rpc_auth: tezos-k8s-rpc-auth:dev
+# Images that are part of the mavryk-k8s repo go here
+mavryk_k8s_images:
+  rpc_auth: mavryk-k8s-rpc-auth:dev
 
 redis:
   host: redis-service
