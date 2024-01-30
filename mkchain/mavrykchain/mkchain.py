@@ -24,11 +24,11 @@ def quoted_scalar(dumper, data):  # a representer to force quotations on scalars
 MyDumper.add_representer(QuotedString, quoted_scalar)
 # end https://stackoverflow.com/a/52424865/207209
 
-from tqchain.keys import gen_key, set_use_docker
+from mavrykchain.keys import gen_key, set_use_docker
 
 from ._version import get_versions
 
-sys.path.insert(0, "tqchain")
+sys.path.insert(0, "mavrykchain")
 
 __version__ = get_versions()["version"]
 

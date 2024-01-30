@@ -1,4 +1,4 @@
 def test_package_exists() -> None:
-    import tqchain
+    import mavrykchain
 
-    assert vars(tqchain)["__name__"] == "tqchain"
+    assert vars(mavrykchain)["__name__"] == "mavrykchain"
