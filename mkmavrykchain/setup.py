@@ -6,7 +6,7 @@ with open("README.md", "r") as readme:
     long_description = readme.read()
 
 setuptools.setup(
-    name="mkchain",
+    name="mkmavrykchain",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     packages=["mavrykchain"],
@@ -19,7 +19,7 @@ setuptools.setup(
     install_requires=["pyyaml"],
     setup_requires=["wheel"],
     extras_require={"dev": ["pytest", "autoflake", "isort", "black"]},
-    entry_points={"console_scripts": ["mkchain=mavrykchain.mkchain:main"]},
+    entry_points={"console_scripts": ["mkmavrykchain=mavrykchain.mkmavrykchain:main"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

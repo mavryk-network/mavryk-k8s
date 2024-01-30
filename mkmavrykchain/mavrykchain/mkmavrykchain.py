@@ -40,7 +40,7 @@ cli_args = {
     "should_generate_unsafe_deterministic_data": {
         "help": (
             "Should mavryk-k8s generate deterministic account keys and genesis"
-            " block hash instead of mkchain using octez-client to generate"
+            " block hash instead of mkmavrykchain using octez-client to generate"
             " random ones. This option is helpful for testing purposes."
         ),
         "action": "store_true",
