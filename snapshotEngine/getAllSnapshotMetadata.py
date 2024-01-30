@@ -39,7 +39,7 @@ dt_string = now.strftime('%Y-%m-%dT%H:%M:%SZ')
 # Meta document that includes the list of storage artifacts among some other useful keys.
 metadata_document = json.dumps({
     "date_generated": dt_string,
-    "org": "Oxhead Alpha",
+    "org": "Mavryk Dynamics",
     "$schema": schemaURL,
     "data": artifact_metadata,
 }, indent=4)

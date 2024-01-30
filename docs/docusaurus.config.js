@@ -41,7 +41,7 @@ const config = {
       navbar: {
         title: 'Mavryk-k8s',
         logo: {
-          alt: 'Oxhead Alpha Logo',
+          alt: 'Mavryk Dynamics Logo',
           src: 'img/logo.svg',
         },
         items: [

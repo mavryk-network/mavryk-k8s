@@ -129,7 +129,7 @@ The Snapshot Engine is a Helm Chart to be deployed on a Kubernetes Cluster.  It 
 5. Add our Helm repository.
 
 ```bash
-helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts/
+helm repo add mavryk-network https://charts.mavryk.org/
 ```
 
 6. Deploy the chart feeding in the ARN of the IAM role you created above inline, or as as value in a values.yaml file.

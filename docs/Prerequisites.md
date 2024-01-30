@@ -91,10 +91,10 @@ If you want to unset your shell from using minikube's docker daemon:
 eval $(minikube docker-env -u)
 ```
 
-## Adding the Oxhead Alpha Helm Chart Repository
+## Adding the Mavryk Dynamics Helm Chart Repository
 
 ```
-helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts/
+helm repo add mavryk-network https://charts.mavryk.org/
 ```
 
 ## Using a custom Mavryk build

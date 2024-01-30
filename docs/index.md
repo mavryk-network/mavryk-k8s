@@ -1,6 +1,6 @@
 # Overview
 
-![Mavryk](./static/img/tezos-black.svg)![Kubernetes](./static/img/kubernetes.svg)
+![Mavryk](./static/img/mavryk-purple.svg)![Kubernetes](./static/img/kubernetes.svg)
 
 Mavryk-k8s is a collection of Helm charts and container images that can be used to deploy [Mavryk](https://tezos.com) blockchain infrastructure on a Kubernetes cluster.
 
@@ -13,7 +13,7 @@ Use it to deploy:
 
 on your laptop or in a cloud platform such as AWS, Digitalocean or GCP.
 
-Mavryk-k8s is actively maintained by the team at [Oxhead Alpha](https://mavryk-network.com), a Mavryk core development company.
+Mavryk-k8s is actively maintained by the team at [Mavryk Dynamics](https://mavrykdynamics.com), a Mavryk core development company.
 
 ## Quick start
 
@@ -21,10 +21,10 @@ We assume you have access to a Kubernetes cluster and helm installed (see [Prere
 
 To deploy a Mavryk mainnet node:
 
-1. Add the Oxhead Alpha Helm chart repository to your local Helm installation:
+1. Add the Mavryk Dynamics Helm chart repository to your local Helm installation:
 
 ```
-helm repo add mavryk-network https://mavryk-network.github.io/mavryk-helm-charts/
+helm repo add mavryk-network https://charts.mavryk.org/
 ```
 
 2. Install a Mavryk node:
