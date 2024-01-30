@@ -74,13 +74,13 @@ const config = {
           {
             title: 'Community',
             items: [
+              // {
+              //   label: 'Slack',
+              //   href: 'https://join.slack.com/t/tezos-dev/shared_invite/zt-t1agqhz5-WZfjNoQBg8hcPQSLQn1E2g',
+              // },
               {
-                label: 'Slack',
-                href: 'https://join.slack.com/t/tezos-dev/shared_invite/zt-t1agqhz5-WZfjNoQBg8hcPQSLQn1E2g',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/mavryk-network',
+                label: 'X',
+                href: 'https://x.com/mavrykdynamics',
               },
             ],
           },
@@ -89,16 +89,16 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                href: 'https://github.com/mavryk-network/mavryk-k8s',
               },
-              {
-                label: 'Medium',
-                href: 'https://medium.com/the-aleph'
-              }
+              // {
+              //   label: 'Medium',
+              //   href: 'https://medium.com/mavrykdynamics'
+              // }
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Oxhead Alpha, Inc.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Mavryk Dynamics`,
       },
       prism: {
         theme: lightCodeTheme,

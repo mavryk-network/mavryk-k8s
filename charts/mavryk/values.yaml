@@ -134,7 +134,7 @@ should_generate_unsafe_deterministic_data: false
 #          vars.  The container name "all" will apply the env vars to
 #          all containers.  The most specific wins.  Find the names of
 #          the containers by examining an installed environment, or by
-#          looking at charts/tezos/templates/nodes.yaml.  Please note
+#          looking at charts/mavryk/templates/nodes.yaml.  Please note
 #          that we truncate the protocol from the container name for
 #          bakers and accusers, so "baker-011-pthangz2" is configured
 #          using just "baker".

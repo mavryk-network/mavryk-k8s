@@ -3,7 +3,7 @@ deployments:
   - name: chain
     helm:
       chart:
-        name: ./charts/tezos
+        name: ./charts/mavryk
       valuesFiles:
         - ./${CHAIN_NAME}_values.yaml
 

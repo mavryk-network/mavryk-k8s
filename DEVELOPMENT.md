@@ -79,10 +79,10 @@ Being that all charts are bumped to the same version on release, the parent char
 
 ## Run local development chart
 
-Instructions as per README install the latest release of mavryk-k8s helm chart from a helm repository. To install a development version of a mavryk chart in the charts/tezos directory instead, run:
+Instructions as per README install the latest release of mavryk-k8s helm chart from a helm repository. To install a development version of a mavryk chart in the charts/mavryk directory instead, run:
 
 ```
-helm install mavryk-mainnet charts/tezos --namespace mavryk-network --create-namespace
+helm install mavryk-mainnet charts/mavryk --namespace mavryk-network --create-namespace
 ```
 
 ## Notes

@@ -30,7 +30,7 @@ run_test() {
 
 	echo "Testing $IN"
 
-	helm template --values "$IN" -n testing charts/tezos > $OUT
+	helm template --values "$IN" -n testing charts/mavryk > $OUT
 
 	if ! cmp "$EXPECT" "$OUT"; then
 		echo "Test chart $IN failed"
@@ -68,7 +68,7 @@ regen() {
 		fi
 		echo "Regenerating $IN"
 		EXPECT="${IN%.in.yaml}.expect.yaml"
-		helm template --values "$IN" -n testing charts/tezos > $EXPECT
+		helm template --values "$IN" -n testing charts/mavryk > $EXPECT
 	done
 }
 
@@ -88,7 +88,7 @@ usage() {
 # some degree.
 
 GIT_BASE="$(git rev-parse --show-toplevel)"
-if [ -z "$GIT_BASE" -o ! -d "$GIT_BASE/charts/tezos" ]; then
+if [ -z "$GIT_BASE" -o ! -d "$GIT_BASE/charts/mavryk" ]; then
 	usage "Not in a mavryk-k8s git repo, failing"
 fi
 cd "$GIT_BASE"
