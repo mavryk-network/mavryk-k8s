@@ -39,7 +39,11 @@ spec:
             - configMapRef:
                 name: faucet-backend-config
             - secretRef:
+          {{- if eq .Values.existingSecretName "" }}
                 name: faucet-backend-secret
+          {{- else }}
+                name: {{ .Values.existingSecretName }}
+          {{- end }}
       {{- if .Values.enableUI }}
         - name: faucet
           image: {{ .Values.images.mavrykFaucet }}

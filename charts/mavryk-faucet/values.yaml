@@ -60,6 +60,9 @@ redis:
 googleCaptchaSecretKey: "" # 6LefC8QmAAAAAPH...
 faucetPrivateKey: "" # edsk3X...
 
+# Reference an existing secret and override the created secret
+existingSecretName: ""
+
 ingress:
   enabled: false
   className: ""
