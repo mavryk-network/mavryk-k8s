@@ -1,4 +1,4 @@
-CLIENT="/usr/local/bin/octez-client --endpoint http://tezos-node-rpc:8732"
+CLIENT="/usr/local/bin/octez-client --endpoint http://mavryk-node-rpc:8732"
 
 OUTPUT=""
 until OUTPUT=$($CLIENT rpc get /chains/main/blocks/head/header) && echo "$OUTPUT" | grep '"level":'; do

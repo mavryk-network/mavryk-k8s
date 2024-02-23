@@ -72,11 +72,11 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 
    - `TZ_ALIAS` is the alias of a user's tz address secret key.
 
-4. If the user is authenticated, the response should contain a secret url that looks like `http://192.168.64.51/tezos-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/`
+4. If the user is authenticated, the response should contain a secret url that looks like `http://192.168.64.51/mavryk-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/`
 
 5. Client can then make RPC requests:
-   - `curl http://192.168.64.51/tezos-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/chains/main/chain_id`
+   - `curl http://192.168.64.51/mavryk-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/chains/main/chain_id`
    - As of docker image `mavrykdynamics/mavryk:v9-release`:
      ```shell
-     octez-client --endpoint http://192.168.64.51/tezos-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/ rpc get chains/main/chain_id
+     octez-client --endpoint http://192.168.64.51/mavryk-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/ rpc get chains/main/chain_id
      ```

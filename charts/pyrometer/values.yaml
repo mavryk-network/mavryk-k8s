@@ -6,7 +6,7 @@ mavryk_k8s_images:
 config:
   node_monitor:
     nodes:
-    - http://tezos-node-rpc:8732
+    - http://mavryk-node-rpc:8732
   ui:
     enabled: false
     host: "0.0.0.0"

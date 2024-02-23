@@ -25,7 +25,7 @@ config:
 authorizedHost: "*"
 # RPC url for the faucet backend. Default value assumes mavryk-k8s created an RPC
 # service in the same namespace. If not set, defaults to `config.network.rpcUrl`.
-backendRpcUrl: http://tezos-node-rpc:8732
+backendRpcUrl: http://mavryk-node-rpc:8732
 # If the backend requires CAPTCHA tokens to be submitted.
 enableCaptcha: true
 # Faucet won't dispense to an address if its balance will exceed this. Not

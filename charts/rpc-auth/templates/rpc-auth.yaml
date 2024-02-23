@@ -182,7 +182,7 @@ spec:
     - http:
         paths:
           # Client uses secret url to access the RPC endpoint
-          - path: /tezos-node-rpc/(.*?)/(.*)
+          - path: /mavryk-node-rpc/(.*?)/(.*)
             pathType: Exact
             backend:
               serviceName: mavryk-node-rpc
