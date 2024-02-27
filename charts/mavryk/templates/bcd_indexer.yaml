@@ -55,7 +55,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   # Based on:
-  # https://github.com/baking-bad/bcdhub/blob/fa7e36f6c890d543d72a3d494f7a2509cd41871a/configs/sandbox.yml
+  # https://github.com/mavryk-network/bcdhub/blob/fa7e36f6c890d543d72a3d494f7a2509cd41871a/configs/sandbox.yml
   sandbox.yml: |
     rpc:
       sandboxnet:

@@ -1,18 +1,18 @@
-{{- define "mavryk.tzkt.setDbConnectionEnvVar" -}}
+{{- define "mavryk.mvkt.setDbConnectionEnvVar" -}}
 {{ print " " "server=$(POSTGRES_HOST);port=$(POSTGRES_PORT);database=$(POSTGRES_DB);username=$(POSTGRES_USER);password=$(POSTGRES_PASSWORD);command timeout=$(POSTGRES_COMMAND_TIMEOUT);" }}
 {{- end -}}
 
-{{- if (include "mavryk.shouldDeployTzktIndexer" .) }}
-{{- $tzkt_indexer := get (.Values.indexers | default dict) "tzkt" }}
-{{- $postgres_port := $tzkt_indexer.db.port | default 5432 | quote -}}
-{{- $postgres_command_timeout := $tzkt_indexer.db.command_timeout | default 600 | quote -}}
+{{- if (include "mavryk.shouldDeployMvktIndexer" .) }}
+{{- $mvkt_indexer := get (.Values.indexers | default dict) "mvkt" }}
+{{- $postgres_port := $mvkt_indexer.db.port | default 5432 | quote -}}
+{{- $postgres_command_timeout := $mvkt_indexer.db.command_timeout | default 600 | quote -}}
 {{- /*
  The path of a downloaded snapshot.
  The file's name format is "{CHAIN_NAME}-{indexer_image_tag}.backup"
 */}}
-{{- /* Extract tzkt version from tzkt image */}}
-{{- $indexer_image:= split ":" $tzkt_indexer.images.indexer }}
-{{- $snapshot_file := print "/etc/db-snapshot/" $tzkt_indexer.db.name "-" $indexer_image._1 ".backup" }}
+{{- /* Extract mvkt version from mvkt image */}}
+{{- $indexer_image:= split ":" $mvkt_indexer.images.indexer }}
+{{- $snapshot_file := print "/etc/db-snapshot/" $mvkt_indexer.db.name "-" $indexer_image._1 ".backup" }}
 {{- /*
  A file every pod uses to remember its imported snapshot.
  By keeping track, pods won't try to re-upgrade their db on restarts.
@@ -24,12 +24,12 @@ kind: Secret
 metadata:
   name: db-creds
 data:
-  POSTGRES_HOST: {{ b64enc ($tzkt_indexer.db.host | default "localhost") }}
-  POSTGRES_USER: {{ b64enc $tzkt_indexer.db.user }}
-  POSTGRES_PASSWORD: {{ b64enc $tzkt_indexer.db.password }}
-  POSTGRES_DB: {{ b64enc $tzkt_indexer.db.name }}
+  POSTGRES_HOST: {{ b64enc ($mvkt_indexer.db.host | default "localhost") }}
+  POSTGRES_USER: {{ b64enc $mvkt_indexer.db.user }}
+  POSTGRES_PASSWORD: {{ b64enc $mvkt_indexer.db.password }}
+  POSTGRES_DB: {{ b64enc $mvkt_indexer.db.name }}
 
-{{- if and (not $tzkt_indexer.db.isExternal) $tzkt_indexer.db.snapshot_url }}
+{{- if and (not $mvkt_indexer.db.isExternal) $mvkt_indexer.db.snapshot_url }}
 ---
 {{/*
 This script is mounted into postgres's /docker-entrypoint-initdb.d directory
@@ -66,10 +66,10 @@ data:
 {{/*
 TIP: When developing, you can choose to persist the snapshot file after it's
 imported. This will save time as the pod would not have to re-download it. To
-enable this, add `keep_snapshot_after_import: true` in the tzkt section of
+enable this, add `keep_snapshot_after_import: true` in the mvkt section of
 values.yaml. File name format is "{db_name}-{indexer_image_tag}.backup".
 */}}
-  {{ if not $tzkt_indexer.keep_snapshot_after_import }}
+  {{ if not $mvkt_indexer.keep_snapshot_after_import }}
     rm -fv "$SNAPSHOT_FILE"
   {{ end }}
 {{- end }}
@@ -78,24 +78,24 @@ values.yaml. File name format is "{db_name}-{indexer_image_tag}.backup".
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.tzkt_indexer_statefulset.name }}
+  name: {{ .Values.mvkt_indexer_statefulset.name }}
   namespace: {{ .Release.Namespace }}
-{{- if $tzkt_indexer.annotations }}
-  annotations: {{ $tzkt_indexer.annotations | toYaml | nindent 4 }}
+{{- if $mvkt_indexer.annotations }}
+  annotations: {{ $mvkt_indexer.annotations | toYaml | nindent 4 }}
 {{- end }}
 spec:
   podManagementPolicy: Parallel
-  replicas: {{ $tzkt_indexer.replicas }}
+  replicas: {{ $mvkt_indexer.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.tzkt_indexer_statefulset.name }}
+      app: {{ .Values.mvkt_indexer_statefulset.name }}
   serviceName: ""
   template:
     metadata:
       labels:
-        app: {{ .Values.tzkt_indexer_statefulset.name }}
+        app: {{ .Values.mvkt_indexer_statefulset.name }}
     spec:
-    {{- if and (not $tzkt_indexer.db.isExternal) $tzkt_indexer.db.snapshot_url }}
+    {{- if and (not $mvkt_indexer.db.isExternal) $mvkt_indexer.db.snapshot_url }}
       initContainers:
         - image: {{ .Values.mavryk_k8s_images.utils }}
           name: download-db-snapshot
@@ -105,7 +105,7 @@ spec:
               subPath: db-snapshot
           env:
             - name: SNAPSHOT_URL
-              value: {{ $tzkt_indexer.db.snapshot_url }}
+              value: {{ $mvkt_indexer.db.snapshot_url }}
             - name: SNAPSHOT_FILE
               value: {{ $snapshot_file }}
             - name: MY_IMPORTED_SNAPSHOTS_URL
@@ -138,7 +138,7 @@ spec:
 
               cat "$MY_IMPORTED_SNAPSHOTS_URL"
         - name: upgrade-db
-          image: "{{ $tzkt_indexer.images.postgres }}"
+          image: "{{ $mvkt_indexer.images.postgres }}"
           volumeMounts:
             - name: indexer-db
               mountPath: /var/lib/postgresql/data
@@ -153,7 +153,7 @@ spec:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
             - name: SNAPSHOT_URL
-              value: {{ $tzkt_indexer.db.snapshot_url }}
+              value: {{ $mvkt_indexer.db.snapshot_url }}
             - name: SNAPSHOT_FILE
               value: {{ $snapshot_file }}
             - name: MY_IMPORTED_SNAPSHOTS_URL
@@ -213,7 +213,7 @@ spec:
               initialDelaySeconds gives indexer time to boot up and grab chain data
               before starting the probe. Also some blocks can take longer than others
               to sync, such as when fetching baking/endorsing rights for a cycle.
-              So we set failureThreshold to 3. Tzkt has a bug where occasionally the
+              So we set failureThreshold to 3. Mvkt has a bug where occasionally the
               indexer sync status returns a false positive. Usually when the container
               just starts. We set the successThreshold at 2 so we are more likely to
               know if the indexer is actually synced.
@@ -225,46 +225,46 @@ spec:
             successThreshold: 2
             exec:
               command: ["cat", "/tmp/synced"]
-        - image: "{{ $tzkt_indexer.images.api }}"
+        - image: "{{ $mvkt_indexer.images.api }}"
           name: api
           ports:
             - containerPort: 5000
           env:
           - name: Logging__LogLevel__Default
-            value: {{ $tzkt_indexer.config.api_log_level }}
+            value: {{ $mvkt_indexer.config.api_log_level }}
           - name: POSTGRES_PORT
             value: {{ $postgres_port }}
           - name: POSTGRES_COMMAND_TIMEOUT
             value: {{ $postgres_command_timeout }}
           - name: ConnectionStrings__DefaultConnection
-            value: {{- include "mavryk.tzkt.setDbConnectionEnvVar" . }}
-          {{- /* https://github.com/baking-bad/tzkt/blob/198e3879d4/docker-compose.yml#L26 */}}
-          - name: TZKT_API_KESTREL__ENDPOINTS__HTTP__URL
+            value: {{- include "mavryk.mvkt.setDbConnectionEnvVar" . }}
+          {{- /* https://github.com/mavryk-network/mvkt/blob/198e3879d4/docker-compose.yml#L26 */}}
+          - name: MVKT_API_KESTREL__ENDPOINTS__HTTP__URL
             value: "http://0.0.0.0:5000"
           envFrom:
           - secretRef:
               name: db-creds
-        - image: "{{ $tzkt_indexer.images.indexer }}"
+        - image: "{{ $mvkt_indexer.images.indexer }}"
           name: indexer
           volumeMounts:
-            - name: tzkt-env
-              mountPath: /etc/tzkt
+            - name: mvkt-env
+              mountPath: /etc/mvkt
           env:
           - name: MavrykNode__Endpoint
-            value: {{ $tzkt_indexer.config.rpc_url }}
+            value: {{ $mvkt_indexer.config.rpc_url }}
           - name: Logging__LogLevel__Default
-            value: {{ $tzkt_indexer.config.indexer_log_level }}
+            value: {{ $mvkt_indexer.config.indexer_log_level }}
           - name: POSTGRES_PORT
             value: {{ $postgres_port }}
           - name: POSTGRES_COMMAND_TIMEOUT
             value: {{ $postgres_command_timeout }}
           - name: ConnectionStrings__DefaultConnection
-            value: {{- include "mavryk.tzkt.setDbConnectionEnvVar" . }}
+            value: {{- include "mavryk.mvkt.setDbConnectionEnvVar" . }}
           envFrom:
           - secretRef:
               name: db-creds
-        {{- if not $tzkt_indexer.db.isExternal }}
-        - image: {{ $tzkt_indexer.images.postgres }}
+        {{- if not $mvkt_indexer.db.isExternal }}
+        - image: {{ $mvkt_indexer.images.postgres }}
           name: db
           imagePullPolicy: IfNotPresent
           ports:
@@ -273,7 +273,7 @@ spec:
             - name: indexer-db
               mountPath: /var/lib/postgresql/data
               subPath: data
-            {{- if $tzkt_indexer.db.snapshot_url }}
+            {{- if $mvkt_indexer.db.snapshot_url }}
             - name: indexer-db
               mountPath: /etc/db-snapshot
               subPath: db-snapshot
@@ -285,9 +285,9 @@ spec:
           {{- /* https://github.com/docker-library/docs/blob/master/postgres/README.md#pgdata */}}
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
-            {{- if $tzkt_indexer.db.snapshot_url }}
+            {{- if $mvkt_indexer.db.snapshot_url }}
             - name: SNAPSHOT_URL
-              value: {{ $tzkt_indexer.db.snapshot_url }}
+              value: {{ $mvkt_indexer.db.snapshot_url }}
             - name: SNAPSHOT_FILE
               value: {{ $snapshot_file }}
             - name: MY_IMPORTED_SNAPSHOTS_URL
@@ -298,25 +298,25 @@ spec:
               name: db-creds
         {{- end }}
       volumes:
-        - name: tzkt-env
+        - name: mvkt-env
           emptyDir: {}
-        {{- if not $tzkt_indexer.db.isExternal }}
+        {{- if not $mvkt_indexer.db.isExternal }}
         - name: import-db-script
           configMap:
             name: import-db-script
             {{- /* Execute permissions */}}
             defaultMode: 111
         {{- end }}
-  {{- if not $tzkt_indexer.db.isExternal }}
+  {{- if not $mvkt_indexer.db.isExternal }}
   volumeClaimTemplates:
     - metadata:
         name: indexer-db
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: {{ $tzkt_indexer.storageClassName }}
+        storageClassName: {{ $mvkt_indexer.storageClassName }}
         resources:
           requests:
-            storage: {{ required "DB storage size must be specified" $tzkt_indexer.storage  }}
+            storage: {{ required "DB storage size must be specified" $mvkt_indexer.storage  }}
   {{- end }}
 {{- end }}

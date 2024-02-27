@@ -4,7 +4,7 @@ You can optionally spin up a Mavryk blockchain indexer that makes querying for i
 
 Current supported indexers:
 
-- [TzKT](https://github.com/baking-bad/tzkt)
+- [MvKT](https://github.com/mavryk-network/mvkt)
 
 The [Mavryk Helm chart's values.yaml](https://github.com/mavryk-network/mavryk-k8s/blob/master/charts/mavryk/values.yaml) has an `indexer` section for how to deploy an indexer.
 

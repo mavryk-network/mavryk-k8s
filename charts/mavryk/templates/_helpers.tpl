@@ -136,13 +136,13 @@ metadata:
 {{- end }}
 
 {{/*
-  Should deploy TZKT indexer?
+  Should deploy MVKT indexer?
 */}}
-{{- define "mavryk.shouldDeployTzktIndexer" -}}
+{{- define "mavryk.shouldDeployMvktIndexer" -}}
   {{- $indexers := .Values.indexers | default dict }}
-  {{- if $indexers.tzkt }}
-    {{- $tzkt_config := $indexers.tzkt.config | default dict }}
-    {{- if $tzkt_config.rpc_url }}
+  {{- if $indexers.mvkt }}
+    {{- $mvkt_config := $indexers.mvkt.config | default dict }}
+    {{- if $mvkt_config.rpc_url }}
       {{- "true" }}
     {{- else }}
       {{- "" }}

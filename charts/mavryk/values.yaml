@@ -17,8 +17,8 @@ mavryk_k8s_images:
 
 ## Properties that are templated for some k8s resources. There are container
 ## scripts that will look up some of these values. They should not be modified.
-tzkt_indexer_statefulset:
-  name: tzkt-indexer
+mvkt_indexer_statefulset:
+  name: mvkt-indexer
 bcd_indexer_statefulset:
   name: bcd-indexer
 octez_signer_statefulset:
@@ -525,15 +525,15 @@ protocols:
 ## Deploy an indexer with the chain. An indexer puts the chain
 ## contents in a database for efficient indexing. Most dapps need it.
 ## Supported indexers:
-## * tzkt: https://github.com/baking-bad/tzkt
-## * bcd: https://github.com/baking-bad/bcdhub
+## * mvkt: https://github.com/mavryk-network/mvkt
+## * bcd: https://github.com/mavryk-network/bcdhub
 ## Templatized indexer configuration values go in the config field.
 ##
 # indexers:
-#   tzkt:
+#   mvkt:
 #     images:
-#       api: "bakingbad/tzkt-api:1.12.0"
-#       indexer: "bakingbad/tzkt-sync:1.12.0"
+#       api: "bakingbad/mvkt-api:1.12.0"
+#       indexer: "bakingbad/mvkt-sync:1.12.0"
 #       postgres: "postgres:13"
 #
 #     ## Database volumeClaimTemplates config
@@ -549,14 +549,14 @@ protocols:
 #       # By default creates a postgres db container. Setting to true won't create
 #       # it and instead expects credentials for an external postgres database.
 #       isExternal: false
-#       ## Tzkt provides new snapshots as they update their code. Update your
+#       ## Mvkt provides new snapshots as they update their code. Update your
 #       ## indexers by specifying new docker image tags and by using the matching
 #       ## snapshot_url. Spin up an additional replica if you only have one to
-#       ## avoid downtime. See tzkt's readme for public networks' db snapshot urls.
+#       ## avoid downtime. See mvkt's readme for public networks' db snapshot urls.
 #       ## If you want to index a brand new archive node you are spinning up, just
 #       ## let the indexer start syncing with it from scratch.
-#       ## https://github.com/baking-bad/tzkt
-#       snapshot_url: https://snapshots.tzkt.io/tzkt_v1.12_mainnet.backup
+#       ## https://github.com/mavryk-network/mvkt
+#       snapshot_url: https://snapshots.mvkt.io/mvkt_v1.12_mainnet.backup
 #       host: localhost
 #       port: 5432
 #       name: db
@@ -564,7 +564,7 @@ protocols:
 #       password: bar
 #       command_timeout: 600
 #
-#     ## Configurable tzkt fields
+#     ## Configurable mvkt fields
 #     config:
 #       ## RPC url of the node to index. A rolling node is sufficient if the
 #       ## indexer is bootstrapped from the most recent snapshot. Otherwise an
@@ -576,9 +576,9 @@ protocols:
 ## Set values `indexerRpcUrl` and `db.password` for an indexer to be created.
 bcdIndexer:
   images:
-    api: ghcr.io/baking-bad/bcdhub-api:4.4.0
-    indexer: ghcr.io/baking-bad/bcdhub-indexer:4.4.0
-    gui: ghcr.io/baking-bad/bcdhub-gui:4.4.0
+    api: ghcr.io/mavryk-network/bcdhub-api:4.4.0
+    indexer: ghcr.io/mavryk-network/bcdhub-indexer:4.4.0
+    gui: ghcr.io/mavryk-network/bcdhub-gui:4.4.0
     postgres: postgres:14
 
   # Url of the RPC backend for the indexer to index

@@ -26,7 +26,7 @@ schedule: "0 */6 * * *"
 # Where TRD gets its payout data from.
 # Defaults to rpc. When using rpc, you must set `mavryk_node_addr` to an archive node.
 #
-# Pick one of "rpc", "tzstats", "tzkt"
+# Pick one of "rpc", "tzstats", "mvkt"
 reward_data_provider: "rpc"
 
 # Mavryk Network. Can be MAINNET or BASENET
