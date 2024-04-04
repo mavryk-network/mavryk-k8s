@@ -75,6 +75,7 @@ metadata:
 {{- end }}
 ---
 {{- if eq .Values.accountsSecretName "" }}
+
 apiVersion: v1
 data:
   ACCOUNTS: |
