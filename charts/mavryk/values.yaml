@@ -34,6 +34,9 @@ bootstrap_mumav: "4000000000000"
 
 # # Accounts
 #
+# Reference an existing secret and override the created secret
+accountsSecretName: ""
+#
 # The `accounts` object of values.yaml defines Mavryk accounts used in the chart.
 # By default no account is configured:
 accounts: {}

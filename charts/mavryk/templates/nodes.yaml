@@ -59,7 +59,11 @@ spec:
           name: config-volume
         - name: mavryk-accounts
           secret:
+          {{- if eq $.Values.accountsSecretName "" }}
             secretName: mavryk-secret
+          {{- else }}
+            secretName: {{ $.Values.accountsSecretName }}
+          {{ end }}
 {{- if has "baker" $.node_vals.runs }}
         - name: baker-config
           configMap:

@@ -74,7 +74,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 {{- end }}
 ---
-
+{{- if eq .Values.accountsSecretName "" }}
 apiVersion: v1
 data:
   ACCOUNTS: |
@@ -87,6 +87,7 @@ kind: Secret
 metadata:
   name: mavryk-secret
   namespace: {{ .Release.Namespace }}
+{{- end }}
 ---
 {{- if (include "mavryk.shouldDeployBakerConfig" .) }}
 apiVersion: v1

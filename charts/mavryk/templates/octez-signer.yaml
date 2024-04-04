@@ -76,6 +76,10 @@ spec:
           name: var-volume
         - name: mavryk-accounts
           secret:
+          {{- if eq .Values.accountsSecretName "" }}
             secretName: mavryk-secret
+          {{- else }}
+            secretName: {{ .Values.accountsSecretName }}
+          {{ end }}
 ---
 {{- end }}
