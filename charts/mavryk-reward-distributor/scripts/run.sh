@@ -13,8 +13,8 @@ fi
 python src/main.py \
   -M 2 \
   --reward_data_provider ${REWARD_DATA_PROVIDER} \
-  --node_addr_public ${TEZOS_NODE_ADDR} \
-  --node_endpoint ${TEZOS_NODE_ADDR} \
+  --node_addr_public ${MAVRYK_NODE_ADDR} \
+  --node_endpoint ${MAVRYK_NODE_ADDR} \
   --base_directory /trd \
   --signer_endpoint ${SIGNER_ADDR} \
   --initial_cycle ${INITIAL_CYCLE} \

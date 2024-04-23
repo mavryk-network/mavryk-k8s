@@ -57,7 +57,7 @@ elif [ -z "$TZ_ALIAS" ]; then
   exit 1
 fi
 
-if ! tezos-client show address $TZ_ALIAS >/dev/null 2>&1; then
+if ! mavryk-client show address $TZ_ALIAS >/dev/null 2>&1; then
   echo "no public key hash alias named $TZ_ALIAS"
   exit 1
 fi
@@ -83,8 +83,8 @@ fi
 # echo NONCE: "$NONCE"
 
 echo "Signing data..."
-SIGNATURE=$(tezos-client -p PsDELPH1Kxsx sign bytes 0x05${NONCE} for ${TZ_ALIAS} | cut -f 2 -d " ")
-PUBLIC_KEY=$(tezos-client show address ${TZ_ALIAS} 2>/dev/null | grep "Public Key: " | awk '{print $3}')
+SIGNATURE=$(mavryk-client -p PsDELPH1Kxsx sign bytes 0x05${NONCE} for ${TZ_ALIAS} | cut -f 2 -d " ")
+PUBLIC_KEY=$(mavryk-client show address ${TZ_ALIAS} 2>/dev/null | grep "Public Key: " | awk '{print $3}')
 
 # echo SIGNATURE: "$SIGNATURE"
 # echo PUBLIC_KEY: "$PUBLIC_KEY"

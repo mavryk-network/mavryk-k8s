@@ -28,9 +28,9 @@ spec:
             - name: MY_POD_TYPE
               value: {{ .Values.chain_initiator_job.pod_type }}
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts

@@ -21,7 +21,7 @@ spec:
   template:
     metadata:
       labels:
-        appType: octez-node
+        appType: mavkit-node
         node_class: {{ $.node_class }}
       {{- if has "baker" $.node_vals.runs }}
         baking_node: "true"

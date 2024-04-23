@@ -40,7 +40,7 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 
 ### Prerequisites
 
-- [tezos-client](https://assets.tqtezos.com/docs/setup/1-tezos-client/)
+- [mavryk-client](https://assets.tqtezos.com/docs/setup/1-mavryk-client/)
 
 ## Authentication flow
 
@@ -49,10 +49,10 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 
    - Run
      ```shell
-     kubectl exec -it -n mavryk-network statefulset/tezos-baking-node -c octez-node -- octez-client rpc get /chains/main/chain_id
+     kubectl exec -it -n mavryk-network statefulset/mavryk-baking-node -c octez-node -- octez-client rpc get /chains/main/chain_id
      ```
    - Use a tool like [Lens](https://k8slens.dev/) to view the logs of the Mavryk node. (As well as the rest of your k8s infrastructure)
-   - Manually run the logs command `kubectl logs -n mavryk-network statefulset/tezos-baking-node -c octez-node`. The top of the logs should look similar to:
+   - Manually run the logs command `kubectl logs -n mavryk-network statefulset/mavryk-baking-node -c octez-node`. The top of the logs should look similar to:
      ```
      Dec 21 19:42:08 - node.main: starting the Mavryk node (chain = my-chain)
      Dec 21 19:42:08 - node.main: disabled local peer discovery

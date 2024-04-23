@@ -184,7 +184,7 @@ def main():
         "node_globals": {
             # Needs a quotedstring otherwise helm interprets "Y" as true and it does not work
             "env": {
-                "all": {"TEZOS_CLIENT_UNSAFE_DISABLE_DISCLAIMER": QuotedString("Y")}
+                "all": {"MAVRYK_CLIENT_UNSAFE_DISABLE_DISCLAIMER": QuotedString("Y")}
             }
         },
         "protocols": [

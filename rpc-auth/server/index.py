@@ -79,7 +79,7 @@ def verify_chain_id(chain_id):
 
 @cache
 def get_mavryk_chain_id():
-    mavryk_chain_id = os.getenv("TEZOS_CHAIN_ID")
+    mavryk_chain_id = os.getenv("MAVRYK_CHAIN_ID")
     if mavryk_chain_id:
         return mavryk_chain_id
     chain_id_response = requests.get(

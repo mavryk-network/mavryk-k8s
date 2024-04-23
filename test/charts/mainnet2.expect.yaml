@@ -37,7 +37,7 @@ data:
   ROLLING_TARBALL_URL: ""
   ARCHIVE_TARBALL_URL: ""
   PREFER_TARBALLS: "false"
-  SNAPSHOT_SOURCE: "https://xtz-shots.io/tezos-snapshots.json"
+  SNAPSHOT_SOURCE: "https://xtz-shots.io/mavryk-snapshots.json"
   OCTEZ_VERSION: "mavrykdynamics/mavryk:v17.3"
   NODE_GLOBALS: |
     {
@@ -47,7 +47,7 @@ data:
           "key": "outer-value"
         },
         "octez-node": {
-          "TEZOS_LOG": "* -\u003e DEBUG"
+          "MAVRYK_LOG": "* -\u003e DEBUG"
         },
         "snapshot-downloader": {
           "key": "outer-container"
@@ -207,7 +207,7 @@ spec:
               set -xe
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing octez-node to fail.
@@ -216,7 +216,7 @@ spec:
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/octez-node run				\
               			--bootstrap-threshold 0			\
-              			--config-file /etc/tezos/config.json
+              			--config-file /etc/mavryk/config.json
               	sleep $d
               done
               
@@ -229,14 +229,14 @@ spec:
           env:
             - name: DAEMON
               value: octez-node
-            - name:  TEZOS_LOG
+            - name:  MAVRYK_LOG
               value: "* -> DEBUG"
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           ports:
             - containerPort: 8732
@@ -275,9 +275,9 @@ spec:
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: sidecar
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -305,9 +305,9 @@ spec:
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           resources:
             limits:
@@ -326,22 +326,22 @@ spec:
               set -e
               
               echo "Writing custom configuration for public node"
-              mkdir -p /etc/tezos/data
+              mkdir -p /etc/mavryk/data
               
               # if config already exists (container is rebooting), dump and delete it.
-              if [ -e /etc/tezos/data/config.json ]; then
+              if [ -e /etc/mavryk/data/config.json ]; then
                 printf "Found pre-existing config.json:\n"
-                cat /etc/tezos/data/config.json
+                cat /etc/mavryk/data/config.json
                 printf "Deleting\n"
-                rm -rvf /etc/tezos/data/config.json
+                rm -rvf /etc/mavryk/data/config.json
               fi
               
               /usr/local/bin/octez-node config init		\
-                  --config-file /etc/tezos/data/config.json	\
-                  --data-dir /etc/tezos/data			\
+                  --config-file /etc/mavryk/data/config.json	\
+                  --data-dir /etc/mavryk/data			\
                   --network $CHAIN_NAME
               
-              cat /etc/tezos/data/config.json
+              cat /etc/mavryk/data/config.json
               
               printf "\n\n\n\n\n\n\n"
               
@@ -366,9 +366,9 @@ spec:
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: config-generator
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -396,9 +396,9 @@ spec:
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts        
@@ -428,9 +428,9 @@ spec:
             - name:  key
               value: "outer-container"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume        
         - name: snapshot-importer
           image: "mavrykdynamics/mavryk:v17.3"
@@ -443,7 +443,7 @@ spec:
               set -e
               
               bin_dir="/usr/local/bin"
-              data_dir="/var/tezos"
+              data_dir="/var/mavryk"
               node_dir="$data_dir/node"
               node_data_dir="$node_dir/data"
               node="$bin_dir/octez-node"
@@ -461,7 +461,7 @@ spec:
                   exit 0
               fi
               
-              cp -v /etc/tezos/config.json ${node_data_dir}
+              cp -v /etc/mavryk/config.json ${node_data_dir}
               
               if [ -f ${node_dir}/chain.snapshot.block_hash ]; then
                   block_hash_arg="--block $(cat ${node_dir}/chain.snapshot.block_hash)"
@@ -493,9 +493,9 @@ spec:
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: upgrade-storage
           image: "mavrykdynamics/mavryk:v17.3"
@@ -507,12 +507,12 @@ spec:
             - |
               set -ex
               
-              if [ ! -e /var/tezos/node/data/context/store.dict ]
+              if [ ! -e /var/mavryk/node/data/context/store.dict ]
               then
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/tezos/config.json
+              octez-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
@@ -521,9 +521,9 @@ spec:
             - name:  key
               value: "outer-value"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
       securityContext:
         fsGroup: 1000      
@@ -577,7 +577,7 @@ spec:
               set -xe
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing octez-node to fail.
@@ -586,7 +586,7 @@ spec:
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/octez-node run				\
               			--bootstrap-threshold 0			\
-              			--config-file /etc/tezos/config.json
+              			--config-file /etc/mavryk/config.json
               	sleep $d
               done
               
@@ -599,14 +599,14 @@ spec:
           env:
             - name: DAEMON
               value: octez-node
-            - name:  TEZOS_LOG
+            - name:  MAVRYK_LOG
               value: "* -> DEBUG"
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           ports:
             - containerPort: 8732
@@ -650,9 +650,9 @@ spec:
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: sidecar
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -680,9 +680,9 @@ spec:
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           resources:
             limits:
@@ -701,22 +701,22 @@ spec:
               set -e
               
               echo "Writing custom configuration for public node"
-              mkdir -p /etc/tezos/data
+              mkdir -p /etc/mavryk/data
               
               # if config already exists (container is rebooting), dump and delete it.
-              if [ -e /etc/tezos/data/config.json ]; then
+              if [ -e /etc/mavryk/data/config.json ]; then
                 printf "Found pre-existing config.json:\n"
-                cat /etc/tezos/data/config.json
+                cat /etc/mavryk/data/config.json
                 printf "Deleting\n"
-                rm -rvf /etc/tezos/data/config.json
+                rm -rvf /etc/mavryk/data/config.json
               fi
               
               /usr/local/bin/octez-node config init		\
-                  --config-file /etc/tezos/data/config.json	\
-                  --data-dir /etc/tezos/data			\
+                  --config-file /etc/mavryk/data/config.json	\
+                  --data-dir /etc/mavryk/data			\
                   --network $CHAIN_NAME
               
-              cat /etc/tezos/data/config.json
+              cat /etc/mavryk/data/config.json
               
               printf "\n\n\n\n\n\n\n"
               
@@ -741,9 +741,9 @@ spec:
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: config-generator
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -771,9 +771,9 @@ spec:
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts        
@@ -803,9 +803,9 @@ spec:
             - name:  key
               value: "specific-container"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume        
         - name: snapshot-importer
           image: "mavrykdynamics/mavryk:v15-release"
@@ -818,7 +818,7 @@ spec:
               set -e
               
               bin_dir="/usr/local/bin"
-              data_dir="/var/tezos"
+              data_dir="/var/mavryk"
               node_dir="$data_dir/node"
               node_data_dir="$node_dir/data"
               node="$bin_dir/octez-node"
@@ -836,7 +836,7 @@ spec:
                   exit 0
               fi
               
-              cp -v /etc/tezos/config.json ${node_data_dir}
+              cp -v /etc/mavryk/config.json ${node_data_dir}
               
               if [ -f ${node_dir}/chain.snapshot.block_hash ]; then
                   block_hash_arg="--block $(cat ${node_dir}/chain.snapshot.block_hash)"
@@ -868,9 +868,9 @@ spec:
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: upgrade-storage
           image: "mavrykdynamics/mavryk:v15-release"
@@ -882,12 +882,12 @@ spec:
             - |
               set -ex
               
-              if [ ! -e /var/tezos/node/data/context/store.dict ]
+              if [ ! -e /var/mavryk/node/data/context/store.dict ]
               then
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/tezos/config.json
+              octez-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
@@ -896,9 +896,9 @@ spec:
             - name:  key
               value: "specific-pod"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
       securityContext:
         fsGroup: 1000      

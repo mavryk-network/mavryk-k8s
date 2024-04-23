@@ -1,10 +1,10 @@
 set -e
 
 bin_dir="/usr/local/bin"
-data_dir="/var/tezos"
+data_dir="/var/mavryk"
 node_dir="$data_dir/node"
 node_data_dir="$node_dir/data"
-node="$bin_dir/octez-node"
+node="$bin_dir/mavkit-node"
 snapshot_file=${node_dir}/chain.snapshot
 
 if [ ! -f ${snapshot_file} ]; then
@@ -19,7 +19,7 @@ if [ -e ${node_data_dir}/context/store.dict ]; then
     exit 0
 fi
 
-cp -v /etc/tezos/config.json ${node_data_dir}
+cp -v /etc/mavryk/config.json ${node_data_dir}
 
 if [ -f ${node_dir}/chain.snapshot.block_hash ]; then
     block_hash_arg="--block $(cat ${node_dir}/chain.snapshot.block_hash)"

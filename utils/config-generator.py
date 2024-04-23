@@ -20,7 +20,7 @@ from pymavryk import Key
 with open("/etc/secret-volume/ACCOUNTS", "r") as secret_file:
     ACCOUNTS = json.loads(secret_file.read())
 CHAIN_PARAMS = json.loads(os.environ["CHAIN_PARAMS"])
-DATA_DIR = "/var/tezos/node/data"
+DATA_DIR = "/var/mavryk/node/data"
 NODE_GLOBALS = json.loads(os.environ["NODE_GLOBALS"]) or {}
 NODES = json.loads(os.environ["NODES"])
 NODE_IDENTITIES = json.loads(os.getenv("NODE_IDENTITIES", "{}"))
@@ -101,10 +101,10 @@ def main():
         protocol_parameters = create_protocol_parameters_json(all_accounts)
 
         protocol_params_json = json.dumps(protocol_parameters, indent=2)
-        with open("/etc/tezos/parameters.json", "w") as json_file:
+        with open("/etc/mavryk/parameters.json", "w") as json_file:
             print(protocol_params_json, file=json_file)
 
-        with open("/etc/tezos/activation_account_name", "w") as file:
+        with open("/etc/mavryk/activation_account_name", "w") as file:
             print(NETWORK_CONFIG["activation_account_name"], file=file)
 
     # Create config.json
@@ -113,14 +113,14 @@ def main():
         bootstrap_peers = CHAIN_PARAMS.get("bootstrap_peers", [])
 
         my_zerotier_ip = None
-        zerotier_data_file_path = Path("/var/tezos/zerotier_data.json")
+        zerotier_data_file_path = Path("/var/mavryk/zerotier_data.json")
         if is_chain_running_on_zerotier_net(zerotier_data_file_path):
             my_zerotier_ip = get_my_pods_zerotier_ip(zerotier_data_file_path)
             if bootstrap_peers == []:
                 bootstrap_peers.extend(get_zerotier_bootstrap_peer_ips())
 
         if JOIN_PUBLIC_NETWORK:
-            with open("/etc/tezos/data/config.json", "r") as f:
+            with open("/etc/mavryk/data/config.json", "r") as f:
                 bootstrap_peers.extend(json.load(f)["p2p"]["bootstrap-peers"])
         else:
             local_bootstrap_peers = []
@@ -155,7 +155,7 @@ def main():
         )
         print("Generated config.json :")
         print(node_config_json)
-        with open("/etc/tezos/config.json", "w") as json_file:
+        with open("/etc/mavryk/config.json", "w") as json_file:
             print(node_config_json, file=json_file)
 
         if not os.path.isdir(f"{DATA_DIR}/context"):
@@ -169,7 +169,7 @@ def main():
             if node_snapshot_config:
                 print("Generated snapshot_config.json :")
                 print(node_snapshot_config_json)
-                with open("/var/tezos/snapshot_config.json", "w") as json_file:
+                with open("/var/mavryk/snapshot_config.json", "w") as json_file:
                     print(node_snapshot_config_json, file=json_file)
 
 
@@ -280,7 +280,7 @@ def verify_this_bakers_account(accounts):
 
 
 #
-# import_keys() creates three files in /var/tezos/client which specify
+# import_keys() creates three files in /var/mavryk/client which specify
 # the keys for each of the accounts: secret_keys, public_keys, and
 # public_key_hashs.
 #
@@ -428,7 +428,7 @@ def get_secret_key(account, key: Key):
 
 def import_keys(all_accounts):
     print("\nImporting keys")
-    tezdir = "/var/tezos/client"
+    tezdir = "/var/mavryk/client"
     secret_keys = []
     public_keys = []
     public_key_hashs = []
@@ -581,7 +581,7 @@ def get_my_pods_zerotier_ip(zerotier_data_file_path):
 
 
 def get_zerotier_bootstrap_peer_ips():
-    with open("/var/tezos/zerotier_network_members.json", "r") as f:
+    with open("/var/mavryk/zerotier_network_members.json", "r") as f:
         network_members = json.load(f)
     return [
         n["config"]["ipAssignments"][0]
@@ -592,7 +592,7 @@ def get_zerotier_bootstrap_peer_ips():
 
 
 def get_genesis_pubkey():
-    with open("/var/tezos/client/public_keys", "r") as f:
+    with open("/var/mavryk/client/public_keys", "r") as f:
         pubkeys = json.load(f)
         genesis_pubkey = None
         for _, pubkey in enumerate(pubkeys):
@@ -652,7 +652,7 @@ def create_node_config_json(
         #  have been the chain name or a url to the config.json of the chain.
         #  Either way, set the `network` field here as the `network` object of the
         #  produced config.json.
-        with open("/etc/tezos/data/config.json", "r") as f:
+        with open("/etc/mavryk/data/config.json", "r") as f:
             node_config_orig = json.load(f)
             if "network" in node_config_orig:
                 node_config["network"] = node_config_orig["network"]
@@ -672,7 +672,7 @@ def create_node_config_json(
         node_config["network"].pop("activation_account_name")
         node_config["network"].pop("join_public_network", None)
 
-        node_config["network"]["sandboxed_chain_name"] = "SANDBOXED_TEZOS"
+        node_config["network"]["sandboxed_chain_name"] = "SANDBOXED_mavryk"
         node_config["network"]["default_bootstrap_peers"] = []
         node_config["network"]["genesis_parameters"] = {
             "values": {"genesis_pubkey": get_genesis_pubkey()}

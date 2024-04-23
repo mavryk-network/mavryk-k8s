@@ -5,7 +5,7 @@ node_globals:
     snapshot-downloader:
       key: outer-container
     octez-node:
-      TEZOS_LOG: "* -> DEBUG"
+      MAVRYK_LOG: "* -> DEBUG"
 nodes:
   country-town:
     env:

@@ -8,7 +8,7 @@ is_invitation: false
 
 # Images not part of the mavryk-k8s repo go here
 images:
-  octez: mavrykdynamics/mavryk:v17.3
+  mavkit: mavrykdynamics/mavryk:v17.3
   tacoinfraRemoteSigner: ghcr.io/oxheadalpha/tacoinfra-remote-signer:0.1.0
 # Images that are part of the mavryk-k8s repo go here with 'dev' tag
 mavryk_k8s_images:
@@ -21,8 +21,8 @@ mvkt_indexer_statefulset:
   name: mvkt-indexer
 bcd_indexer_statefulset:
   name: bcd-indexer
-octez_signer_statefulset:
-  name: octez-signer
+mavkit_signer_statefulset:
+  name: mavkit-signer
   pod_type: signing
 chain_initiator_job:
   name: chain-initiator
@@ -86,7 +86,7 @@ accounts: {}
 # A public key account can contain a `signer_url` to a remote signer
 # that signs with the corresponding secret key. You don't need to
 # set this if you're deploying a mavryk-k8s signer into the same
-# namespace of its baker. See `octezSigners` and `tacoinfraSigners`
+# namespace of its baker. See `mavkitSigners` and `tacoinfraSigners`
 # fields in values.yaml to define remote signers. (You shouldn't add things
 # to the URL path such as the public key hash. It will be added automatically.)
 # ```
@@ -130,7 +130,7 @@ should_generate_unsafe_deterministic_data: false
 #
 # Params at the statefulset level:
 # - `config`: The "config" property should mimic the structure of a node's
-#             config.json. Run `octez-node config --help` for more info.
+#             config.json. Run `mavkit-node config --help` for more info.
 #             If present at the statefulset level, it overrides it in
 #             `node_globals`.
 # - `env`: A dictionary of containers mapped to a dictionary of env
@@ -143,14 +143,14 @@ should_generate_unsafe_deterministic_data: false
 #          using just "baker".
 # - `storage_size`: The size of the PV.
 # - `resources`: Resources specifications for the node.
-#                Optionally set resources and limits for octez node
+#                Optionally set resources and limits for mavkit node
 #                See: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 # - `images`: Optional specification of images to use for the mavryk node and
-#           baker. Options are "octez" with a mavrykdynamics/mavryk image.
+#           baker. Options are "mavkit" with a mavrykdynamics/mavryk image.
 #           If no images are provided, the containers will default to the images
 #           defined in the "images" field up above.
 # - `runs`: A list of containers to run.
-#         Options being `octez_node`, `accuser`, `baker`, `logger` and `vdf`.
+#         Options being `mavkit_node`, `accuser`, `baker`, `logger` and `vdf`.
 # - `local_storage`: Use local storage instead of a volume. The storage will be
 #                  wiped when the node restarts for any reason. Useful when
 #                  faster IO is desired. Defaults to false.
@@ -188,7 +188,7 @@ should_generate_unsafe_deterministic_data: false
 #    - `identity`: An optional map containing a pre-generated Mavryk node
 #                 identity. This is useful for local storage nodes which would
 #                 need to generate an identity at every boot. The identity file
-#                 will be created at /var/tezos/node/data/identity.json.
+#                 will be created at /var/mavryk/node/data/identity.json.
 #                 Required fields are `peer_id`, `public_key`, `secret_key`,
 #                 and `proof_of_work_timestamp`.
 #
@@ -206,7 +206,7 @@ should_generate_unsafe_deterministic_data: false
 #       history_mode: full
 #   env:
 #     baker:
-#       TEZOS_LOG: "* -> debug"
+#       MAVRYK_LOG: "* -> debug"
 # nodes:
 #   rolling-baking-node:
 #     config:
@@ -214,7 +214,7 @@ should_generate_unsafe_deterministic_data: false
 #         history_mode: rolling
 #     env:
 #       all:
-#         TEZOS_CLIENT_UNSAFE_DISABLE_DISCLAIMER: "Y"
+#         MAVRYK_CLIENT_UNSAFE_DISABLE_DISCLAIMER: "Y"
 #       snapshot-downloader:
 #         HTTP_PROXY: http://my-proxy.my-company.com:3128/
 #     labels:
@@ -225,10 +225,10 @@ should_generate_unsafe_deterministic_data: false
 #       nodeSelectorKey: nodeSelectorValue
 #     storage_size: 15Gi
 #     images: # (optional field)
-#       octez: mavrykdynamics/mavryk:v...
+#       mavkit: mavrykdynamics/mavryk:v...
 #     local_storage: false
 #     runs:
-#       - octez_node
+#       - mavkit_node
 #       - baker
 #     resources:
 #       requests:
@@ -254,8 +254,8 @@ should_generate_unsafe_deterministic_data: false
 #       peer_node: "true"
 #       rpc_node: "true"
 #     images: # (optional field)
-#       octez: mavrykdynamics/mavryk:v...
-#     runs: ["octez_node"]
+#       mavkit: mavrykdynamics/mavryk:v...
+#     runs: ["mavkit_node"]
 #     instances:
 #       - {}
 #       - {}
@@ -268,7 +268,7 @@ nodes:
   rolling-node:
     storage_size: 100Gi
     runs:
-      - octez_node
+      - mavkit_node
     instances:
       - is_bootstrap_node: false
         config:
@@ -314,11 +314,11 @@ serviceMonitor:
 # that are configured to sign for the accounts they are baking for.
 # By default no signer is configured.
 #
-# https://tezos.gitlab.io/user/key-management.html#signer
-octezSigners: {}
+# https://mavryk.gitlab.io/user/key-management.html#signer
+mavkitSigners: {}
 # Example:
 # ```
-# octezSigners:
+# mavkitSigners:
 #  mavryk-signer-0:
 #    accounts:
 #     - baker0
@@ -354,7 +354,7 @@ tacoinfraSigners: {}
 # known source. This should be a url to a json metadata file in the format
 # xtz-shots uses. If you want to sync from scratch or for a private chain, set
 # to `null`.
-snapshot_source: https://xtz-shots.io/tezos-snapshots.json
+snapshot_source: https://xtz-shots.io/mavryk-snapshots.json
 
 # By default, mavryk-k8s will download and unpack snapshots.
 # A tarball is a LZ4-compressed filesystem tar of a node's data directory.
@@ -382,7 +382,7 @@ bootstrap_peers: []
 expected_proof_of_work: 26
 
 ## Create a custom network using a config structure that is similar to a node's
-## config.json. Run `octez-node config --help` for more info.
+## config.json. Run `mavkit-node config --help` for more info.
 ## Note that the genesis block hash will be deterministically generated from
 ## the chain name if omitted.
 ##
@@ -398,7 +398,7 @@ expected_proof_of_work: 26
 #
 ## To join a public network you may set `chain_name` in one of two ways:
 ## - Specify the name of the network which must be recognized by the
-##   octez-node binary of the Octez image being used.
+##   mavkit-node binary of the Mavkit image being used.
 ## - Pass a url that returns the config.json of the network. Example:
 ##   "https://teztnets.xyz/mondaynet". It is helpful for running
 ##   testnets and shouldn't be needed in general.

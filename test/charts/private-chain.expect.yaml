@@ -541,7 +541,7 @@ spec:
               set -xe
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing octez-node to fail.
@@ -550,7 +550,7 @@ spec:
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/octez-node run				\
               			--bootstrap-threshold 0			\
-              			--config-file /etc/tezos/config.json
+              			--config-file /etc/mavryk/config.json
               	sleep $d
               done
               
@@ -564,9 +564,9 @@ spec:
             - name: DAEMON
               value: octez-node
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           ports:
             - containerPort: 8732
@@ -603,9 +603,9 @@ spec:
             - name: DAEMON
               value: sidecar
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           resources:
             limits:
@@ -637,9 +637,9 @@ spec:
             - name: DAEMON
               value: config-generator
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts                        
@@ -655,9 +655,9 @@ spec:
             - name: DAEMON
               value: wait-for-dns
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume        
         - name: upgrade-storage
           image: "mavrykdynamics/mavryk:v15-release"
@@ -669,21 +669,21 @@ spec:
             - |
               set -ex
               
-              if [ ! -e /var/tezos/node/data/context/store.dict ]
+              if [ ! -e /var/mavryk/node/data/context/store.dict ]
               then
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/tezos/config.json
+              octez-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
             - name: DAEMON
               value: upgrade-storage
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
       securityContext:
         fsGroup: 1000      
@@ -739,7 +739,7 @@ spec:
               set -xe
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing octez-node to fail.
@@ -748,7 +748,7 @@ spec:
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/octez-node run				\
               			--bootstrap-threshold 0			\
-              			--config-file /etc/tezos/config.json
+              			--config-file /etc/mavryk/config.json
               	sleep $d
               done
               
@@ -762,9 +762,9 @@ spec:
             - name: DAEMON
               value: octez-node
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           ports:
             - containerPort: 8732
@@ -788,7 +788,7 @@ spec:
             - |
               set -ex
               
-              TEZ_VAR=/var/tezos
+              TEZ_VAR=/var/mavryk
               TEZ_BIN=/usr/local/bin
               CLIENT_DIR="$TEZ_VAR/client"
               NODE_DIR="$TEZ_VAR/node"
@@ -797,7 +797,7 @@ spec:
               
               proto_command="013-PtJakart"
               
-              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/tezos/baker-account )"
+              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/mavryk/baker-account )"
               
               if [ "${my_baker_account}" == "" ]; then
                 while true; do
@@ -807,7 +807,7 @@ spec:
                 done
               fi
               
-              per_block_vote_file=/etc/tezos/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
+              per_block_vote_file=/etc/mavryk/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
               
               if [ ! -f "$per_block_vote_file" ]; then
                 echo "Error: $per_block_vote_file not found" >&2
@@ -826,15 +826,15 @@ spec:
               fi
               extra_args="--votefile ${per_block_vote_file}"
               
-              if [ -f /etc/tezos/baker-config/${my_baker_account}_operations_pool ]; then
-                extra_args="${extra_args} --operations-pool $(cat /etc/tezos/baker-config/${my_baker_account}_operations_pool)"
+              if [ -f /etc/mavryk/baker-config/${my_baker_account}_operations_pool ]; then
+                extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
               CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
               CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -849,11 +849,11 @@ spec:
             - name: BAKER_INDEX
               value: "0"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
-            - mountPath: /etc/tezos/baker-config
+            - mountPath: /etc/mavryk/baker-config
               name: baker-config
         - name: baker-1-013-ptjakart
           image: "mavrykdynamics/mavryk:v15-release"
@@ -865,7 +865,7 @@ spec:
             - |
               set -ex
               
-              TEZ_VAR=/var/tezos
+              TEZ_VAR=/var/mavryk
               TEZ_BIN=/usr/local/bin
               CLIENT_DIR="$TEZ_VAR/client"
               NODE_DIR="$TEZ_VAR/node"
@@ -874,7 +874,7 @@ spec:
               
               proto_command="013-PtJakart"
               
-              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/tezos/baker-account )"
+              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/mavryk/baker-account )"
               
               if [ "${my_baker_account}" == "" ]; then
                 while true; do
@@ -884,7 +884,7 @@ spec:
                 done
               fi
               
-              per_block_vote_file=/etc/tezos/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
+              per_block_vote_file=/etc/mavryk/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
               
               if [ ! -f "$per_block_vote_file" ]; then
                 echo "Error: $per_block_vote_file not found" >&2
@@ -903,15 +903,15 @@ spec:
               fi
               extra_args="--votefile ${per_block_vote_file}"
               
-              if [ -f /etc/tezos/baker-config/${my_baker_account}_operations_pool ]; then
-                extra_args="${extra_args} --operations-pool $(cat /etc/tezos/baker-config/${my_baker_account}_operations_pool)"
+              if [ -f /etc/mavryk/baker-config/${my_baker_account}_operations_pool ]; then
+                extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
               CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
               CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -926,11 +926,11 @@ spec:
             - name: BAKER_INDEX
               value: "1"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
-            - mountPath: /etc/tezos/baker-config
+            - mountPath: /etc/mavryk/baker-config
               name: baker-config
         - name: baker-2-013-ptjakart
           image: "mavrykdynamics/mavryk:v15-release"
@@ -942,7 +942,7 @@ spec:
             - |
               set -ex
               
-              TEZ_VAR=/var/tezos
+              TEZ_VAR=/var/mavryk
               TEZ_BIN=/usr/local/bin
               CLIENT_DIR="$TEZ_VAR/client"
               NODE_DIR="$TEZ_VAR/node"
@@ -951,7 +951,7 @@ spec:
               
               proto_command="013-PtJakart"
               
-              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/tezos/baker-account )"
+              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/mavryk/baker-account )"
               
               if [ "${my_baker_account}" == "" ]; then
                 while true; do
@@ -961,7 +961,7 @@ spec:
                 done
               fi
               
-              per_block_vote_file=/etc/tezos/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
+              per_block_vote_file=/etc/mavryk/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
               
               if [ ! -f "$per_block_vote_file" ]; then
                 echo "Error: $per_block_vote_file not found" >&2
@@ -980,15 +980,15 @@ spec:
               fi
               extra_args="--votefile ${per_block_vote_file}"
               
-              if [ -f /etc/tezos/baker-config/${my_baker_account}_operations_pool ]; then
-                extra_args="${extra_args} --operations-pool $(cat /etc/tezos/baker-config/${my_baker_account}_operations_pool)"
+              if [ -f /etc/mavryk/baker-config/${my_baker_account}_operations_pool ]; then
+                extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
               CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
               CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1003,11 +1003,11 @@ spec:
             - name: BAKER_INDEX
               value: "2"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
-            - mountPath: /etc/tezos/baker-config
+            - mountPath: /etc/mavryk/baker-config
               name: baker-config
         - name: baker-3-013-ptjakart
           image: "mavrykdynamics/mavryk:v15-release"
@@ -1019,7 +1019,7 @@ spec:
             - |
               set -ex
               
-              TEZ_VAR=/var/tezos
+              TEZ_VAR=/var/mavryk
               TEZ_BIN=/usr/local/bin
               CLIENT_DIR="$TEZ_VAR/client"
               NODE_DIR="$TEZ_VAR/node"
@@ -1028,7 +1028,7 @@ spec:
               
               proto_command="013-PtJakart"
               
-              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/tezos/baker-account )"
+              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/mavryk/baker-account )"
               
               if [ "${my_baker_account}" == "" ]; then
                 while true; do
@@ -1038,7 +1038,7 @@ spec:
                 done
               fi
               
-              per_block_vote_file=/etc/tezos/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
+              per_block_vote_file=/etc/mavryk/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
               
               if [ ! -f "$per_block_vote_file" ]; then
                 echo "Error: $per_block_vote_file not found" >&2
@@ -1057,15 +1057,15 @@ spec:
               fi
               extra_args="--votefile ${per_block_vote_file}"
               
-              if [ -f /etc/tezos/baker-config/${my_baker_account}_operations_pool ]; then
-                extra_args="${extra_args} --operations-pool $(cat /etc/tezos/baker-config/${my_baker_account}_operations_pool)"
+              if [ -f /etc/mavryk/baker-config/${my_baker_account}_operations_pool ]; then
+                extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
               CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
               CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1080,11 +1080,11 @@ spec:
             - name: BAKER_INDEX
               value: "3"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
-            - mountPath: /etc/tezos/baker-config
+            - mountPath: /etc/mavryk/baker-config
               name: baker-config
         - name: baker-4-013-ptjakart
           image: "mavrykdynamics/mavryk:v15-release"
@@ -1096,7 +1096,7 @@ spec:
             - |
               set -ex
               
-              TEZ_VAR=/var/tezos
+              TEZ_VAR=/var/mavryk
               TEZ_BIN=/usr/local/bin
               CLIENT_DIR="$TEZ_VAR/client"
               NODE_DIR="$TEZ_VAR/node"
@@ -1105,7 +1105,7 @@ spec:
               
               proto_command="013-PtJakart"
               
-              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/tezos/baker-account )"
+              my_baker_account="$(sed -n "$(($BAKER_INDEX + 1))p" < /etc/mavryk/baker-account )"
               
               if [ "${my_baker_account}" == "" ]; then
                 while true; do
@@ -1115,7 +1115,7 @@ spec:
                 done
               fi
               
-              per_block_vote_file=/etc/tezos/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
+              per_block_vote_file=/etc/mavryk/baker-config/${my_baker_account}-${proto_command}-per-block-votes.json
               
               if [ ! -f "$per_block_vote_file" ]; then
                 echo "Error: $per_block_vote_file not found" >&2
@@ -1134,15 +1134,15 @@ spec:
               fi
               extra_args="--votefile ${per_block_vote_file}"
               
-              if [ -f /etc/tezos/baker-config/${my_baker_account}_operations_pool ]; then
-                extra_args="${extra_args} --operations-pool $(cat /etc/tezos/baker-config/${my_baker_account}_operations_pool)"
+              if [ -f /etc/mavryk/baker-config/${my_baker_account}_operations_pool ]; then
+                extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
               CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
               CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1157,11 +1157,11 @@ spec:
             - name: BAKER_INDEX
               value: "4"
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
-            - mountPath: /etc/tezos/baker-config
+            - mountPath: /etc/mavryk/baker-config
               name: baker-config        
         - name: logger
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -1187,9 +1187,9 @@ spec:
             - name: DAEMON
               value: logger
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume                
         - name: sidecar
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -1215,9 +1215,9 @@ spec:
             - name: DAEMON
               value: sidecar
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           resources:
             limits:
@@ -1249,9 +1249,9 @@ spec:
             - name: DAEMON
               value: config-generator
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts                        
@@ -1267,9 +1267,9 @@ spec:
             - name: DAEMON
               value: wait-for-dns
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume        
         - name: upgrade-storage
           image: "mavrykdynamics/mavryk:v15-release"
@@ -1281,21 +1281,21 @@ spec:
             - |
               set -ex
               
-              if [ ! -e /var/tezos/node/data/context/store.dict ]
+              if [ ! -e /var/mavryk/node/data/context/store.dict ]
               then
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/tezos/config.json
+              octez-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
             - name: DAEMON
               value: upgrade-storage
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
       securityContext:
         fsGroup: 1000      
@@ -1353,7 +1353,7 @@ spec:
               set -xe
               
               # ensure we can run octez-client commands without specifying client dir
-              ln -s /var/tezos/client /home/tezos/.tezos-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing octez-node to fail.
@@ -1362,7 +1362,7 @@ spec:
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/octez-node run				\
               			--bootstrap-threshold 0			\
-              			--config-file /etc/tezos/config.json
+              			--config-file /etc/mavryk/config.json
               	sleep $d
               done
               
@@ -1376,9 +1376,9 @@ spec:
             - name: DAEMON
               value: octez-node
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           ports:
             - containerPort: 8732
@@ -1416,9 +1416,9 @@ spec:
             - name: DAEMON
               value: sidecar
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
           resources:
             limits:
@@ -1450,9 +1450,9 @@ spec:
             - name: DAEMON
               value: config-generator
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts                        
@@ -1468,9 +1468,9 @@ spec:
             - name: DAEMON
               value: wait-for-dns
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume        
         - name: upgrade-storage
           image: "mavrykdynamics/mavryk:v15-release"
@@ -1482,21 +1482,21 @@ spec:
             - |
               set -ex
               
-              if [ ! -e /var/tezos/node/data/context/store.dict ]
+              if [ ! -e /var/mavryk/node/data/context/store.dict ]
               then
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/tezos/config.json
+              octez-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
             - name: DAEMON
               value: upgrade-storage
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
       securityContext:
         fsGroup: 1000      
@@ -1548,14 +1548,14 @@ spec:
         command:
           - /bin/sh
         volumeMounts:
-        - mountPath: /var/tezos
+        - mountPath: /var/mavryk
           name: var-volume
         args:
           - "-c"
           - |
             set -ex
             
-            TEZ_VAR=/var/tezos
+            TEZ_VAR=/var/mavryk
             TEZ_BIN=/usr/local/bin
             CLIENT_DIR="$TEZ_VAR/client"
             NODE_DIR="$TEZ_VAR/node"
@@ -1568,7 +1568,7 @@ spec:
             CMD="$TEZ_BIN/octez-signer -d $CLIENT_DIR ${extra_args} launch http signer -a 0.0.0.0 -p 6732"
             
             # ensure we can run mavryk-signer commands without specifying client dir
-            ln -s /var/tezos/client /home/tezos/.tezos-signer
+            ln -s /var/mavryk/client /home/mavryk/.mavryk-signer
             
             exec $CMD
             
@@ -1589,7 +1589,7 @@ spec:
           - name: MY_POD_TYPE
             value: signing
         volumeMounts:
-          - mountPath: /var/tezos
+          - mountPath: /var/mavryk
             name: var-volume
           - mountPath: /etc/secret-volume
             name: mavryk-accounts
@@ -1637,21 +1637,21 @@ spec:
               fi
               
               echo Activating chain:
-              $CLIENT -d /var/tezos/client --block                                    \
+              $CLIENT -d /var/mavryk/client --block                                    \
                       genesis activate protocol                                       \
                       PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY                          \
                       with fitness 1 and key                                          \
-                      $( cat /etc/tezos/activation_account_name )                     \
-                      and parameters /etc/tezos/parameters.json 2>&1 | head -200
+                      $( cat /etc/mavryk/activation_account_name )                     \
+                      and parameters /etc/mavryk/parameters.json 2>&1 | head -200
               
           envFrom:
           env:
             - name: DAEMON
               value: chain-initiator
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
       initContainers:
         - image: ghcr.io/mavryk-network/mavryk-k8s-utils:master
@@ -1670,9 +1670,9 @@ spec:
             - name: MY_POD_TYPE
               value: activating
           volumeMounts:
-            - mountPath: /etc/tezos
+            - mountPath: /etc/mavryk
               name: config-volume
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
               name: mavryk-accounts
