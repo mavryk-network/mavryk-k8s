@@ -33,12 +33,12 @@ spec:
 
               # Set up config for headless RPC using new restored storage
               mavkit-node config init \
-              --config-file /home/mavryk/.mavryk-node/config.json \
+              --config-file /home/tezos/.mavryk-node/config.json \
               --network "${CHAIN_NAME}" \
               --data-dir /var/mavryk/node/data
 
               # Run headless mavryk node to validate storage on restored volume
-              mavkit-node run --connections 0 --config-file /home/mavryk/.mavryk-node/config.json --rpc-addr=127.0.0.1:8732 &
+              mavkit-node run --connections 0 --config-file /home/tezos/.mavryk-node/config.json --rpc-addr=127.0.0.1:8732 &
 
               # Limit validation to restoredStorageInitTime. If this takes longer then there is a mavryk error
               # and this job is tossed.
@@ -170,14 +170,14 @@ spec:
               ROLLING_SNAPSHOT_NAME="${NAMESPACE%%-*}"-"${BLOCK_HEIGHT}"
 
               mavkit-node config init \
-              --config-file /home/mavryk/.mavryk-node/config.json \
+              --config-file /home/tezos/.mavryk-node/config.json \
               --network "${CHAIN_NAME}" \
               --data-dir /var/mavryk/node/data
 
               if [ "${HISTORY_MODE}" = rolling ]; then
                 mavkit-node snapshot export \
                 --block "${BLOCK_HASH}" \
-                --config-file /home/mavryk/.mavryk-node/config.json \
+                --config-file /home/tezos/.mavryk-node/config.json \
                 --rolling \
                 /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling
 
@@ -188,7 +188,7 @@ spec:
                 mavkit-node snapshot import \
                 /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling \
                 --block "${BLOCK_HASH}" \
-                --config-file /home/mavryk/.mavryk-node/config.json \
+                --config-file /home/tezos/.mavryk-node/config.json \
                 --data-dir /rolling-tarball-restore/var/mavryk/node/data
 
                 # Get mavkit snapshot version

@@ -207,7 +207,7 @@ spec:
               set -xe
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
+              ln -s /var/mavryk/client /home/tezos/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing mavkit-node to fail.
@@ -577,7 +577,7 @@ spec:
               set -xe
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
+              ln -s /var/mavryk/client /home/tezos/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing mavkit-node to fail.
