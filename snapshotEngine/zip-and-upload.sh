@@ -128,7 +128,7 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
             "history_mode": $HISTORY_MODE,
             "artifact_type": $ARTIFACT_TYPE,
             "mavryk_version": {
-                "implementation": "octez",
+                "implementation": "mavkit",
                 "version": "",
                 "commit_info": {
                     "commit_hash": $MAVRYK_VERSION_COMMIT_HASH,
@@ -310,7 +310,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             "history_mode": $HISTORY_MODE,
             "artifact_type": $ARTIFACT_TYPE,
             "mavryk_version": {
-                "implementation": "octez",
+                "implementation": "mavkit",
                 "version": "",
                 "commit_info": {
                     "commit_hash": $MAVRYK_VERSION_COMMIT_HASH,
@@ -428,7 +428,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
                 "history_mode": $HISTORY_MODE,
                 "artifact_type": $ARTIFACT_TYPE,
                 "mavryk_version":{
-                    "implementation": "octez",
+                    "implementation": "mavkit",
                     "version": "",
                     "commit_info": {
                         "commit_hash": $MAVRYK_VERSION_COMMIT_HASH,

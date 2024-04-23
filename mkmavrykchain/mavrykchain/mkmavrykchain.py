@@ -40,7 +40,7 @@ cli_args = {
     "should_generate_unsafe_deterministic_data": {
         "help": (
             "Should mavryk-k8s generate deterministic account keys and genesis"
-            " block hash instead of mkmavrykchain using octez-client to generate"
+            " block hash instead of mkmavrykchain using mavkit-client to generate"
             " random ones. This option is helpful for testing purposes."
         ),
         "action": "store_true",
@@ -68,9 +68,9 @@ cli_args = {
         "action": "extend",
         "nargs": "+",
     },
-    "octez_docker_image": {
-        "help": "Version of the Octez docker image",
-        "default": "mavrykdynamics/mavryk:v17.3",
+    "mavkit_docker_image": {
+        "help": "Version of the Mavkit docker image",
+        "default": "mavrykdynamics/mavryk:v19.3",
     },
     "use_docker": {
         "action": "store_true",
@@ -172,7 +172,7 @@ def main():
 
     base_constants = {
         "images": {
-            "octez": args.octez_docker_image,
+            "mavkit": args.mavkit_docker_image,
         },
         "node_config_network": {"chain_name": args.chain_name},
         "zerotier_config": {
@@ -246,7 +246,7 @@ def main():
         }
         for account in [*baking_accounts, "authorized-key-0"]:
             print(f"Generating keys for account {account}")
-            keys = gen_key(args.octez_docker_image)
+            keys = gen_key(args.mavkit_docker_image)
             for key_type in keys:
                 accounts[key_type][account] = {
                     "key": keys[key_type],
@@ -260,7 +260,7 @@ def main():
     # archive mode. Any other bakers will be in rolling mode.
     creation_nodes = {
         ARCHIVE_BAKER_NODE_NAME: {
-            "runs": ["octez_node", "baker"],
+            "runs": ["mavkit_node", "baker"],
             "storage_size": "15Gi",
             "instances": [
                 node_config(ARCHIVE_BAKER_NODE_NAME, n, is_baker=True)
@@ -278,7 +278,7 @@ def main():
             ],
         }
 
-    octezSigners = {
+    mavkitSigners = {
         "mavryk-signer-0": {
             "accounts": [
                 f"{ARCHIVE_BAKER_NODE_NAME}-{n}" for n in range(args.number_of_bakers)
@@ -312,7 +312,7 @@ def main():
         **base_constants,
         "bootstrap_peers": bootstrap_peers,
         "accounts": accounts["secret"],
-        "octezSigners": octezSigners,
+        "mavkitSigners": mavkitSigners,
         "nodes": creation_nodes,
         **activation,
     }

@@ -38,7 +38,7 @@ data:
   ARCHIVE_TARBALL_URL: ""
   PREFER_TARBALLS: "false"
   SNAPSHOT_SOURCE: "https://xtz-shots.io/mavryk-snapshots.json"
-  OCTEZ_VERSION: "mavrykdynamics/mavryk:v17.3"
+  MAVKIT_VERSION: "mavrykdynamics/mavryk:v19.3"
   NODE_GLOBALS: |
     {
       "config": {},
@@ -62,13 +62,13 @@ data:
           }
         ],
         "runs": [
-          "octez_node"
+          "mavkit_node"
         ],
         "storage_size": "100Gi"
       }
     }
 
-  OCTEZ_SIGNERS: |
+  MAVKIT_SIGNERS: |
     {}
   TACOINFRA_SIGNERS: |
     {}
@@ -84,7 +84,7 @@ spec:
     - port: 8732
       name: rpc
   selector:
-    appType: octez-node
+    appType: mavkit-node
   type: NodePort
 ---
 # Source: mavryk-chain/templates/static.yaml
@@ -93,7 +93,7 @@ kind: Service
 metadata:
   name: rolling-node
   labels:
-    appType: octez-node
+    appType: mavkit-node
 spec:
   ports:
     - port: 8732
@@ -123,12 +123,12 @@ spec:
   template:
     metadata:
       labels:
-        appType: octez-node
+        appType: mavkit-node
         node_class: rolling-node
     spec:
       containers:        
-        - name: octez-node
-          image: "mavrykdynamics/mavryk:v17.3"
+        - name: mavkit-node
+          image: "mavrykdynamics/mavryk:v19.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -139,15 +139,15 @@ spec:
               
               set -xe
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
-              # the listen-addr may not yet be bound causing octez-node to fail.
+              # the listen-addr may not yet be bound causing mavkit-node to fail.
               # So, we try a few times with increasing delays:
               
               for d in 1 1 5 10 20 60 120; do
-              	/usr/local/bin/octez-node run				\
+              	/usr/local/bin/mavkit-node run				\
               			--bootstrap-threshold 0			\
               			--config-file /etc/mavryk/config.json
               	sleep $d
@@ -161,7 +161,7 @@ spec:
           envFrom:
           env:
             - name: DAEMON
-              value: octez-node
+              value: mavkit-node
           volumeMounts:
             - mountPath: /etc/mavryk
               name: config-volume
@@ -213,7 +213,7 @@ spec:
               memory: 80Mi        
       initContainers:        
         - name: config-init
-          image: "mavrykdynamics/mavryk:v17.3"
+          image: "mavrykdynamics/mavryk:v19.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -233,7 +233,7 @@ spec:
                 rm -rvf /etc/mavryk/data/config.json
               fi
               
-              /usr/local/bin/octez-node config init		\
+              /usr/local/bin/mavkit-node config init		\
                   --config-file /etc/mavryk/data/config.json	\
                   --data-dir /etc/mavryk/data			\
                   --network $CHAIN_NAME
@@ -324,7 +324,7 @@ spec:
             - mountPath: /var/mavryk
               name: var-volume        
         - name: snapshot-importer
-          image: "mavrykdynamics/mavryk:v17.3"
+          image: "mavrykdynamics/mavryk:v19.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -337,7 +337,7 @@ spec:
               data_dir="/var/mavryk"
               node_dir="$data_dir/node"
               node_data_dir="$node_dir/data"
-              node="$bin_dir/octez-node"
+              node="$bin_dir/mavkit-node"
               snapshot_file=${node_dir}/chain.snapshot
               
               if [ ! -f ${snapshot_file} ]; then
@@ -387,7 +387,7 @@ spec:
             - mountPath: /var/mavryk
               name: var-volume                
         - name: upgrade-storage
-          image: "mavrykdynamics/mavryk:v17.3"
+          image: "mavrykdynamics/mavryk:v19.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -401,7 +401,7 @@ spec:
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/mavryk/config.json
+              mavkit-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:

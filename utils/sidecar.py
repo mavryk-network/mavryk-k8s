@@ -21,7 +21,7 @@ NODE_CONNECT_TIMEOUT = 0.9
 def sync_checker():
     """
     Here we don't trust the /is_bootstrapped endpoint of
-    octez-node. We have seen it return true when the node is
+    mavkit-node. We have seen it return true when the node is
     in a bad state (for example, some crashed threads)
     Instead, we query the head block and verify timestamp is
     not too old.

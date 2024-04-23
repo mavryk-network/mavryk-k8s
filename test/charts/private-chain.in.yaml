@@ -74,7 +74,7 @@ bootstrap_peers: []
 expected_proof_of_work: 0
 snapshot_source: null
 images:
-  octez: 'mavrykdynamics/mavryk:v15-release'
+  mavkit: 'mavrykdynamics/mavryk:v15-release'
 is_invitation: false
 node_config_network:
   activation_account_name: mavryk-baking-node-0
@@ -86,7 +86,7 @@ node_config_network:
 nodes:
   eu:
     images:
-      octez: mavrykdynamics/mavryk:v15-release
+      mavkit: mavrykdynamics/mavryk:v15-release
     labels:
       rpc_node: "true"
     instances:
@@ -97,16 +97,16 @@ nodes:
     - is_bootstrap_node: true
       bake_using_account: tacoinfraSigner
     - {}
-    runs: [octez_node, baker, logger, metrics]
+    runs: [mavkit_node, baker, logger, metrics]
     storage_size: 15Gi
   us:
     instances:
     - {}
     - {}
-    runs: [octez_node, baker]
+    runs: [mavkit_node, baker]
     storage_size: 15Gi
   as:
-    runs: [octez_node]
+    runs: [mavkit_node]
     instances:
     - {}
   rolling-node: null
@@ -118,7 +118,7 @@ accounts:
   tacoinfraSigner:
     key: sppk...
     key_id: alias/...
-octezSigners:
+mavkitSigners:
  mavryk-signer-0:
    accounts:
     - mavryk-baking-node-0

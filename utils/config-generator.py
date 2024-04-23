@@ -24,7 +24,7 @@ DATA_DIR = "/var/mavryk/node/data"
 NODE_GLOBALS = json.loads(os.environ["NODE_GLOBALS"]) or {}
 NODES = json.loads(os.environ["NODES"])
 NODE_IDENTITIES = json.loads(os.getenv("NODE_IDENTITIES", "{}"))
-OCTEZ_SIGNERS = json.loads(os.getenv("OCTEZ_SIGNERS", "{}"))
+MAVKIT_SIGNERS = json.loads(os.getenv("MAVKIT_SIGNERS", "{}"))
 TACOINFRA_SIGNERS = json.loads(os.getenv("TACOINFRA_SIGNERS", "{}"))
 
 MY_POD_NAME = os.environ["MY_POD_NAME"]
@@ -55,7 +55,7 @@ if not MY_POD_CLASS and "MY_NODE_CLASS" in os.environ:
     MY_POD_CLASS = NODES[my_node_class]
 
 if MY_POD_TYPE == "signing":
-    MY_POD_CONFIG = OCTEZ_SIGNERS[MY_POD_NAME]
+    MY_POD_CONFIG = MAVKIT_SIGNERS[MY_POD_NAME]
 
 NETWORK_CONFIG = CHAIN_PARAMS["network"]
 
@@ -384,17 +384,17 @@ def get_remote_signer_url(account: tuple[str, dict], key: Key) -> Union[str, Non
     account_name, account_values = account
 
     signer_url = account_values.get("signer_url")
-    octez_signer = get_accounts_signer(OCTEZ_SIGNERS, account_name)
+    mavkit_signer = get_accounts_signer(MAVKIT_SIGNERS, account_name)
     tacoinfra_signer = get_accounts_signer(TACOINFRA_SIGNERS, account_name)
 
-    signers = (signer_url, octez_signer, tacoinfra_signer)
+    signers = (signer_url, mavkit_signer, tacoinfra_signer)
     if tuple(map(bool, (signers))).count(True) > 1:
         raise Exception(
             f"ERROR: Account '{account_name}' may only have a signer_url field or be signed for by a single signer."
         )
 
-    if octez_signer:
-        signer_url = f"http://{octez_signer['name']}.octez-signer:6732"
+    if mavkit_signer:
+        signer_url = f"http://{mavkit_signer['name']}.mavkit-signer:6732"
 
     if tacoinfra_signer:
         signer_url = f"http://{tacoinfra_signer['name']}:5000"
@@ -406,15 +406,15 @@ def get_secret_key(account, key: Key):
     """
     For nodes and activation job, check if there is a remote signer for the
     account. If found, use its url as the sk. If there is no signer and for all
-    other pod types (e.g. octez signer), use an actual sk.
+    other pod types (e.g. mavkit signer), use an actual sk.
     """
     account_name, _ = account
 
     sk = (key.is_secret or None) and f"unencrypted:{key.secret_key()}"
     if MY_POD_TYPE in ("node", "activating"):
         signer_url = get_remote_signer_url(account, key)
-        octez_signer = get_accounts_signer(OCTEZ_SIGNERS, account_name)
-        if (sk and signer_url) and not octez_signer:
+        mavkit_signer = get_accounts_signer(MAVKIT_SIGNERS, account_name)
+        if (sk and signer_url) and not mavkit_signer:
             raise Exception(
                 f"ERROR: Account {account_name} can't have both a secret key and cloud signer."
             )
@@ -647,7 +647,7 @@ def create_node_config_json(
     node_config = recursive_update(node_config, computed_node_config)
 
     if THIS_IS_A_PUBLIC_NET:
-        # `octez-node config --network ...` will have been run in config-init.sh
+        # `mavkit-node config --network ...` will have been run in config-init.sh
         #  producing a config.json. The value passed to the `--network` flag may
         #  have been the chain name or a url to the config.json of the chain.
         #  Either way, set the `network` field here as the `network` object of the
@@ -728,21 +728,21 @@ def create_node_snapshot_config_json(history_mode):
                 print(f"Error: history mode {history_mode} is not known.")
                 sys.exit(1)
 
-    if "images" in MY_POD_CLASS and "octez" in MY_POD_CLASS["images"]:
-        octez_container_version = MY_POD_CLASS["images"]["octez"]
+    if "images" in MY_POD_CLASS and "mavkit" in MY_POD_CLASS["images"]:
+        mavkit_container_version = MY_POD_CLASS["images"]["mavkit"]
     else:
-        octez_container_version = os.environ.get("OCTEZ_VERSION")
+        mavkit_container_version = os.environ.get("MAVKIT_VERSION")
     snapshot_source = os.environ.get("SNAPSHOT_SOURCE")
     if snapshot_source:
         all_snapshots = requests.get(snapshot_source).json()
     else:
         return
     try:
-        octez_long_version = octez_container_version.split(":")[1]
-        octez_version_re = re.search(r"v(\d+)", octez_long_version)
-        octez_version = octez_version_re and octez_version_re.group(1)
+        mavkit_long_version = mavkit_container_version.split(":")[1]
+        mavkit_version_re = re.search(r"v(\d+)", mavkit_long_version)
+        mavkit_version = mavkit_version_re and mavkit_version_re.group(1)
     except Exception:
-        octez_version = None
+        mavkit_version = None
 
     print(
         f"""
@@ -750,7 +750,7 @@ Searching for snapshots from {snapshot_source}
 with history mode {history_mode}
 and artifact type {artifact_type}
 and chain name {network_name}
-and octez version {octez_version}.
+and mavkit version {mavkit_version}.
     """
     )
     # find snapshot matching all the requested fields
@@ -761,14 +761,14 @@ and octez version {octez_version}.
         and s.get("artifact_type") == artifact_type
         and s.get("chain_name") == network_name
     ]
-    if octez_version:
+    if mavkit_version:
         version_matching_snapshots = [
             s
             for s in matching_snapshots
-            if int(octez_version) == s.get("mavryk_version").get("version").get("major")
+            if int(mavkit_version) == s.get("mavryk_version").get("version").get("major")
         ]
         if len(version_matching_snapshots):
-            # If we can't find snapshots of the right octez version, we just pick the most recent available.
+            # If we can't find snapshots of the right mavkit version, we just pick the most recent available.
             matching_snapshots = version_matching_snapshots
     matching_snapshots = sorted(matching_snapshots, key=lambda s: s.get("block_height"))
 

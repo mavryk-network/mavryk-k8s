@@ -86,7 +86,7 @@ You can explicitly specify some values by:
 |                                  | --number-of-nodes        | Number of non-baking nodes in the cluster                      | 0                       |
 | bootstrap_peers                  | --bootstrap-peers        | Peer ips to connect to                                         | []                      |
 | expected_proof_of_work           | --expected-proof-of-work | Node identity generation difficulty                            | 0                       |
-| images.octez                     | --octez-docker-image     | Version of the Octez docker image to run                       | mavrykdynamics/mavryk:v17.3 |
+| images.mavkit                     | --mavkit-docker-image     | Version of the Mavkit docker image to run                       | mavrykdynamics/mavryk:v19.3 |
 |                                  | --use-docker (--no...)   | Use (or don't use) docker to generate keys rather than pymavryk | autodetect              |
 | zerotier_config.zerotier_network | --zerotier-network       | Zerotier network id for external chain access                  |                         |
 | zerotier_config.zerotier_token   | --zerotier-token         | Zerotier token for external chain access                       |                         |

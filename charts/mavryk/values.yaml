@@ -8,7 +8,7 @@ is_invitation: false
 
 # Images not part of the mavryk-k8s repo go here
 images:
-  mavkit: mavrykdynamics/mavryk:v17.3
+  mavkit: mavrykdynamics/mavryk:v19.3
   tacoinfraRemoteSigner: ghcr.io/oxheadalpha/tacoinfra-remote-signer:0.1.0
 # Images that are part of the mavryk-k8s repo go here with 'dev' tag
 mavryk_k8s_images:

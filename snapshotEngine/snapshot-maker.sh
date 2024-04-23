@@ -281,7 +281,7 @@ NAMESPACE="${NAMESPACE}" yq e -i '.metadata.namespace=strenv(NAMESPACE)' mainJob
 # name per node type
 ZIP_AND_UPLOAD_JOB_NAME="${ZIP_AND_UPLOAD_JOB_NAME}" yq e -i '.metadata.name=strenv(ZIP_AND_UPLOAD_JOB_NAME)' mainJob.yaml
 
-# Mavryk image gets set in values.yaml in base of submod .images.octez
+# Mavryk image gets set in values.yaml in base of submod .images.mavkit
 MAVRYK_IMAGE="${MAVRYK_IMAGE}" yq e -i '.spec.template.spec.initContainers[0].image=strenv(MAVRYK_IMAGE)' mainJob.yaml
 MAVRYK_IMAGE="${MAVRYK_IMAGE}" yq e -i '.spec.template.spec.containers[0].image=strenv(MAVRYK_IMAGE)' mainJob.yaml
 

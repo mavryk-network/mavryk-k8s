@@ -19,7 +19,7 @@ Running this results in:
 You can find your node in the mavryk-network namespace with some status information using `kubectl`.
 
 ```shell
-kubectl -n mavryk-network get pods -l appType=octez-node
+kubectl -n mavryk-network get pods -l appType=mavkit-node
 ```
 
 You can monitor (and follow using the `-f` flag) the logs of the snapshot downloader/import container:
@@ -31,7 +31,7 @@ kubectl logs -n mavryk-network statefulset/rolling-node -c snapshot-downloader -
 You can view logs for your node using the following command:
 
 ```shell
-kubectl -n mavryk-network logs -l appType=octez-node -c octez-node -f --prefix
+kubectl -n mavryk-network logs -l appType=mavkit-node -c mavkit-node -f --prefix
 ```
 
 IMPORTANT:

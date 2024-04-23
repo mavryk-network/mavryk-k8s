@@ -32,7 +32,7 @@ for subDomain in allSubDomains:
 
 now = datetime.now()
 
-# Matches octez block_timestamp.
+# Matches mavkit block_timestamp.
 # Is ISO 8601 with military offset of Z
 dt_string = now.strftime('%Y-%m-%dT%H:%M:%SZ')
 

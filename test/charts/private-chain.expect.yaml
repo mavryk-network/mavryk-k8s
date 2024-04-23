@@ -131,7 +131,7 @@ data:
   ARCHIVE_TARBALL_URL: ""
   PREFER_TARBALLS: "false"
   SNAPSHOT_SOURCE: ""
-  OCTEZ_VERSION: "mavrykdynamics/mavryk:v15-release"
+  MAVKIT_VERSION: "mavrykdynamics/mavryk:v15-release"
   NODE_GLOBALS: |
     {
       "config": {},
@@ -145,12 +145,12 @@ data:
           {}
         ],
         "runs": [
-          "octez_node"
+          "mavkit_node"
         ]
       },
       "eu": {
         "images": {
-          "octez": "mavrykdynamics/mavryk:v15-release"
+          "mavkit": "mavrykdynamics/mavryk:v15-release"
         },
         "instances": [
           {
@@ -178,7 +178,7 @@ data:
           "rpc_node": "true"
         },
         "runs": [
-          "octez_node",
+          "mavkit_node",
           "baker",
           "logger",
           "metrics"
@@ -191,16 +191,16 @@ data:
           {}
         ],
         "runs": [
-          "octez_node",
+          "mavkit_node",
           "baker"
         ],
         "storage_size": "15Gi"
       }
     }
 
-  OCTEZ_SIGNERS: |
+  MAVKIT_SIGNERS: |
     {
-      "octez-signer-0": {
+      "mavkit-signer-0": {
         "accounts": [
           "mavryk-baking-node-0"
         ],
@@ -247,11 +247,11 @@ spec:
   accessModes:
     - ReadWriteOnce
 ---
-# Source: mavryk-chain/templates/octez-signer.yaml
+# Source: mavryk-chain/templates/mavkit-signer.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: octez-signer
+  name: mavkit-signer
   namespace: testing
 spec:
   clusterIP: None
@@ -259,7 +259,7 @@ spec:
     - port: 6732
       name: signer
   selector:
-    app: octez-signer
+    app: mavkit-signer
 ---
 # Source: mavryk-chain/templates/static.yaml
 apiVersion: v1
@@ -272,7 +272,7 @@ spec:
     - port: 8732
       name: rpc
   selector:
-    appType: octez-node
+    appType: mavkit-node
   type: NodePort
 ---
 # Source: mavryk-chain/templates/static.yaml
@@ -281,7 +281,7 @@ kind: Service
 metadata:
   name: as
   labels:
-    appType: octez-node
+    appType: mavkit-node
 spec:
   ports:
     - port: 8732
@@ -301,7 +301,7 @@ kind: Service
 metadata:
   name: eu
   labels:
-    appType: octez-node
+    appType: mavkit-node
 spec:
   ports:
     - port: 8732
@@ -321,7 +321,7 @@ kind: Service
 metadata:
   name: us
   labels:
-    appType: octez-node
+    appType: mavkit-node
 spec:
   ports:
     - port: 8732
@@ -524,11 +524,11 @@ spec:
   template:
     metadata:
       labels:
-        appType: octez-node
+        appType: mavkit-node
         node_class: as
     spec:
       containers:        
-        - name: octez-node
+        - name: mavkit-node
           image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
@@ -540,15 +540,15 @@ spec:
               
               set -xe
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
-              # the listen-addr may not yet be bound causing octez-node to fail.
+              # the listen-addr may not yet be bound causing mavkit-node to fail.
               # So, we try a few times with increasing delays:
               
               for d in 1 1 5 10 20 60 120; do
-              	/usr/local/bin/octez-node run				\
+              	/usr/local/bin/mavkit-node run				\
               			--bootstrap-threshold 0			\
               			--config-file /etc/mavryk/config.json
               	sleep $d
@@ -562,7 +562,7 @@ spec:
           envFrom:
           env:
             - name: DAEMON
-              value: octez-node
+              value: mavkit-node
           volumeMounts:
             - mountPath: /etc/mavryk
               name: config-volume
@@ -674,7 +674,7 @@ spec:
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/mavryk/config.json
+              mavkit-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
@@ -720,13 +720,13 @@ spec:
   template:
     metadata:
       labels:
-        appType: octez-node
+        appType: mavkit-node
         node_class: eu
         baking_node: "true"
         rpc_node: "true"
     spec:
       containers:        
-        - name: octez-node
+        - name: mavkit-node
           image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
@@ -738,15 +738,15 @@ spec:
               
               set -xe
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
-              # the listen-addr may not yet be bound causing octez-node to fail.
+              # the listen-addr may not yet be bound causing mavkit-node to fail.
               # So, we try a few times with increasing delays:
               
               for d in 1 1 5 10 20 60 120; do
-              	/usr/local/bin/octez-node run				\
+              	/usr/local/bin/mavkit-node run				\
               			--bootstrap-threshold 0			\
               			--config-file /etc/mavryk/config.json
               	sleep $d
@@ -760,7 +760,7 @@ spec:
           envFrom:
           env:
             - name: DAEMON
-              value: octez-node
+              value: mavkit-node
           volumeMounts:
             - mountPath: /etc/mavryk
               name: config-volume
@@ -830,10 +830,10 @@ spec:
                 extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
-              CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
-              CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
+              CLIENT="$TEZ_BIN/mavkit-client -d $CLIENT_DIR"
+              CMD="$TEZ_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
@@ -907,10 +907,10 @@ spec:
                 extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
-              CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
-              CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
+              CLIENT="$TEZ_BIN/mavkit-client -d $CLIENT_DIR"
+              CMD="$TEZ_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
@@ -984,10 +984,10 @@ spec:
                 extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
-              CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
-              CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
+              CLIENT="$TEZ_BIN/mavkit-client -d $CLIENT_DIR"
+              CMD="$TEZ_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
@@ -1061,10 +1061,10 @@ spec:
                 extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
-              CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
-              CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
+              CLIENT="$TEZ_BIN/mavkit-client -d $CLIENT_DIR"
+              CMD="$TEZ_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
@@ -1138,10 +1138,10 @@ spec:
                 extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
               fi
               
-              CLIENT="$TEZ_BIN/octez-client -d $CLIENT_DIR"
-              CMD="$TEZ_BIN/octez-baker-$proto_command -d $CLIENT_DIR"
+              CLIENT="$TEZ_BIN/mavkit-client -d $CLIENT_DIR"
+              CMD="$TEZ_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
@@ -1286,7 +1286,7 @@ spec:
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/mavryk/config.json
+              mavkit-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
@@ -1335,12 +1335,12 @@ spec:
   template:
     metadata:
       labels:
-        appType: octez-node
+        appType: mavkit-node
         node_class: us
         baking_node: "true"
     spec:
       containers:        
-        - name: octez-node
+        - name: mavkit-node
           image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
@@ -1352,15 +1352,15 @@ spec:
               
               set -xe
               
-              # ensure we can run octez-client commands without specifying client dir
+              # ensure we can run mavkit-client commands without specifying client dir
               ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
-              # the listen-addr may not yet be bound causing octez-node to fail.
+              # the listen-addr may not yet be bound causing mavkit-node to fail.
               # So, we try a few times with increasing delays:
               
               for d in 1 1 5 10 20 60 120; do
-              	/usr/local/bin/octez-node run				\
+              	/usr/local/bin/mavkit-node run				\
               			--bootstrap-threshold 0			\
               			--config-file /etc/mavryk/config.json
               	sleep $d
@@ -1374,7 +1374,7 @@ spec:
           envFrom:
           env:
             - name: DAEMON
-              value: octez-node
+              value: mavkit-node
           volumeMounts:
             - mountPath: /etc/mavryk
               name: config-volume
@@ -1487,7 +1487,7 @@ spec:
                 printf "No store in data dir found, probably initial start, doing nothing."
                 exit 0
               fi
-              octez-node upgrade storage --config /etc/mavryk/config.json
+              mavkit-node upgrade storage --config /etc/mavryk/config.json
               
           envFrom:
           env:
@@ -1520,26 +1520,26 @@ spec:
           requests:
             storage: 15Gi
 ---
-# Source: mavryk-chain/templates/octez-signer.yaml
+# Source: mavryk-chain/templates/mavkit-signer.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: octez-signer
+  name: mavkit-signer
   namespace: testing
 spec:
   podManagementPolicy: Parallel
   replicas: 1
-  serviceName: octez-signer
+  serviceName: mavkit-signer
   selector:
     matchLabels:
-      app: octez-signer
+      app: mavkit-signer
   template:
     metadata:
       labels:
-        app: octez-signer
+        app: mavkit-signer
     spec:
       containers:
-      - name: octez-signer
+      - name: mavkit-signer
         image: "mavrykdynamics/mavryk:v15-release"
         imagePullPolicy: IfNotPresent
         ports:
@@ -1565,7 +1565,7 @@ spec:
             if [ -f ${CLIENT_DIR}/authorized_keys ]; then
               extra_args="${extra_args} --require-authentication"
             fi
-            CMD="$TEZ_BIN/octez-signer -d $CLIENT_DIR ${extra_args} launch http signer -a 0.0.0.0 -p 6732"
+            CMD="$TEZ_BIN/mavkit-signer -d $CLIENT_DIR ${extra_args} launch http signer -a 0.0.0.0 -p 6732"
             
             # ensure we can run mavryk-signer commands without specifying client dir
             ln -s /var/mavryk/client /home/mavryk/.mavryk-signer
@@ -1622,7 +1622,7 @@ spec:
           args:
             - "-c"
             - |
-              CLIENT="/usr/local/bin/octez-client --endpoint http://mavryk-node-rpc:8732"
+              CLIENT="/usr/local/bin/mavkit-client --endpoint http://mavryk-node-rpc:8732"
               
               OUTPUT=""
               until OUTPUT=$($CLIENT rpc get /chains/main/blocks/head/header) && echo "$OUTPUT" | grep '"level":'; do

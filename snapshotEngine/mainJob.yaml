@@ -32,13 +32,13 @@ spec:
               NETWORK="${NETWORK_OVERRIDE:-${NAMESPACE%%-*}}"
 
               # Set up config for headless RPC using new restored storage
-              octez-node config init \
+              mavkit-node config init \
               --config-file /home/mavryk/.mavryk-node/config.json \
               --network "${CHAIN_NAME}" \
               --data-dir /var/mavryk/node/data
 
               # Run headless mavryk node to validate storage on restored volume
-              octez-node run --connections 0 --config-file /home/mavryk/.mavryk-node/config.json --rpc-addr=127.0.0.1:8732 &
+              mavkit-node run --connections 0 --config-file /home/mavryk/.mavryk-node/config.json --rpc-addr=127.0.0.1:8732 &
 
               # Limit validation to restoredStorageInitTime. If this takes longer then there is a mavryk error
               # and this job is tossed.
@@ -121,7 +121,7 @@ spec:
               wget -qO- http://127.0.0.1:8732/chains/main/blocks/head/header | sed -E 's/.*"timestamp":"?([^,"]*)"?.*/\1/' > /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP
 
               # Old version string
-              /usr/local/bin/octez-node --version > /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_VERSION
+              /usr/local/bin/mavkit-node --version > /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_VERSION
 
               # Get new version object from RPC
               wget -qO- http://127.0.0.1:8732/version > /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_RPC_VERSION_INFO
@@ -169,13 +169,13 @@ spec:
               BLOCK_HASH=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HASH)
               ROLLING_SNAPSHOT_NAME="${NAMESPACE%%-*}"-"${BLOCK_HEIGHT}"
 
-              octez-node config init \
+              mavkit-node config init \
               --config-file /home/mavryk/.mavryk-node/config.json \
               --network "${CHAIN_NAME}" \
               --data-dir /var/mavryk/node/data
 
               if [ "${HISTORY_MODE}" = rolling ]; then
-                octez-node snapshot export \
+                mavkit-node snapshot export \
                 --block "${BLOCK_HASH}" \
                 --config-file /home/mavryk/.mavryk-node/config.json \
                 --rolling \
@@ -185,14 +185,14 @@ spec:
 
                 touch /rolling-tarball-restore/snapshot-import-in-progress
 
-                octez-node snapshot import \
+                mavkit-node snapshot import \
                 /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling \
                 --block "${BLOCK_HASH}" \
                 --config-file /home/mavryk/.mavryk-node/config.json \
                 --data-dir /rolling-tarball-restore/var/mavryk/node/data
 
-                # Get octez snapshot version
-                /usr/local/bin/octez-node snapshot info /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling --json > /"${HISTORY_MODE}"-snapshot-cache-volume/SNAPSHOT_HEADER
+                # Get mavkit snapshot version
+                /usr/local/bin/mavkit-node snapshot info /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling --json > /"${HISTORY_MODE}"-snapshot-cache-volume/SNAPSHOT_HEADER
 
                 rm /rolling-tarball-restore/snapshot-import-in-progress
               else
