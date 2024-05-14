@@ -362,9 +362,9 @@
     - name: BUCKET_NAME
       value: {{ $.Values.photographer.bucketName }}
     - name: MAX_DAYS
-      value: {{ $.Values.photographer.retention.maxDays }}
+      value: "{{ $.Values.photographer.retention.maxDays }}"
     - name: MAX_MONTHS
-      value: {{ $.Values.photographer.retention.maxMonths }}
+      value: "{{ $.Values.photographer.retention.maxMonths }}"
     - name: NETWORK
       value: {{ upper . }}
     - name: SNAPSHOTS_PATH

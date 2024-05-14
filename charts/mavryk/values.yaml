@@ -634,5 +634,5 @@ photographer:
   bucketName: mavryk-snapshots
   gcpCredentialsSecretName: gcp-credentials-secret
   retention:
-    maxDays: 7
-    maxMonths: 6
+    maxDays: '7'
+    maxMonths: '6'
