@@ -373,6 +373,8 @@
       value: "/usr/local/bin/mavkit-node"
     - name: MAVRYK_PATH
       value: "/var/mavryk/node"
+    - name: MAVRYK_CONFIG
+      value: "/etc/mavryk/config.json"
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: "/etc/photographer/client_secret.json"
     {{- end }}
