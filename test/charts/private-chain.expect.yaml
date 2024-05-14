@@ -693,7 +693,7 @@ spec:
             limits:
               memory: 100Mi
             requests:
-              memory: 80Mi        
+              memory: 80Mi                
       initContainers:                        
         - name: config-generator
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -1305,7 +1305,7 @@ spec:
             limits:
               memory: 100Mi
             requests:
-              memory: 80Mi        
+              memory: 80Mi                
       initContainers:                        
         - name: config-generator
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
@@ -1506,7 +1506,7 @@ spec:
             limits:
               memory: 100Mi
             requests:
-              memory: 80Mi        
+              memory: 80Mi                
       initContainers:                        
         - name: config-generator
           image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"

@@ -210,7 +210,7 @@ spec:
             limits:
               memory: 100Mi
             requests:
-              memory: 80Mi        
+              memory: 80Mi                
       initContainers:        
         - name: config-init
           image: "mavrykdynamics/mavryk:v19.3"

@@ -347,6 +347,37 @@
   {{- end }}
 {{- end }}
 
+{{- define "mavryk.container.photographer" }}
+  {{- if has "photographer" $.node_vals.runs }}
+  {{ $node_vals_images := $.node_vals.images | default dict }}
+    {{- range .Values.photographer.networks }}
+- name: photographer-{{ lower . }}
+  image: "{{ or $node_vals_images.photographer $.Values.images.photographer }}"
+  imagePullPolicy: IfNotPresent
+  volumeMounts:
+    - mountPath: /etc/photographer
+      name: gcp-credentials
+      readOnly: true
+  env:
+    - name: BUCKET_NAME
+      value: {{ $.Values.photographer.bucketName }}
+    - name: MAX_DAYS
+      value: {{ $.Values.photographer.retention.maxDays }}
+    - name: MAX_MONTHS
+      value: {{ $.Values.photographer.retention.maxMonths }}
+    - name: NETWORK
+      value: {{ upper . }}
+    - name: SNAPSHOTS_PATH
+      value: "/var/mavryk/snapshots"
+    - name: MAVKIT_NODE_PATH
+      value: "/usr/local/bin/mavkit-node"
+    - name: MAVRYK_PATH
+      value: "/var/mavryk/node"
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/etc/photographer/client_secret.json"
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{/*
 // * The zerotier containers:
 */}}
