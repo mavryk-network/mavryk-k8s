@@ -130,7 +130,6 @@ data:
   ROLLING_TARBALL_URL: ""
   ARCHIVE_TARBALL_URL: ""
   PREFER_TARBALLS: "false"
-  SNAPSHOT_SOURCE: ""
   MAVKIT_VERSION: "mavrykdynamics/mavryk:v15-release"
   NODE_GLOBALS: |
     {

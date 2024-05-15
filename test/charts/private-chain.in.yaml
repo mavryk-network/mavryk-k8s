@@ -72,7 +72,6 @@ activation:
     sc_rollup_max_available_messages: 1000000
 bootstrap_peers: []
 expected_proof_of_work: 0
-snapshot_source: null
 images:
   mavkit: 'mavrykdynamics/mavryk:v15-release'
 is_invitation: false

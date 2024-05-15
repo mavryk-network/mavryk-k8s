@@ -179,8 +179,6 @@ def main():
             "zerotier_network": args.zerotier_network,
             "zerotier_token": args.zerotier_token,
         },
-        # Custom chains should not pull snapshots or tarballs
-        "snapshot_source": None,
         "node_globals": {
             # Needs a quotedstring otherwise helm interprets "Y" as true and it does not work
             "env": {

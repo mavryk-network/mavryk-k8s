@@ -21,7 +21,6 @@ data:
   ROLLING_TARBALL_URL: "{{ .Values.rolling_tarball_url }}"
   ARCHIVE_TARBALL_URL: "{{ .Values.archive_tarball_url }}"
   PREFER_TARBALLS: "{{ .Values.prefer_tarballs }}"
-  SNAPSHOT_SOURCE: "{{ .Values.snapshot_source }}"
   MAVKIT_VERSION: "{{ .Values.images.mavkit }}"
   NODE_GLOBALS: |
 {{ .Values.node_globals | mustToPrettyJson | indent 4 }}

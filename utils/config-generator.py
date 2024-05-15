@@ -703,7 +703,7 @@ def create_node_snapshot_config_json(history_mode):
         or full_snapshot_url
         or archive_tarball_url
     ):
-        print("Snapshot or tarball URL found, will ignore snapshot_source")
+        print("Snapshot or tarball URL found")
         match history_mode:
             case "rolling":
                 if rolling_tarball_url:

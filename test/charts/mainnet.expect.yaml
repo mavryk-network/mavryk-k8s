@@ -37,7 +37,6 @@ data:
   ROLLING_TARBALL_URL: ""
   ARCHIVE_TARBALL_URL: ""
   PREFER_TARBALLS: "false"
-  SNAPSHOT_SOURCE: "https://xtz-shots.io/mavryk-snapshots.json"
   MAVKIT_VERSION: "mavrykdynamics/mavryk:v19.3"
   NODE_GLOBALS: |
     {
@@ -294,98 +293,7 @@ spec:
             - mountPath: /var/mavryk
               name: var-volume
             - mountPath: /etc/secret-volume
-              name: mavryk-accounts        
-        - name: snapshot-downloader
-          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
-          imagePullPolicy: IfNotPresent
-          args:
-            - snapshot-downloader
-          envFrom:
-            - configMapRef:
-                name: mavryk-config
-          env:    
-            - name: MY_POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: MY_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: MY_POD_TYPE
-              value: node
-            - name: MY_NODE_CLASS
-              value: rolling-node
-            - name: DAEMON
-              value: snapshot-downloader
-          volumeMounts:
-            - mountPath: /etc/mavryk
-              name: config-volume
-            - mountPath: /var/mavryk
-              name: var-volume        
-        - name: snapshot-importer
-          image: "mavrykdynamics/mavryk:v19.3"
-          imagePullPolicy: IfNotPresent
-          command:
-            - /bin/sh
-          args:
-            - "-c"
-            - |
-              set -e
-              
-              bin_dir="/usr/local/bin"
-              data_dir="/var/mavryk"
-              node_dir="$data_dir/node"
-              node_data_dir="$node_dir/data"
-              node="$bin_dir/mavkit-node"
-              snapshot_file=${node_dir}/chain.snapshot
-              
-              if [ ! -f ${snapshot_file} ]; then
-                  echo "No snapshot to import."
-                  exit 0
-              fi
-              
-              if [ -e ${node_data_dir}/context/store.dict ]; then
-                  echo "Blockchain has already been imported. If a tarball"
-                  echo "instead of a regular mavryk snapshot was used, it was"
-                  echo "imported in the snapshot-downloader container."
-                  exit 0
-              fi
-              
-              cp -v /etc/mavryk/config.json ${node_data_dir}
-              
-              if [ -f ${node_dir}/chain.snapshot.block_hash ]; then
-                  block_hash_arg="--block $(cat ${node_dir}/chain.snapshot.block_hash)"
-              fi
-              
-              ${node} snapshot import ${snapshot_file} --data-dir ${node_data_dir}
-              find ${node_dir}
-              
-              rm -rvf ${snapshot_file}
-              
-          envFrom:
-            - configMapRef:
-                name: mavryk-config
-          env:    
-            - name: MY_POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: MY_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: MY_POD_TYPE
-              value: node
-            - name: MY_NODE_CLASS
-              value: rolling-node
-            - name: DAEMON
-              value: snapshot-importer
-          volumeMounts:
-            - mountPath: /etc/mavryk
-              name: config-volume
-            - mountPath: /var/mavryk
-              name: var-volume                
+              name: mavryk-accounts                                
         - name: upgrade-storage
           image: "mavrykdynamics/mavryk:v19.3"
           imagePullPolicy: IfNotPresent
