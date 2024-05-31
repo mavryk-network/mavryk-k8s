@@ -355,6 +355,10 @@
   image: "{{ or $node_vals_images.photographer $.Values.images.photographer }}"
   imagePullPolicy: IfNotPresent
   volumeMounts:
+    - mountPath: /etc/mavryk
+      name: config-volume
+    - mountPath: /var/mavryk
+      name: var-volume
     - mountPath: /etc/photographer
       name: gcp-credentials
       readOnly: true
@@ -373,7 +377,7 @@
       value: "/usr/local/bin/mavkit-node"
     - name: MAVRYK_PATH
       value: "/var/mavryk/node"
-    - name: MAVRYK_CONFIG
+    - name: MAVKIT_CONFIG
       value: "/etc/mavryk/config.json"
     - name: GOOGLE_APPLICATION_CREDENTIALS
       value: "/etc/photographer/client_secret.json"
