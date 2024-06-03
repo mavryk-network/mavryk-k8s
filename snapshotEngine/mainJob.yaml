@@ -11,7 +11,7 @@ spec:
     spec:
       serviceAccountName: ""
       initContainers:
-        - name: init-tezos-filesystem
+        - name: init-mavryk-filesystem
           image: ""
           command: ["/bin/sh"]
           args:
@@ -22,7 +22,7 @@ spec:
               # Exit on any error
               set -e
 
-              # Give tezos user full ownership of mounted cache volume for writing metadata later
+              # Give mavryk user full ownership of mounted cache volume for writing metadata later
               sudo chown -R tezos /"${HISTORY_MODE}"-snapshot-cache-volume
 
               # Set error trap in order to kill this job with the timer later
@@ -37,12 +37,12 @@ spec:
               --network "${CHAIN_NAME}" \
               --data-dir /var/tezos/node/data
 
-              # Run headless tezos node to validate storage on restored volume
+              # Run headless mavryk node to validate storage on restored volume
               octez-node run --connections 0 --config-file /home/tezos/.tezos-node/config.json --rpc-addr=127.0.0.1:8732 &
 
-              # Limit validation to restoredStorageInitTime. If this takes longer then there is a tezos error
+              # Limit validation to restoredStorageInitTime. If this takes longer then there is a mavryk error
               # and this job is tossed.
-              # Tezos does not exit on error so we have to time the job.
+              # Mavryk does not exit on error so we have to time the job.
               # Configmaps can only have strings as keys, so we cant test for truthy values.
               if [ "${DISABLE_STORAGE_INIT_TIME}" != "true" ]; then
                 printf "%s Storage init time limit has NOT been disabled.  This job will be killed after %s\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")" "${RESTORED_STORAGE_INIT_TIME}"
@@ -75,7 +75,7 @@ spec:
               if [ "${HISTORY_MODE}" = archive ]; then
                 TARGET="head"
 
-              # Tezos devs have advised us that it is safer to target HEAD~2 for rolling artifacts.
+              # Mavryk devs have advised us that it is safer to target HEAD~2 for rolling artifacts.
               else
                 HEAD_BLOCK=$(wget -qO-  http://127.0.0.1:8732/chains/main/blocks/head/header | sed -E 's/.*"hash":"?([^,"]*)"?.*/\1/')
                 TARGET="${HEAD_BLOCK}~2"
@@ -88,7 +88,7 @@ spec:
               wget -qO-  http://127.0.0.1:8732/chains/main/blocks/"${TARGET}"/header | sed -E 's/.*"level":"?([^,"]*)"?.*/\1/' > /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HEIGHT
 
               # We need to check if the block is finalized for archive nodes since we aren't getting
-              # validation by a Tezos snapshot like our rolling tarball. We are just zipping up the data dir from an archive node.
+              # validation by a Mavryk snapshot like our rolling tarball. We are just zipping up the data dir from an archive node.
               if [ "${HISTORY_MODE}" = archive ]; then
                 printf "%s Checking if archive snapshot block is finalized...\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
                 
@@ -121,17 +121,17 @@ spec:
               wget -qO- http://127.0.0.1:8732/chains/main/blocks/head/header | sed -E 's/.*"timestamp":"?([^,"]*)"?.*/\1/' > /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP
 
               # Old version string
-              /usr/local/bin/octez-node --version > /"${HISTORY_MODE}"-snapshot-cache-volume/TEZOS_VERSION
+              /usr/local/bin/octez-node --version > /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_VERSION
 
               # Get new version object from RPC
-              wget -qO- http://127.0.0.1:8732/version > /"${HISTORY_MODE}"-snapshot-cache-volume/TEZOS_RPC_VERSION_INFO
+              wget -qO- http://127.0.0.1:8732/version > /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_RPC_VERSION_INFO
 
               # Print variables for debug
               printf "%s BLOCK_HASH is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HASH))\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
               printf "%s BLOCK_HEIGHT is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HEIGHT)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
               printf "%s BLOCK_TIMESTAMP is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
-              printf "%s TEZOS_VERSION is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/TEZOS_VERSION)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
-              printf "%s TEZOS_RPC_VERSION_INFO is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/TEZOS_RPC_VERSION_INFO)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
+              printf "%s TEZOS_VERSION is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_VERSION)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
+              printf "%s MAVRYK_RPC_VERSION_INFO is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_RPC_VERSION_INFO)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
 
               # Blow open permissions for next job to write to volume
               sudo chmod -R 755 /"${HISTORY_MODE}"-snapshot-cache-volume
@@ -148,9 +148,9 @@ spec:
             - configMapRef:
                 name: snapshot-configmap
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
       containers:
-        - name: create-tezos-rolling-snapshot
+        - name: create-mavryk-rolling-snapshot
           image: ""
           command: ["/bin/sh"]
           args:
@@ -212,7 +212,7 @@ spec:
             - configMapRef:
                 name: snapshot-configmap
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
         - name: zip-and-upload
           image: ""
           imagePullPolicy: Always

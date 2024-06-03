@@ -30,7 +30,7 @@ run_test() {
 
 	echo "Testing $IN"
 
-	helm template --values "$IN" -n testing charts/tezos > $OUT
+	helm template --values "$IN" -n testing charts/mavryk > $OUT
 
 	if ! cmp "$EXPECT" "$OUT"; then
 		echo "Test chart $IN failed"
@@ -68,7 +68,7 @@ regen() {
 		fi
 		echo "Regenerating $IN"
 		EXPECT="${IN%.in.yaml}.expect.yaml"
-		helm template --values "$IN" -n testing charts/tezos > $EXPECT
+		helm template --values "$IN" -n testing charts/mavryk > $EXPECT
 	done
 }
 
@@ -84,12 +84,12 @@ usage() {
 }
 
 #
-# First, get to the top level and ensure that we're tezos-k8s to
+# First, get to the top level and ensure that we're mavryk-k8s to
 # some degree.
 
 GIT_BASE="$(git rev-parse --show-toplevel)"
-if [ -z "$GIT_BASE" -o ! -d "$GIT_BASE/charts/tezos" ]; then
-	usage "Not in a tezos-k8s git repo, failing"
+if [ -z "$GIT_BASE" -o ! -d "$GIT_BASE/charts/mavryk" ]; then
+	usage "Not in a mavryk-k8s git repo, failing"
 fi
 cd "$GIT_BASE"
 

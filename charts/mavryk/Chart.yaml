@@ -1,0 +1,9 @@
+apiVersion: v2
+name: mavryk-chain
+description: A Helm chart for Mavryk nodes on Kubernetes
+type: application
+version: 0.0.0
+keywords:
+  - mavryk
+  - blockchain
+home: https://github.com/mavryk-network/mavryk-k8s

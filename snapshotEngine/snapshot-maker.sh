@@ -246,10 +246,10 @@ kubectl delete vs -l history_mode=$HISTORY_MODE
 # TODO Check for PVC
 printf "%s PersistentVolumeClaim ${HISTORY_MODE}-snap-volume created successfully in namespace ${NAMESPACE}.\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
 
-# set history mode for tezos init container
+# set history mode for mavryk init container
 HISTORY_MODE="${HISTORY_MODE}" yq e -i '.spec.template.spec.initContainers[0].env[0].value=strenv(HISTORY_MODE)' mainJob.yaml
 
-# set pvc name for tezos init container
+# set pvc name for mavryk init container
 PVC="${HISTORY_MODE}-snapshot-cache-volume"
 MOUNT_PATH="/${PVC}"
 MOUNT_PATH="${MOUNT_PATH}" yq e -i '.spec.template.spec.initContainers[0].volumeMounts[1].mountPath=strenv(MOUNT_PATH)' mainJob.yaml
@@ -281,7 +281,7 @@ NAMESPACE="${NAMESPACE}" yq e -i '.metadata.namespace=strenv(NAMESPACE)' mainJob
 # name per node type
 ZIP_AND_UPLOAD_JOB_NAME="${ZIP_AND_UPLOAD_JOB_NAME}" yq e -i '.metadata.name=strenv(ZIP_AND_UPLOAD_JOB_NAME)' mainJob.yaml
 
-# Tezos image gets set in values.yaml in base of submod .images.octez
+# Mavryk image gets set in values.yaml in base of submod .images.octez
 TEZOS_IMAGE="${TEZOS_IMAGE}" yq e -i '.spec.template.spec.initContainers[0].image=strenv(TEZOS_IMAGE)' mainJob.yaml
 TEZOS_IMAGE="${TEZOS_IMAGE}" yq e -i '.spec.template.spec.containers[0].image=strenv(TEZOS_IMAGE)' mainJob.yaml
 
@@ -292,7 +292,7 @@ PVC="${PVC}" yq e -i '.spec.template.spec.volumes[1].name=strenv(PVC)' mainJob.y
 
 # Gets rid of rolling job-related containers and volume/mounts.
 if [ "${HISTORY_MODE}" = archive ]; then
-    # Removes create-tezos-rolling-snapshot container from entire job
+    # Removes create-mavryk-rolling-snapshot container from entire job
     yq eval -i 'del(.spec.template.spec.containers[0])' mainJob.yaml
     # Removes rolling-tarball-restore volume from entire job (second to last volume)
     yq eval -i 'del(.spec.template.spec.volumes[2])' mainJob.yaml

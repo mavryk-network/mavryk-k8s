@@ -19,6 +19,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-01-Tezos-Nodes.md
-02-Tezos-Accounts.md
-03-Tezos-Signers.md
+01-Mavryk-Nodes.md
+02-Mavryk-Accounts.md
+03-Mavryk-Signers.md

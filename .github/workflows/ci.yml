@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./mkchain
+        working-directory: ./mkmavrykchain
     steps:
       - uses: actions/checkout@v2
 
@@ -44,13 +44,13 @@ jobs:
       - name: black
         run: black . --check
 
-  # We don't have mkchain tests yet
+  # We don't have mkmavrykchain tests yet
   # test:
   #   runs-on: ${{ matrix.os }}
   #   needs: check-lint-and-format
   #   defaults:
   #     run:
-  #       working-directory: ./mkchain
+  #       working-directory: ./mkmavrykchain
   #   strategy:
   #     fail-fast: false
   #     matrix:
@@ -76,7 +76,7 @@ jobs:
   #     - name: pytest
   #       run: pytest tests
 
-  publish_mkchain:
+  publish_mkmavrykchain:
     needs: check-lint-and-format
     runs-on: ${{ matrix.os }}
     strategy:
@@ -101,17 +101,17 @@ jobs:
 
       - name: Build Python package
         run: python setup.py bdist_wheel
-        working-directory: mkchain
+        working-directory: mkmavrykchain
 
       - name: Install wheels
         run: pip install dist/*.whl
-        working-directory: mkchain
+        working-directory: mkmavrykchain
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: "**/mkchain/dist/*.whl"
+          files: "**/mkmavrykchain/dist/*.whl"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -121,7 +121,7 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          packages_dir: mkchain/dist/
+          packages_dir: mkmavrykchain/dist/
 
   list_containers_to_publish:
     # based on
@@ -180,7 +180,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ghcr.io/${{ github.repository_owner }}/tezos-k8s-${{ matrix.container }}
+          images: ghcr.io/${{ github.repository_owner }}/mavryk-k8s-${{ matrix.container }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -272,13 +272,13 @@ jobs:
             # Update Chart.yaml with release version
             yq e ".version = \"$RELEASE_VERSION\"" -i "$chart/Chart.yaml"
 
-            # Get oxheadalpha/tezos-k8s images specified in values.yaml
-            tq_images=$(yq e '(.tezos_k8s_images[]) | path | .[-1]' "$chart/values.yaml")
+            # Get mavryk-network/mavryk-k8s images specified in values.yaml
+            tq_images=$(yq e '(.mavryk_k8s_images[]) | path | .[-1]' "$chart/values.yaml")
 
-            # Update the release version of each of tezos-k8s images
+            # Update the release version of each of mavryk-k8s images
             for image in $tq_images; do
-              image_name=$(yq e ".tezos_k8s_images.$image" $chart/values.yaml | sed -E "s/ghcr.io\/oxheadalpha\/tezos-k8s-(.*):.*/\1/")
-              yq e ".tezos_k8s_images.$image = \"ghcr.io/oxheadalpha/tezos-k8s-$image_name:$RELEASE_VERSION\"" -i $chart/values.yaml
+              image_name=$(yq e ".mavryk_k8s_images.$image" $chart/values.yaml | sed -E "s/ghcr.io\/mavryk-network\/mavryk-k8s-(.*):.*/\1/")
+              yq e ".mavryk_k8s_images.$image = \"ghcr.io/mavryk-network/mavryk-k8s-$image_name:$RELEASE_VERSION\"" -i $chart/values.yaml
             done
           done
 
@@ -289,4 +289,4 @@ jobs:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
           branch: main
           owner: ${{ github.repository_owner }}
-          repository: tezos-helm-charts
+          repository: mavryk-helm-charts

@@ -1,9 +1,9 @@
-tezos_k8s_images:
-  snapshotEngine: ghcr.io/oxheadalpha/tezos-k8s-snapshotengine:master
+mavryk_k8s_images:
+  snapshotEngine: ghcr.io/mavryk-network/mavryk-k8s-snapshotengine:master
 
-# the tezos version used to run `octez-node snapshot import/export`
+# the mavryk version used to run `octez-node snapshot import/export`
 images:
-  octez: tezos/tezos:v17.1
+  octez: mavrykdynamics/mavryk:v17.1
 
 # snapshotEngine containers interact with the kubernetes control
 # plane to create volume snapshots. This requires a special IAM role
@@ -12,11 +12,11 @@ images:
 iam_role_arn: ""
 service_account: snapshot-engine-sa
 
-# snapshotEngine chart does not run tezos nodes.
-# It searches for separately defined tezos nodes and targets them
+# snapshotEngine chart does not run mavryk nodes.
+# It searches for separately defined mavryk nodes and targets them
 # by taking CSI volumeSnapshots of their volume, then restoring them
 # into new pvcs and running jobs against them.
-# Note that these tezos nodes should be in the same namespace.
+# Note that these mavryk nodes should be in the same namespace.
 # Specify an archive node to generate archive tarballs, a rolling node
 # to generate rolling snapshots and tarballs, or both to generate all
 # artifacts.
@@ -27,15 +27,15 @@ service_account: snapshot-engine-sa
 #     history_mode: <HISTORY_MODE>
 #     target_volume: <TARGET_VOLUME>
 # where:
-# NODE_CLASS is the node class as defined in tezos-k8s "tezos" chart.
+# NODE_CLASS is the node class as defined in mavryk-k8s "mavryk" chart.
 # HISTORY_MODE is archive or rolling
-# TARGET_VOLUME is the name of the pod's volume containing tezos data dir.
+# TARGET_VOLUME is the name of the pod's volume containing mavryk data dir.
 #
-# The default configuration below will be looking for tezos nodes defined in the 
-# tezos chart with class names `snapshot-archive-node` and `snapshot-rolling-node`. 
+# The default configuration below will be looking for mavryk nodes defined in the 
+# mavryk chart with class names `snapshot-archive-node` and `snapshot-rolling-node`. 
 # If you'd like to name them differently, make sure to match the names in both the 
-# tezos chart and here in the snapshot engine chart. 
-# Also, the tezos-k8s chart names the node data volume 'var-volume' by default.
+# mavryk chart and here in the snapshot engine chart. 
+# Also, the mavryk-k8s chart names the node data volume 'var-volume' by default.
 nodes:
   snapshot-archive-node:
     history_mode: archive
@@ -67,10 +67,10 @@ jekyllRemoteThemeRepository: ""
 volumeSnapClass: ""
 
 # The EBS snapshot of a node is restored to a new volume as a part of the artifact generation process.  
-# This storage must have a tezos node "turned on" to initialize the storage for proper restoration later. 
-# However, there are errors that occur during this initialization due to Tezos not being tolerant 
+# This storage must have a mavryk node "turned on" to initialize the storage for proper restoration later. 
+# However, there are errors that occur during this initialization due to Mavryk not being tolerant 
 # of the KILL -9 that occurs during the EBS snapshot process.  
-# Tezos also does not exit on error, but rather just hangs stdout on a random error. 
+# Mavryk also does not exit on error, but rather just hangs stdout on a random error. 
 # Therefore we limit this initialization process and pitch the job in a reasonable amount of time to account for these
 # random errors. It may be necessary to increase this time for different changes, or as a particular chain
 # grows in size over time.

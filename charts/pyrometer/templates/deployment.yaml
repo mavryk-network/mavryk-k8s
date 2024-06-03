@@ -37,7 +37,7 @@ spec:
         - name: pyrometer-volume
           mountPath: /data/
       - name: prom-exporter
-        image: {{ .Values.tezos_k8s_images.utils }}
+        image: {{ .Values.mavryk_k8s_images.utils }}
         ports:
           - name: metrics
             containerPort: 31732

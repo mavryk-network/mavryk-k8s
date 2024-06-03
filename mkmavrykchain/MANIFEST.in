@@ -1,0 +1,3 @@
+include versioneer.py
+include mavrykchain/_version.py
+include mavrykchain/parameters.yaml

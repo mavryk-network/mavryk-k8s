@@ -7,11 +7,11 @@ from uuid import uuid4
 
 import requests
 from flask import Flask, abort, request
-from pytezos.crypto import Key
+from pymavryk.crypto import Key
 from redis import StrictRedis, WatchError
 
-TEZOS_RPC_SERVICE_URL = (
-    f"http://{os.getenv('TEZOS_RPC_SERVICE')}:{os.getenv('TEZOS_RPC_SERVICE_PORT')}"
+MAVRYK_RPC_SERVICE_URL = (
+    f"http://{os.getenv('MAVRYK_RPC_SERVICE')}:{os.getenv('MAVRYK_RPC_SERVICE_PORT')}"
 )
 
 app = Flask(__name__)
@@ -30,14 +30,14 @@ def get_nonce(chain_id):
         print("Failed to verify chain id.", e)
         abort(500)
 
-    # Tezos client requires the data to be signed in hex format
+    # Mavryk client requires the data to be signed in hex format
     nonce = uuid4().hex
     redis.set(nonce, "", ex=3)
     return nonce
 
 
 @app.route("/vending-machine", methods=["POST"])
-def generate_tezos_rpc_url():
+def generate_mavryk_rpc_url():
     try:
         nonce, signature, public_key = [
             request.values[k] for k in ("nonce", "signature", "public_key")
@@ -50,13 +50,13 @@ def generate_tezos_rpc_url():
     if not is_valid_nonce(nonce):
         abort(401)
 
-    tezos_key_object = get_tezos_key_object(public_key)
-    if not is_valid_signature(tezos_key_object, signature, nonce):
+    mavryk_key_object = get_mavryk_key_object(public_key)
+    if not is_valid_signature(mavryk_key_object, signature, nonce):
         abort(401)
 
     access_token = uuid4().hex
     secret_url = create_secret_url(access_token)
-    save_access_token(tezos_key_object.public_key_hash(), access_token)
+    save_access_token(mavryk_key_object.public_key_hash(), access_token)
     return secret_url
 
 
@@ -72,18 +72,18 @@ def rpc_auth():
 
 
 def verify_chain_id(chain_id):
-    if chain_id != get_tezos_chain_id():
+    if chain_id != get_mavryk_chain_id():
         return False
     return True
 
 
 @cache
-def get_tezos_chain_id():
-    tezos_chain_id = os.getenv("TEZOS_CHAIN_ID")
-    if tezos_chain_id:
-        return tezos_chain_id
+def get_mavryk_chain_id():
+    mavryk_chain_id = os.getenv("TEZOS_CHAIN_ID")
+    if mavryk_chain_id:
+        return mavryk_chain_id
     chain_id_response = requests.get(
-        urljoin(TEZOS_RPC_SERVICE_URL, "chains/main/chain_id")
+        urljoin(MAVRYK_RPC_SERVICE_URL, "chains/main/chain_id")
     )
     return chain_id_response.text.strip('\n"')
 
@@ -104,7 +104,7 @@ def is_valid_nonce(nonce):
         return False
 
 
-def get_tezos_key_object(public_key):
+def get_mavryk_key_object(public_key):
     try:
         return Key.from_encoded_key(public_key)
     except ValueError as e:
@@ -123,7 +123,7 @@ def is_valid_signature(key_object, signature, nonce):
 
 
 def create_secret_url(access_token):
-    return urljoin(request.url_root, f"tezos-node-rpc/{access_token}")
+    return urljoin(request.url_root, f"mavryk-node-rpc/{access_token}")
 
 
 def create_redis_access_token_key(access_token, hash=False):
@@ -144,7 +144,7 @@ def save_access_token(tz_address, access_token):
 
 def extract_access_token(headers):
     original_url = headers.get("X-Original-Url")
-    regex_obj = re.search(r"tezos-node-rpc/(.*?)/", original_url)
+    regex_obj = re.search(r"mavryk-node-rpc/(.*?)/", original_url)
     if regex_obj:
         return regex_obj.group(1)
 

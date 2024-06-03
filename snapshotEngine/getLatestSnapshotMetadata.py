@@ -6,14 +6,14 @@ from genericpath import exists
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
-filename='tezos-snapshots.json'
+filename='mavryk-snapshots.json'
 
 if exists(filename):
-    print("SUCCESS tezos-snapshots.json exists locally!")
+    print("SUCCESS mavryk-snapshots.json exists locally!")
     with open(filename, "r") as localJson:
         snapshots = json.load(localJson)
 else:
-    print("ERROR tezos-snapshots.json does not exist locally!")
+    print("ERROR mavryk-snapshots.json does not exist locally!")
 
 # sort per network
 snapshots_per_network = {}
@@ -36,18 +36,18 @@ for network, snapshots in snapshots_per_network.items():
     network_snapshots = {}
 
     # Find a lowest version available for a given network, artifact_type, and history_mode
-    for (artifact_type, history_mode, path) in [("tarball", "rolling", "rolling-tarball"), ("tarball", "archive", "archive-tarball"), ("tezos-snapshot", "rolling", "rolling")]:
+    for (artifact_type, history_mode, path) in [("tarball", "rolling", "rolling-tarball"), ("tarball", "archive", "archive-tarball"), ("mavryk-snapshot", "rolling", "rolling")]:
         # List of snapshot metadata for this particular artifact type and history mode
         typed_snapshots = [s for s in snapshots if s["artifact_type"] == artifact_type and s["history_mode"] == history_mode]
         
         # Lowest version is the top item (int) of a sorted unique list of all the versions for this particular artifact type and history mode
                                 # newlist = [item for item in list if "value" in list]
-        #octez_versions = sorted(list(set([ s['tezos_version']['version']['major'] for s in typed_snapshots if 'version' in s['tezos_version'] ])))
+        #octez_versions = sorted(list(set([ s['mavryk_version']['version']['major'] for s in typed_snapshots if 'version' in s['mavryk_version'] ])))
 
         octez_versions = []
         for s in typed_snapshots:
-            if 'version' in s['tezos_version']:
-                octez_versions.append(s['tezos_version']['version']['major'])
+            if 'version' in s['mavryk_version']:
+                octez_versions.append(s['mavryk_version']['version']['major'])
 
         octez_versions = sorted(list(set(octez_versions)))
 
@@ -60,9 +60,9 @@ for network, snapshots in snapshots_per_network.items():
         network_snapshots[path] = typed_snapshots
 
         # Latest offered should only show oldest supported build so let's filter by the oldest supported version we found above
-        typed_snapshots = [d for d in typed_snapshots if 'version' in d['tezos_version'] and d['tezos_version']['version']['major'] == lowest_octez_version ]
+        typed_snapshots = [d for d in typed_snapshots if 'version' in d['mavryk_version'] and d['mavryk_version']['version']['major'] == lowest_octez_version ]
 
-            # Latest snapshot of type is the last item in typed_snapshots which we just filtered by the latest supported tezos build
+            # Latest snapshot of type is the last item in typed_snapshots which we just filtered by the latest supported mavryk build
         network_latest_snapshots[path] = typed_snapshots[-1]
 
     # This becomes the list of snapshots

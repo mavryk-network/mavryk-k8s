@@ -100,5 +100,5 @@ if [ "$secret_url_status" != "200" ]; then
   exit 1
 fi
 
-echo "Your secret tezos node RPC url: $SECRET_URL"
+echo "Your secret mavryk node RPC url: $SECRET_URL"
 

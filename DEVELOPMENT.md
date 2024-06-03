@@ -32,10 +32,10 @@
 - Tell devspace which namespace to use:
 
   ```shell
-  devspace use namespace oxheadalpha
+  devspace use namespace mavryk-network
   ```
 
-- Run `mkchain` to generate your Helm values. (Note: Devspace will only deploy `rpc-auth` if you use the `rpc-auth` profile, regardless if you set it in mkchain. This is to avoid devspace deployment issues. See more below.)
+- Run `mkmavrykchain` to generate your Helm values. (Note: Devspace will only deploy `rpc-auth` if you use the `rpc-auth` profile, regardless if you set it in mkmavrykchain. This is to avoid devspace deployment issues. See more below.)
 
 - Set a `CHAIN_NAME` env var.
 
@@ -46,7 +46,7 @@
 Devspace will now do a few things:
 
 - Create namespace if it doesn't already exist.
-- Runs a hook to enable the minikube nginx ingress addon. This is the gateway for external users to access the `rpc-auth` backend and to then make RPC calls to the Tezos node.
+- Runs a hook to enable the minikube nginx ingress addon. This is the gateway for external users to access the `rpc-auth` backend and to then make RPC calls to the Mavryk node.
 - Runs a hook to increase `fs.inotify.max_user_watches` to 1048576 in minikube. This is to avoid a "no space left on device" error. See [here](https://serverfault.com/questions/963529/minikube-k8s-kubectl-failed-to-watch-file-no-space-left-on-device) for more.
 - Builds docker images and tags them.
 - Deploys Helm charts.
@@ -57,11 +57,11 @@ Devspace will now do a few things:
 
 ## Notes
 
-- Devspace recommends to run [devspace purge](https://devspace.sh/cli/docs/commands/devspace_purge) to delete deployments. Keep in mind though that it currently does not delete persistent volumes and claims. They currently don't mention this in their docs. If you want to delete all resources including persistent volumes and claims, run `kubectl delete namespace <NAMESPACE>`. Even with this command, there are times where PV's/PVC's do not get deleted. This is important to know because you may be spinning up nodes that get old volumes attached with old state, and you may encounter Tezos pod errors. I have experienced this in situations where I left my cluster running for a long time, say overnight, and I shut my laptop and/or it went to sleep. After logging back in and deleting the namespace, the PV's/PVC's are still there and need to be manually deleted.
+- Devspace recommends to run [devspace purge](https://devspace.sh/cli/docs/commands/devspace_purge) to delete deployments. Keep in mind though that it currently does not delete persistent volumes and claims. They currently don't mention this in their docs. If you want to delete all resources including persistent volumes and claims, run `kubectl delete namespace <NAMESPACE>`. Even with this command, there are times where PV's/PVC's do not get deleted. This is important to know because you may be spinning up nodes that get old volumes attached with old state, and you may encounter Mavryk pod errors. I have experienced this in situations where I left my cluster running for a long time, say overnight, and I shut my laptop and/or it went to sleep. After logging back in and deleting the namespace, the PV's/PVC's are still there and need to be manually deleted.
 
 - If you would like to build all of our images without using Devspace to deploy (you might want to do a `helm install` instead), you can run `devspace build -t dev --skip-push`.
 
-- Due to a current limitation of devspace, multiple profiles cannot be used at one time. Therefore, devspace will watch `zerotier` files even if tezos nodes are not configured to use it via `mkchain`. Preferably `zerotier` would also be a profile in addition to `rpc-auth` being one.
+- Due to a current limitation of devspace, multiple profiles cannot be used at one time. Therefore, devspace will watch `zerotier` files even if mavryk nodes are not configured to use it via `mkmavrykchain`. Preferably `zerotier` would also be a profile in addition to `rpc-auth` being one.
 
 - If you find that you have images built but Devspace is having a hard time getting them and/or is producing errors that don't seem to make sense, you can try `rm -rf .devspace` to remove any potentially wrong state.
 
@@ -75,14 +75,14 @@ Chart.yaml does not require an `appVersion`. So we are not using it as it doesn'
 
 Regarding chart dependencies, Chart.yaml should not specify a dependency version for another _local_ chart.
 
-Being that all charts are bumped to the same version on release, the parent chart will get the latest version of the dependency by default (which is the same as its own version) when installing via our Helm chart [repo](https://github.com/oxheadalpha/tezos-helm-charts).
+Being that all charts are bumped to the same version on release, the parent chart will get the latest version of the dependency by default (which is the same as its own version) when installing via our Helm chart [repo](https://github.com/mavryk-network/mavryk-helm-charts).
 
 ## Run local development chart
 
-Instructions as per README install the latest release of tezos-k8s helm chart from a helm repository. To install a development version of a tezos chart in the charts/tezos directory instead, run:
+Instructions as per README install the latest release of mavryk-k8s helm chart from a helm repository. To install a development version of a mavryk chart in the charts/mavryk directory instead, run:
 
 ```
-helm install tezos-mainnet charts/tezos --namespace oxheadalpha --create-namespace
+helm install mavryk-mainnet charts/mavryk --namespace mavryk-network --create-namespace
 ```
 
 ## Notes
@@ -97,26 +97,26 @@ Here is an example of the flow for creating new images and how they are publishe
 
 - You are creating a new image that you call `chain-initiator`. Name its folder `chain-initiator`. This folder should contain at least a `Dockerfile`.
 
-- The CI on release will pre-pend `tezos-k8s` to the folder name, so `tezos-k8s-chain-initiator`. That is what the image will be named on Docker Hub under the `oxheadalpha` repo. So you would pull/push `oxheadalpha/tezos-k8s-chain-initiator`. All of our image names will have this format.
+- The CI on release will pre-pend `mavryk-k8s` to the folder name, so `mavryk-k8s-chain-initiator`. That is what the image will be named on Docker Hub under the `mavryk-network` repo. So you would pull/push `mavryk-network/mavryk-k8s-chain-initiator`. All of our image names will have this format.
 
-- In Helm charts that will be using the new image, set in the `values.yaml` file under the field `tezos_k8s_images` the value of `tezos-k8s-chain-initiator:dev`. (Any other images that a chart uses that it just pulls from a remote registry should go under the `images` field.) This is how the file will be stored in version control. On releases, the CI will set the tags to the release version and publish that to Docker Hub.
+- In Helm charts that will be using the new image, set in the `values.yaml` file under the field `mavryk_k8s_images` the value of `mavryk-k8s-chain-initiator:dev`. (Any other images that a chart uses that it just pulls from a remote registry should go under the `images` field.) This is how the file will be stored in version control. On releases, the CI will set the tags to the release version and publish that to Docker Hub.
 
-- When adding an image to Devspace, the image name needs to be the same as it is in `values.yaml`, i.e. `tezos-k8s-chain-initiator`. It does not need to be tagged because Devspace will add its own tag.
+- When adding an image to Devspace, the image name needs to be the same as it is in `values.yaml`, i.e. `mavryk-k8s-chain-initiator`. It does not need to be tagged because Devspace will add its own tag.
   Example:
   ```yaml
   images:
     chain-initiator:
-      image: tezos-k8s-chain-initiator
+      image: mavryk-k8s-chain-initiator
       dockerfile: ./chain-initiator/Dockerfile
       context: ./chain-initiator
   ```
 
 # Releases
 
-Upon release, every component of the tezos-k8s repo will be bumped to that version. This is regardless if there were changes or not to that particular component. This is because tezos-k8s is a monorepo and we'd like to keep the versions consistent across the different components.
+Upon release, every component of the mavryk-k8s repo will be bumped to that version. This is regardless if there were changes or not to that particular component. This is because mavryk-k8s is a monorepo and we'd like to keep the versions consistent across the different components.
 
-- mkchain will be published to pypi
+- mkmavrykchain will be published to pypi
 - Docker images will be deployed to Docker Hub
-- Helm charts will be deployed to our Github Pages [repo](https://github.com/oxheadalpha/tezos-helm-charts)
+- Helm charts will be deployed to our Github Pages [repo](https://github.com/mavryk-network/mavryk-helm-charts)
 
 See the Github CI file [./.github/workflows/ci.yml](.github/workflows/ci.yml) for our full CI pipeline.

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: pyrometer
-description: Deploys pyrometer Tezos monitoring solution
+description: Deploys pyrometer Mavryk monitoring solution
 
 type: application
 version: 0.1.0

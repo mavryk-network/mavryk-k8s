@@ -7,7 +7,7 @@ from datetime import datetime
 schemaURL = os.environ["SCHEMA_URL"]
 allSubDomains = os.environ["ALL_SUBDOMAINS"].split(",")
 s3Endpoint = "nyc3.digitaloceanspaces.com"
-filename = "tezos-snapshots.json"
+filename = "mavryk-snapshots.json"
 
 # Write empty top-level array to initialize json
 artifact_metadata = []
@@ -39,7 +39,7 @@ dt_string = now.strftime('%Y-%m-%dT%H:%M:%SZ')
 # Meta document that includes the list of storage artifacts among some other useful keys.
 metadata_document = json.dumps({
     "date_generated": dt_string,
-    "org": "Oxhead Alpha",
+    "org": "Mavryk Dynamics",
     "$schema": schemaURL,
     "data": artifact_metadata,
 }, indent=4)

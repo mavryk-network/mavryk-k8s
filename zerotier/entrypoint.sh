@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This entrypoint gets an ip from zerotier, writes it in a json file, then exits.
-# The IP is meant to be passed to the tezos container.
+# The IP is meant to be passed to the mavryk container.
 # Then, this container should be restarted with a different command: `zerotier-one/var/tezos/zerotier`
 set -x
 set -e

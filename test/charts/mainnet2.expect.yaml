@@ -1,5 +1,5 @@
 ---
-# Source: tezos-chain/templates/configs.yaml
+# Source: mavryk-chain/templates/configs.yaml
 ---
 
 apiVersion: v1
@@ -8,21 +8,21 @@ data:
     e30=
 kind: Secret
 metadata:
-  name: tezos-secret
+  name: mavryk-secret
   namespace: testing
 ---
-# Source: tezos-chain/templates/configs.yaml
+# Source: mavryk-chain/templates/configs.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tezos-config
+  name: mavryk-config
   namespace: testing
 data:
   CHAIN_NAME: "mainnet"
   CHAIN_PARAMS: |
     {
       "bootstrap_peers": [],
-      "default_bootstrap_mutez": "4000000000000",
+      "default_bootstrap_mumav": "4000000000000",
       "expected-proof-of-work": 26,
 
       "should_generate_unsafe_deterministic_data": false,
@@ -38,7 +38,7 @@ data:
   ARCHIVE_TARBALL_URL: ""
   PREFER_TARBALLS: "false"
   SNAPSHOT_SOURCE: "https://xtz-shots.io/tezos-snapshots.json"
-  OCTEZ_VERSION: "tezos/tezos:v17.3"
+  OCTEZ_VERSION: "mavrykdynamics/mavryk:v17.3"
   NODE_GLOBALS: |
     {
       "config": {},
@@ -77,7 +77,7 @@ data:
           }
         },
         "images": {
-          "octez": "tezos/tezos:v15-release"
+          "octez": "mavrykdynamics/mavryk:v15-release"
         },
         "instances": [
           {
@@ -120,11 +120,11 @@ data:
   TACOINFRA_SIGNERS: |
     {}
 ---
-# Source: tezos-chain/templates/static.yaml
+# Source: mavryk-chain/templates/static.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: tezos-node-rpc
+  name: mavryk-node-rpc
   namespace: testing
 spec:
   ports:
@@ -134,7 +134,7 @@ spec:
     appType: octez-node
   type: NodePort
 ---
-# Source: tezos-chain/templates/static.yaml
+# Source: mavryk-chain/templates/static.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -154,7 +154,7 @@ spec:
   selector:
     node_class: city-block
 ---
-# Source: tezos-chain/templates/static.yaml
+# Source: mavryk-chain/templates/static.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -174,7 +174,7 @@ spec:
   selector:
     node_class: country-town
 ---
-# Source: tezos-chain/templates/nodes.yaml
+# Source: mavryk-chain/templates/nodes.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -195,7 +195,7 @@ spec:
     spec:
       containers:        
         - name: octez-node
-          image: "tezos/tezos:v17.3"
+          image: "mavrykdynamics/mavryk:v17.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -240,9 +240,9 @@ spec:
               name: var-volume
           ports:
             - containerPort: 8732
-              name: tezos-rpc
+              name: mavryk-rpc
             - containerPort: 9732
-              name: tezos-net
+              name: mavryk-net
             - containerPort: 9932
               name: metrics
           readinessProbe:
@@ -250,13 +250,13 @@ spec:
               path: /is_synced
               port: 31732                        
         - name: logger
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - logger
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -280,13 +280,13 @@ spec:
             - mountPath: /var/tezos
               name: var-volume                
         - name: sidecar
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - sidecar
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -316,7 +316,7 @@ spec:
               memory: 80Mi        
       initContainers:        
         - name: config-init
-          image: "tezos/tezos:v17.3"
+          image: "mavrykdynamics/mavryk:v17.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -347,7 +347,7 @@ spec:
               
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -371,13 +371,13 @@ spec:
             - mountPath: /var/tezos
               name: var-volume                
         - name: config-generator
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - config-generator
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -401,15 +401,15 @@ spec:
             - mountPath: /var/tezos
               name: var-volume
             - mountPath: /etc/secret-volume
-              name: tezos-accounts        
+              name: mavryk-accounts        
         - name: snapshot-downloader
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - snapshot-downloader
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -433,7 +433,7 @@ spec:
             - mountPath: /var/tezos
               name: var-volume        
         - name: snapshot-importer
-          image: "tezos/tezos:v17.3"
+          image: "mavrykdynamics/mavryk:v17.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -456,7 +456,7 @@ spec:
               
               if [ -e ${node_data_dir}/context/store.dict ]; then
                   echo "Blockchain has already been imported. If a tarball"
-                  echo "instead of a regular tezos snapshot was used, it was"
+                  echo "instead of a regular mavryk snapshot was used, it was"
                   echo "imported in the snapshot-downloader container."
                   exit 0
               fi
@@ -474,7 +474,7 @@ spec:
               
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -498,7 +498,7 @@ spec:
             - mountPath: /var/tezos
               name: var-volume                
         - name: upgrade-storage
-          image: "tezos/tezos:v17.3"
+          image: "mavrykdynamics/mavryk:v17.3"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -530,9 +530,9 @@ spec:
       volumes:
         - emptyDir: {}
           name: config-volume
-        - name: tezos-accounts
+        - name: mavryk-accounts
           secret:
-            secretName: tezos-secret
+            secretName: mavryk-secret
   volumeClaimTemplates:
     - metadata:
         name: var-volume
@@ -544,7 +544,7 @@ spec:
           requests:
             storage: 15Gi
 ---
-# Source: tezos-chain/templates/nodes.yaml
+# Source: mavryk-chain/templates/nodes.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -565,7 +565,7 @@ spec:
     spec:
       containers:        
         - name: octez-node
-          image: "tezos/tezos:v15-release"
+          image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -610,9 +610,9 @@ spec:
               name: var-volume
           ports:
             - containerPort: 8732
-              name: tezos-rpc
+              name: mavryk-rpc
             - containerPort: 9732
-              name: tezos-net
+              name: mavryk-net
             - containerPort: 9932
               name: metrics
           readinessProbe:
@@ -625,13 +625,13 @@ spec:
             requests:
               memory: 16192Mi                        
         - name: logger
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - logger
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -655,13 +655,13 @@ spec:
             - mountPath: /var/tezos
               name: var-volume                
         - name: sidecar
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - sidecar
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -691,7 +691,7 @@ spec:
               memory: 80Mi        
       initContainers:        
         - name: config-init
-          image: "tezos/tezos:v15-release"
+          image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -722,7 +722,7 @@ spec:
               
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -746,13 +746,13 @@ spec:
             - mountPath: /var/tezos
               name: var-volume                
         - name: config-generator
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - config-generator
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -776,15 +776,15 @@ spec:
             - mountPath: /var/tezos
               name: var-volume
             - mountPath: /etc/secret-volume
-              name: tezos-accounts        
+              name: mavryk-accounts        
         - name: snapshot-downloader
-          image: "ghcr.io/oxheadalpha/tezos-k8s-utils:master"
+          image: "ghcr.io/mavryk-network/mavryk-k8s-utils:master"
           imagePullPolicy: IfNotPresent
           args:
             - snapshot-downloader
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -808,7 +808,7 @@ spec:
             - mountPath: /var/tezos
               name: var-volume        
         - name: snapshot-importer
-          image: "tezos/tezos:v15-release"
+          image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -831,7 +831,7 @@ spec:
               
               if [ -e ${node_data_dir}/context/store.dict ]; then
                   echo "Blockchain has already been imported. If a tarball"
-                  echo "instead of a regular tezos snapshot was used, it was"
+                  echo "instead of a regular mavryk snapshot was used, it was"
                   echo "imported in the snapshot-downloader container."
                   exit 0
               fi
@@ -849,7 +849,7 @@ spec:
               
           envFrom:
             - configMapRef:
-                name: tezos-config
+                name: mavryk-config
           env:    
             - name: MY_POD_IP
               valueFrom:
@@ -873,7 +873,7 @@ spec:
             - mountPath: /var/tezos
               name: var-volume                
         - name: upgrade-storage
-          image: "tezos/tezos:v15-release"
+          image: "mavrykdynamics/mavryk:v15-release"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -905,9 +905,9 @@ spec:
       volumes:
         - emptyDir: {}
           name: config-volume
-        - name: tezos-accounts
+        - name: mavryk-accounts
           secret:
-            secretName: tezos-secret
+            secretName: mavryk-secret
   volumeClaimTemplates:
     - metadata:
         name: var-volume

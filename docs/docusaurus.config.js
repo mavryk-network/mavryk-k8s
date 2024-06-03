@@ -6,15 +6,15 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Tezos K8s',
-  tagline: 'Deploy a Tezos Blockchain on Kubernetes',
-  url: 'https://tezos-k8s.xyz',
+  title: 'Mavryk K8s',
+  tagline: 'Deploy a Mavryk Blockchain on Kubernetes',
+  url: 'https://kubernetes.mavryk.org',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'oxheadalpha', // Usually your GitHub org/user name.
-  projectName: 'tezos-k8s', // Usually your repo name.
+  organizationName: 'mavryk-network', // Usually your GitHub org/user name.
+  projectName: 'mavryk-k8s', // Usually your repo name.
 
   presets: [
     [
@@ -39,9 +39,9 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'Tezos-k8s',
+        title: 'Mavryk-k8s',
         logo: {
-          alt: 'Oxhead Alpha Logo',
+          alt: 'Mavryk Dynamics Logo',
           src: 'img/logo.svg',
         },
         items: [
@@ -53,7 +53,7 @@ const config = {
           // },
           // {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/oxheadalpha/tezos-k8s',
+            href: 'https://github.com/mavryk-network/mavryk-k8s',
             label: 'GitHub',
             position: 'right',
           },
@@ -74,13 +74,13 @@ const config = {
           {
             title: 'Community',
             items: [
+              // {
+              //   label: 'Slack',
+              //   href: 'https://join.slack.com/t/tezos-dev/shared_invite/zt-t1agqhz5-WZfjNoQBg8hcPQSLQn1E2g',
+              // },
               {
-                label: 'Slack',
-                href: 'https://join.slack.com/t/tezos-dev/shared_invite/zt-t1agqhz5-WZfjNoQBg8hcPQSLQn1E2g',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/oxheadalpha',
+                label: 'X',
+                href: 'https://x.com/mavrykdynamics',
               },
             ],
           },
@@ -89,16 +89,16 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                href: 'https://github.com/mavryk-network/mavryk-k8s',
               },
-              {
-                label: 'Medium',
-                href: 'https://medium.com/the-aleph'
-              }
+              // {
+              //   label: 'Medium',
+              //   href: 'https://medium.com/mavrykdynamics'
+              // }
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Oxhead Alpha, Inc.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Mavryk Dynamics`,
       },
       prism: {
         theme: lightCodeTheme,

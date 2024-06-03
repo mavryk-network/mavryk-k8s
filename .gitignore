@@ -13,8 +13,8 @@ node_modules
 build
 
 
-# Ignore mkchain generated files
+# Ignore mkmavrykchain generated files
 *_values.yaml
 *-values.yaml
 
-charts/tezos/charts
+charts/mavryk/charts

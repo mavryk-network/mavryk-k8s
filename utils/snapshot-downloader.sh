@@ -24,7 +24,7 @@ if [ ! -f ${data_dir}/snapshot_config.json ]; then
   exit 0
 fi
 
-echo "Tezos snapshot config is:"
+echo "Mavryk snapshot config is:"
 cat ${data_dir}/snapshot_config.json
 
 artifact_url=$(cat ${data_dir}/snapshot_config.json | jq -r '.url')
@@ -60,7 +60,7 @@ download() {
   fi
 }
 
-if [ "${artifact_type}" == "tezos-snapshot" ]; then
+if [ "${artifact_type}" == "mavryk-snapshot" ]; then
   echo "Downloading $artifact_url"
   echo '{ "version": "0.0.4" }' > "$node_dir/version.json"
   block_hash=$(cat ${data_dir}/snapshot_config.json | jq -r '.block_hash // empty')

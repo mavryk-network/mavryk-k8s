@@ -1,3 +1,0 @@
-include versioneer.py
-include tqchain/_version.py
-include tqchain/parameters.yaml
