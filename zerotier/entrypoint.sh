@@ -2,13 +2,13 @@
 
 # This entrypoint gets an ip from zerotier, writes it in a json file, then exits.
 # The IP is meant to be passed to the mavryk container.
-# Then, this container should be restarted with a different command: `zerotier-one/var/tezos/zerotier`
+# Then, this container should be restarted with a different command: `zerotier-one/var/mavryk/zerotier`
 set -x
 set -e
 
 supervisord -c /etc/supervisor/supervisord.conf
 
-[ ! -z $NETWORK_ID ] && { sleep 5; zerotier-cli -D/var/tezos/zerotier join $NETWORK_ID || exit 1; }
+[ ! -z $NETWORK_ID ] && { sleep 5; zerotier-cli -D/var/mavryk/zerotier join $NETWORK_ID || exit 1; }
 
 # waiting for Zerotier IP
 # why 2? because you have an ipv6 and an a ipv4 address by default if everything is ok
@@ -22,7 +22,7 @@ do
   echo $IP_OK
 
   echo "Auto accept the new client"
-  HOST_ID="$(zerotier-cli -D/var/tezos/zerotier info | awk '{print $3}')"
+  HOST_ID="$(zerotier-cli -D/var/mavryk/zerotier info | awk '{print $3}')"
   curl -s -XPOST \
     -H "Authorization: Bearer $ZTAUTHTOKEN" \
     -d '{"hidden":"false","config":{"authorized":true}}' \
@@ -47,9 +47,9 @@ curl -s -XPOST \
   -d "{\"name\":\"${zerotier_name}\",\"description\":\"$zerotier_description\"}" \
   "https://my.zerotier.com/api/network/$NETWORK_ID/member/$HOST_ID"
 
-zerotier-cli -D/var/tezos/zerotier -j listnetworks > /var/tezos/zerotier_data.json
+zerotier-cli -D/var/mavryk/zerotier -j listnetworks > /var/mavryk/zerotier_data.json
 
 # fetch all the network members
 curl -s -XGET \
   -H "Authorization: Bearer $ZTAUTHTOKEN" \
-  "https://my.zerotier.com/api/network/$NETWORK_ID/member" > /var/tezos/zerotier_network_members.json
+  "https://my.zerotier.com/api/network/$NETWORK_ID/member" > /var/mavryk/zerotier_network_members.json

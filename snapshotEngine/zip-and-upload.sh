@@ -3,15 +3,15 @@
 BLOCK_HEIGHT=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HEIGHT)
 BLOCK_HASH=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HASH)
 BLOCK_TIMESTAMP=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP)
-#TEZOS_VERSION=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_VERSION)
+#MAVRYK_VERSION=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_VERSION)
 NETWORK="${NAMESPACE%%-*}"
 # Export for python
 export S3_BUCKET="${NAMESPACE}"
-MAVRYK_RPC_VERSION_INFO="$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_RPC_VERSION_INFO)"
+MAVRYK_RPC_VERSION_INFO="$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_RPC_VERSION_INFO)"
 
-TEZOS_VERSION="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .version)"
-TEZOS_VERSION_COMMIT_HASH="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .commit_info.commit_hash)"
-TEZOS_VERSION_COMMIT_DATE="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .commit_info.commit_date)"
+MAVRYK_VERSION="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .version)"
+MAVRYK_VERSION_COMMIT_HASH="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .commit_info.commit_hash)"
+MAVRYK_VERSION_COMMIT_DATE="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq -r .commit_info.commit_date)"
 
 # Needed for alternate cloud providers
 AWS_S3_BUCKET="${NAMESPACE%-*}.${SNAPSHOT_WEBSITE_DOMAIN_NAME}"
@@ -74,14 +74,14 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
         EXPECTED_SIZE=1000000000000 #1000GB Arbitrary filesize for initial value. Only used if no archive-tarball-metadata exists. IE starting up test network
     fi
 
-    # LZ4 /var/tezos/node selectively and upload to S3
-    printf "%s Archive Tarball : Tarballing /var/tezos/node, LZ4ing, and uploading to S3...\n" "$(date "+%Y-%m-%d %H:%M:%S")"
+    # LZ4 /var/mavryk/node selectively and upload to S3
+    printf "%s Archive Tarball : Tarballing /var/mavryk/node, LZ4ing, and uploading to S3...\n" "$(date "+%Y-%m-%d %H:%M:%S")"
     tar cvf - . \
     --exclude='node/data/identity.json' \
     --exclude='node/data/lock' \
     --exclude='node/data/peers.json' \
     --exclude='./lost+found' \
-    -C /var/tezos \
+    -C /var/mavryk \
     | lz4 | tee >(sha256sum | awk '{print $1}' > archive-tarball.sha256) \
     | eval "$(set_aws_command_creds) s3 cp - s3://${S3_BUCKET}/${ARCHIVE_TARBALL_FILENAME} --expected-size ${EXPECTED_SIZE} --acl public-read"
 
@@ -113,8 +113,8 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
         --arg NETWORK "${NETWORK}" \
         --arg HISTORY_MODE "archive" \
         --arg ARTIFACT_TYPE "tarball" \
-        --arg TEZOS_VERSION_COMMIT_HASH "${TEZOS_VERSION_COMMIT_HASH}" \
-        --arg TEZOS_VERSION_COMMIT_DATE "${TEZOS_VERSION_COMMIT_DATE}" \
+        --arg MAVRYK_VERSION_COMMIT_HASH "${MAVRYK_VERSION_COMMIT_HASH}" \
+        --arg MAVRYK_VERSION_COMMIT_DATE "${MAVRYK_VERSION_COMMIT_DATE}" \
         '{
             "block_hash": $BLOCK_HASH,
             "block_height": ($BLOCK_HEIGHT|fromjson),
@@ -128,11 +128,11 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
             "history_mode": $HISTORY_MODE,
             "artifact_type": $ARTIFACT_TYPE,
             "mavryk_version": {
-                "implementation": "octez",
+                "implementation": "mavkit",
                 "version": "",
                 "commit_info": {
-                    "commit_hash": $TEZOS_VERSION_COMMIT_HASH,
-                    "commit_date": $TEZOS_VERSION_COMMIT_DATE
+                    "commit_hash": $MAVRYK_VERSION_COMMIT_HASH,
+                    "commit_date": $MAVRYK_VERSION_COMMIT_DATE
                 }
             }
         }' \
@@ -141,7 +141,7 @@ if [[ "${HISTORY_MODE}" = archive ]]; then
         # Since version.additional_info will either be another object or "release" we just overwrite it from whatever we got above
         # JQ has trouble inserting a key into a file this is the way we opted to insert it
         tmp=$(mktemp)
-        jq --arg version "$TEZOS_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ARCHIVE_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ARCHIVE_TARBALL_FILENAME}".json
+        jq --arg version "$MAVRYK_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ARCHIVE_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ARCHIVE_TARBALL_FILENAME}".json
 
         # Check metadata json exists
         if [[ -s "${ARCHIVE_TARBALL_FILENAME}".json ]]; then
@@ -239,7 +239,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
         exit 1
     fi
 
-    # LZ4 /"${HISTORY_MODE}"-snapshot-cache-volume/var/tezos/node selectively and upload to S3
+    # LZ4 /"${HISTORY_MODE}"-snapshot-cache-volume/var/mavryk/node selectively and upload to S3
     printf "%s ********************* Rolling Tarball *********************\\n" "$(date "+%Y-%m-%d %H:%M:%S")"
 
     # If you upload a file bigger than 50GB, you have to do a multipart upload with a part size between 1 and 10000.
@@ -257,13 +257,13 @@ if [ "${HISTORY_MODE}" = rolling ]; then
         printf "%s Rolling Tarball: Expected size set arbitrarily to %s...  \n" "$(date "+%Y-%m-%d %H:%M:%S")" "${EXPECTED_SIZE}"
     fi
 
-    printf "%s Rolling Tarball : Tarballing /rolling-tarball-restore/var/tezos/node, LZ4ing, and uploading to %s S3 bucket %s.\n" "$(date "+%Y-%m-%d %H:%M:%S")" "$([[ -n ${CLOUD_PROVIDER} ]] && echo ${CLOUD_PROVIDER} || echo aws)" "${S3_BUCKET}"
+    printf "%s Rolling Tarball : Tarballing /rolling-tarball-restore/var/mavryk/node, LZ4ing, and uploading to %s S3 bucket %s.\n" "$(date "+%Y-%m-%d %H:%M:%S")" "$([[ -n ${CLOUD_PROVIDER} ]] && echo ${CLOUD_PROVIDER} || echo aws)" "${S3_BUCKET}"
     tar cvf - . \
     --exclude='node/data/identity.json' \
     --exclude='node/data/lock' \
     --exclude='node/data/peers.json' \
     --exclude='./lost+found' \
-    -C /rolling-tarball-restore/var/tezos \
+    -C /rolling-tarball-restore/var/mavryk \
     | lz4 | tee >(sha256sum | awk '{print $1}' > rolling-tarball.sha256) \
     | eval "$(set_aws_command_creds) s3 cp - s3://${S3_BUCKET}/${ROLLING_TARBALL_FILENAME} --expected-size ${EXPECTED_SIZE} --acl public-read" 
 
@@ -295,8 +295,8 @@ if [ "${HISTORY_MODE}" = rolling ]; then
         --arg NETWORK "$NETWORK" \
         --arg HISTORY_MODE "rolling" \
         --arg ARTIFACT_TYPE "tarball" \
-        --arg TEZOS_VERSION_COMMIT_HASH "${TEZOS_VERSION_COMMIT_HASH}" \
-        --arg TEZOS_VERSION_COMMIT_DATE "${TEZOS_VERSION_COMMIT_DATE}" \
+        --arg MAVRYK_VERSION_COMMIT_HASH "${MAVRYK_VERSION_COMMIT_HASH}" \
+        --arg MAVRYK_VERSION_COMMIT_DATE "${MAVRYK_VERSION_COMMIT_DATE}" \
         '{
             "block_hash": $BLOCK_HASH,
             "block_height": ($BLOCK_HEIGHT|fromjson),
@@ -310,11 +310,11 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             "history_mode": $HISTORY_MODE,
             "artifact_type": $ARTIFACT_TYPE,
             "mavryk_version": {
-                "implementation": "octez",
+                "implementation": "mavkit",
                 "version": "",
                 "commit_info": {
-                    "commit_hash": $TEZOS_VERSION_COMMIT_HASH,
-                    "commit_date": $TEZOS_VERSION_COMMIT_DATE
+                    "commit_hash": $MAVRYK_VERSION_COMMIT_HASH,
+                    "commit_date": $MAVRYK_VERSION_COMMIT_DATE
                 }
             }
         }' \
@@ -323,7 +323,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
         # Since version.additional_info will either be another object or "release" we just overwrite it from whatever we got above
         # JQ has trouble inserting a key into a file this is the way we opted to insert it
         tmp=$(mktemp)
-        jq --arg version "$TEZOS_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ROLLING_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_TARBALL_FILENAME}".json
+        jq --arg version "$MAVRYK_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ROLLING_TARBALL_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_TARBALL_FILENAME}".json
         
         # Check metadata exists
         if [[ -s "${ROLLING_TARBALL_FILENAME}".json ]]; then
@@ -391,9 +391,9 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             FILESIZE=$(echo "${FILESIZE_BYTES}" | awk '{ suffix="KMGT"; for(i=0; $1>1024 && i < length(suffix); i++) $1/=1024; print int($1) substr(suffix, i, 1), $3; }' | xargs )
             SHA256=$(sha256sum "${ROLLING_SNAPSHOT}" | awk '{print $1}')
             
-            TEZOS_VERSION_MAJOR="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq .version.major)"
+            MAVRYK_VERSION_MAJOR="$(echo "${MAVRYK_RPC_VERSION_INFO}" | jq .version.major)"
 
-            if [[ $TEZOS_VERSION_MAJOR -lt 16 ]]; then
+            if [[ $MAVRYK_VERSION_MAJOR -lt 16 ]]; then
                 SNAPSHOT_VERSION=4
             else
                 SNAPSHOT_HEADER=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/SNAPSHOT_HEADER)
@@ -412,8 +412,8 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             --arg NETWORK "$NETWORK" \
             --arg HISTORY_MODE "rolling" \
             --arg ARTIFACT_TYPE "mavryk-snapshot" \
-            --arg TEZOS_VERSION_COMMIT_HASH "${TEZOS_VERSION_COMMIT_HASH}" \
-            --arg TEZOS_VERSION_COMMIT_DATE "${TEZOS_VERSION_COMMIT_DATE}" \
+            --arg MAVRYK_VERSION_COMMIT_HASH "${MAVRYK_VERSION_COMMIT_HASH}" \
+            --arg MAVRYK_VERSION_COMMIT_DATE "${MAVRYK_VERSION_COMMIT_DATE}" \
             --arg SNAPSHOT_VERSION "$SNAPSHOT_VERSION" \
             '{
                 "block_hash": $BLOCK_HASH,
@@ -428,11 +428,11 @@ if [ "${HISTORY_MODE}" = rolling ]; then
                 "history_mode": $HISTORY_MODE,
                 "artifact_type": $ARTIFACT_TYPE,
                 "mavryk_version":{
-                    "implementation": "octez",
+                    "implementation": "mavkit",
                     "version": "",
                     "commit_info": {
-                        "commit_hash": $TEZOS_VERSION_COMMIT_HASH,
-                        "commit_date": $TEZOS_VERSION_COMMIT_DATE
+                        "commit_hash": $MAVRYK_VERSION_COMMIT_HASH,
+                        "commit_date": $MAVRYK_VERSION_COMMIT_DATE
                     }
                 },
                 "snapshot_version": ($SNAPSHOT_VERSION|fromjson),
@@ -442,7 +442,7 @@ if [ "${HISTORY_MODE}" = rolling ]; then
             # Since version.additional_info will either be another object or "release" we just overwrite it from whatever we got above
             # JQ has trouble inserting a key into a file this is the way we opted to insert it
             tmp=$(mktemp)
-            jq --arg version "$TEZOS_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ROLLING_SNAPSHOT_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_SNAPSHOT_FILENAME}".json
+            jq --arg version "$MAVRYK_VERSION" '.mavryk_version.version = ($version|fromjson)' "${ROLLING_SNAPSHOT_FILENAME}".json > "$tmp" && mv "$tmp" "${ROLLING_SNAPSHOT_FILENAME}".json
 
             # Check metadata json exists
             if [[ -s "${ROLLING_SNAPSHOT_FILENAME}".json ]]; then
@@ -554,7 +554,7 @@ if [[ -n "${SNAPSHOT_WEBSITE_DOMAIN_NAME}" ]]; then
     fi
 
     # Upload mavryk-snapshots.json
-    if ! eval "$(set_aws_command_creds "aws")" s3 cp mavryk-snapshots.json s3://"${SNAPSHOT_WEBSITE_DOMAIN_NAME}"/tezos-snapshots.json; then
+    if ! eval "$(set_aws_command_creds "aws")" s3 cp mavryk-snapshots.json s3://"${SNAPSHOT_WEBSITE_DOMAIN_NAME}"/mavryk-snapshots.json; then
         printf "%s Upload mavryk-snapshots.json : Error uploading file mavryk-snapshots.json to S3.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"
     else
         printf "%s Upload mavryk-snapshots.json : File mavryk-snapshots.json successfully uploaded to S3.  \n" "$(date "+%Y-%m-%d %H:%M:%S")"

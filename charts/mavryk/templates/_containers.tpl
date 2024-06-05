@@ -28,7 +28,7 @@
      *    name           the name of the container, defaults to type, this
      *                   is used for containers like baker which can have
      *                   multiple instances of the same type
-     *    image          one of: octez, utils
+     *    image          one of: mavkit, utils
      *    command        the command
      *    args           the list of arguments to the command, will default
      *                   to the type if using a "utils" image
@@ -36,7 +36,7 @@
      *                   directory corresponding to the container type,
      *                   so a type of wait-for-dns will include the script
      *                   scripts/wait-for-dns.sh and pass it as a single
-     *                   argument to /bin/sh -c.  For image == octez, this
+     *                   argument to /bin/sh -c.  For image == mavkit, this
      *                   is the default.
      *    script_command override the name of the script.  We still look
      *                   in the scripts directory and postpend ".sh"
@@ -67,7 +67,7 @@
   {{- $_ := set . "localvars" (eq .image "utils") }}
 {{- end }}
 {{- if not (hasKey . "run_script") }}
-  {{- $_ := set . "run_script" (eq .image "octez") }}
+  {{- $_ := set . "run_script" (eq .image "mavkit") }}
 {{- end }}
 {{- if not (hasKey . "script_command") }}
   {{- $_ := set . "script_command" .type }}
@@ -86,8 +86,8 @@
      */ -}}
 - name: {{ .name }}
 {{- $node_vals_images := $.node_vals.images | default dict }}
-{{- if eq .image "octez" }}
-  image: "{{ or $node_vals_images.octez $.Values.images.octez }}"
+{{- if eq .image "mavkit" }}
+  image: "{{ or $node_vals_images.mavkit $.Values.images.mavkit }}"
 {{- else }}
   image: "{{ $.Values.mavryk_k8s_images.utils }}"
 {{- end }}
@@ -146,9 +146,9 @@
       value: {{ $val | quote }}
 {{- end }}
   volumeMounts:
-    - mountPath: /etc/tezos
+    - mountPath: /etc/mavryk
       name: config-volume
-    - mountPath: /var/tezos
+    - mountPath: /var/mavryk
       name: var-volume
     {{- if .local_storage }}
     - mountPath: /var/persistent
@@ -159,10 +159,10 @@
       name: mavryk-accounts
     {{- end }}
   {{- if eq .type "baker" }}
-    - mountPath: /etc/tezos/baker-config
+    - mountPath: /etc/mavryk/baker-config
       name: baker-config
   {{- end }}
-  {{- if (eq .type "octez-node") }}
+  {{- if (eq .type "mavkit-node") }}
   ports:
     - containerPort: 8732
       name: mavryk-rpc
@@ -193,7 +193,7 @@
   {{- if include "mavryk.shouldConfigInit" . }}
     {{- include "mavryk.generic_container" (dict "root"        $
                                                 "type"        "config-init"
-                                                "image"       "octez"
+                                                "image"       "mavkit"
                                                 "with_config" 1
                                                 "localvars"   1
     ) | nindent 0 }}
@@ -211,7 +211,7 @@
 {{- define "mavryk.init_container.chain_initiator" }}
   {{- include "mavryk.generic_container" (dict "root"        $
                                               "type"        "chain-initiator"
-                                              "image"       "octez"
+                                              "image"       "mavkit"
   ) | nindent 0 }}
 {{- end }}
 
@@ -238,7 +238,7 @@
   {{- if include "mavryk.shouldDownloadSnapshot" . }}
     {{- include "mavryk.generic_container" (dict "root"   $
                                            "type"        "snapshot-importer"
-                                           "image"       "octez"
+                                           "image"       "mavkit"
                                            "with_config" 1
                                            "localvars"   1
     )  | nindent 0 }}
@@ -248,7 +248,7 @@
 {{- define "mavryk.init_container.upgrade_storage" }}
     {{- include "mavryk.generic_container" (dict "root"   $
                                            "type"        "upgrade-storage"
-                                           "image"       "octez"
+                                           "image"       "mavkit"
     )  | nindent 0 }}
 {{- end }}
 
@@ -265,8 +265,8 @@
 
 {{- define "mavryk.container.node" }}
     {{- include "mavryk.generic_container" (dict "root"        $
-                                                "type"        "octez-node"
-                                                "image"       "octez"
+                                                "type"        "mavkit-node"
+                                                "image"       "mavkit"
                                                 "with_config" 0
                                                 "local_storage" $.node_vals.local_storage
                                                 "resources"   $.node_vals.resources
@@ -297,7 +297,7 @@
                                                             print "-"
                                                             (lower .command))
                                                     "type"        "baker"
-                                                    "image"       "octez"
+                                                    "image"       "mavkit"
                                                     "baker_index"   (print $n)
         ) | nindent 0 }}
       {{- end }}
@@ -311,10 +311,10 @@
   {{ $node_vals_images := $.node_vals.images | default dict }}
     {{- range .Values.protocols }}
 - name: accuser-{{ lower .command }}
-  image: "{{ or $node_vals_images.octez $.Values.images.octez }}"
+  image: "{{ or $node_vals_images.mavkit $.Values.images.mavkit }}"
   imagePullPolicy: IfNotPresent
   command:
-    - /usr/local/bin/tezos-accuser-{{ .command }}
+    - /usr/local/bin/mavryk-accuser-{{ .command }}
   args:
     - run
     {{- end }}
@@ -326,10 +326,10 @@
   {{ $node_vals_images := $.node_vals.images | default dict }}
     {{- range .Values.protocols }}
 - name: vdf-{{ lower .command }}
-  image: "{{ or $node_vals_images.octez $.Values.images.octez }}"
+  image: "{{ or $node_vals_images.mavkit $.Values.images.mavkit }}"
   imagePullPolicy: IfNotPresent
   command:
-    - /usr/local/bin/octez-baker-{{ .command }}
+    - /usr/local/bin/mavkit-baker-{{ .command }}
   args:
     - run
     - vdf
@@ -347,6 +347,43 @@
   {{- end }}
 {{- end }}
 
+{{- define "mavryk.container.photographer" }}
+  {{- if has "photographer" $.node_vals.runs }}
+  {{ $node_vals_images := $.node_vals.images | default dict }}
+    {{- range .Values.photographer.networks }}
+- name: photographer-{{ lower . }}
+  image: "{{ or $node_vals_images.photographer $.Values.images.photographer }}"
+  imagePullPolicy: IfNotPresent
+  volumeMounts:
+    - mountPath: /etc/mavryk
+      name: config-volume
+    - mountPath: /var/mavryk
+      name: var-volume
+    - mountPath: /etc/photographer
+      name: gcp-credentials
+      readOnly: true
+  env:
+    - name: BUCKET_NAME
+      value: {{ $.Values.photographer.bucketName }}
+    - name: MAX_DAYS
+      value: "{{ $.Values.photographer.retention.maxDays }}"
+    - name: MAX_MONTHS
+      value: "{{ $.Values.photographer.retention.maxMonths }}"
+    - name: NETWORK
+      value: {{ upper . }}
+    - name: SNAPSHOTS_PATH
+      value: "/var/mavryk/snapshots"
+    - name: MAVKIT_NODE_PATH
+      value: "/usr/local/bin/mavkit-node"
+    - name: MAVRYK_PATH
+      value: "/var/mavryk/node"
+    - name: MAVKIT_CONFIG
+      value: "/etc/mavryk/config.json"
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/etc/photographer/client_secret.json"
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{/*
 // * The zerotier containers:
 */}}
@@ -369,9 +406,9 @@
         - SYS_ADMIN
     privileged: true
   volumeMounts:
-    - mountPath: /etc/tezos
+    - mountPath: /etc/mavryk
       name: config-volume
-    - mountPath: /var/tezos
+    - mountPath: /var/mavryk
       name: var-volume
     - mountPath: /dev/net/tun
       name: dev-net-tun
@@ -384,7 +421,7 @@
 {{- if (include "mavryk.doesZerotierConfigExist" .) }}
 - args:
     - "-c"
-    - "echo 'starting zerotier' && zerotier-one /var/tezos/zerotier"
+    - "echo 'starting zerotier' && zerotier-one /var/mavryk/zerotier"
   command:
     - sh
   image: "{{ .Values.mavryk_k8s_images.zerotier }}"
@@ -398,7 +435,7 @@
         - SYS_ADMIN
     privileged: true
   volumeMounts:
-    - mountPath: /var/tezos
+    - mountPath: /var/mavryk
       name: var-volume
 {{- end }}
 {{- end }}

@@ -1,9 +1,9 @@
 mavryk_k8s_images:
   snapshotEngine: ghcr.io/mavryk-network/mavryk-k8s-snapshotengine:master
 
-# the mavryk version used to run `octez-node snapshot import/export`
+# the mavryk version used to run `mavkit-node snapshot import/export`
 images:
-  octez: mavrykdynamics/mavryk:v17.1
+  mavkit: mavrykdynamics/mavryk:v17.1
 
 # snapshotEngine containers interact with the kubernetes control
 # plane to create volume snapshots. This requires a special IAM role
@@ -98,6 +98,6 @@ artifactDelay:
   archive: 0m
 
 # URL to schema.json file to validate generated metadata against
-schemaUrl: "https://oxheadalpha.com/tezos-snapshot-metadata.schema.1.0.json"
+schemaUrl: "https://oxheadalpha.com/mavryk-snapshot-metadata.schema.1.0.json"
 
 s3BucketOverride: ""

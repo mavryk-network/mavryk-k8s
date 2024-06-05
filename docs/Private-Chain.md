@@ -79,13 +79,13 @@ perform the following tasks:
 You can find your node in the mavryk-network namespace with some status information using kubectl.
 
 ```shell
-kubectl -n mavryk-network get pods -l appType=octez-node
+kubectl -n mavryk-network get pods -l appType=mavkit-node
 ```
 
 You can view (and follow using the `-f` flag) logs for your node using the following command:
 
 ```shell
-kubectl -n mavryk-network logs -l appType=octez-node -c octez-node -f --prefix
+kubectl -n mavryk-network logs -l appType=mavkit-node -c mavkit-node -f --prefix
 ```
 
 Congratulations! You now have an operational Mavryk based permissioned
@@ -161,7 +161,7 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 
 The nodes will start up and establish peer-to-peer connections in a full mesh topology.
 
-List all of your running nodes: `kubectl -n mavryk-network get pods -l appType=octez-node`
+List all of your running nodes: `kubectl -n mavryk-network get pods -l appType=mavkit-node`
 
 ## Adding external nodes to the cluster
 
@@ -197,9 +197,9 @@ Congratulations! You now have a multi-node Mavryk based permissioned chain.
 On each computer, run this command to check that the nodes have matching heads by comparing their hashes (it may take a minute for the nodes to sync up):
 
 ```shell
-kubectl get pod -n mavryk-network -l appType=octez-node -o name |
+kubectl get pod -n mavryk-network -l appType=mavkit-node -o name |
 while read line;
-  do kubectl -n mavryk-network exec $line -c octez-node -- /usr/local/bin/octez-client rpc get /chains/main/blocks/head/hash;
+  do kubectl -n mavryk-network exec $line -c mavkit-node -- /usr/local/bin/mavkit-client rpc get /chains/main/blocks/head/hash;
 done
 ```
 

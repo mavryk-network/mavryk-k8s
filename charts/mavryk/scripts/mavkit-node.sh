@@ -2,17 +2,17 @@
 
 set -xe
 
-# ensure we can run octez-client commands without specifying client dir
-ln -s /var/tezos/client /home/tezos/.tezos-client
+# ensure we can run mavkit-client commands without specifying client dir
+ln -s /var/mavryk/client /home/tezos/.mavryk-client
 #
 # Not every error is fatal on start.  In particular, with zerotier,
-# the listen-addr may not yet be bound causing octez-node to fail.
+# the listen-addr may not yet be bound causing mavkit-node to fail.
 # So, we try a few times with increasing delays:
 
 for d in 1 1 5 10 20 60 120; do
-	/usr/local/bin/octez-node run				\
+	/usr/local/bin/mavkit-node run				\
 			--bootstrap-threshold 0			\
-			--config-file /etc/tezos/config.json
+			--config-file /etc/mavryk/config.json
 	sleep $d
 done
 

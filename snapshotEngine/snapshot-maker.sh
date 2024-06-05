@@ -281,9 +281,9 @@ NAMESPACE="${NAMESPACE}" yq e -i '.metadata.namespace=strenv(NAMESPACE)' mainJob
 # name per node type
 ZIP_AND_UPLOAD_JOB_NAME="${ZIP_AND_UPLOAD_JOB_NAME}" yq e -i '.metadata.name=strenv(ZIP_AND_UPLOAD_JOB_NAME)' mainJob.yaml
 
-# Mavryk image gets set in values.yaml in base of submod .images.octez
-TEZOS_IMAGE="${TEZOS_IMAGE}" yq e -i '.spec.template.spec.initContainers[0].image=strenv(TEZOS_IMAGE)' mainJob.yaml
-TEZOS_IMAGE="${TEZOS_IMAGE}" yq e -i '.spec.template.spec.containers[0].image=strenv(TEZOS_IMAGE)' mainJob.yaml
+# Mavryk image gets set in values.yaml in base of submod .images.mavkit
+MAVRYK_IMAGE="${MAVRYK_IMAGE}" yq e -i '.spec.template.spec.initContainers[0].image=strenv(MAVRYK_IMAGE)' mainJob.yaml
+MAVRYK_IMAGE="${MAVRYK_IMAGE}" yq e -i '.spec.template.spec.containers[0].image=strenv(MAVRYK_IMAGE)' mainJob.yaml
 
 # target pvc for artifact processing for entire job
 VOLUME_NAME="${VOLUME_NAME}" yq e -i '.spec.template.spec.volumes[0].persistentVolumeClaim.claimName=strenv(VOLUME_NAME)' mainJob.yaml

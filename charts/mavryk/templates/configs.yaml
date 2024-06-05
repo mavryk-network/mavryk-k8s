@@ -21,8 +21,7 @@ data:
   ROLLING_TARBALL_URL: "{{ .Values.rolling_tarball_url }}"
   ARCHIVE_TARBALL_URL: "{{ .Values.archive_tarball_url }}"
   PREFER_TARBALLS: "{{ .Values.prefer_tarballs }}"
-  SNAPSHOT_SOURCE: "{{ .Values.snapshot_source }}"
-  OCTEZ_VERSION: "{{ .Values.images.octez }}"
+  MAVKIT_VERSION: "{{ .Values.images.mavkit }}"
   NODE_GLOBALS: |
 {{ .Values.node_globals | mustToPrettyJson | indent 4 }}
 
@@ -44,14 +43,14 @@ data:
 {{- end }}
 {{- $nodes_copy | mustToPrettyJson | indent 4 }}
 
-  OCTEZ_SIGNERS: |
-{{- $octezSigners := dict }}
-{{- range $signerName, $signerConfig := .Values.octezSigners }}
+  MAVKIT_SIGNERS: |
+{{- $mavkitSigners := dict }}
+{{- range $signerName, $signerConfig := .Values.mavkitSigners }}
     {{- $_ := set $signerConfig "name" $signerName }}
-    {{- $podName := print $.Values.octez_signer_statefulset.name "-" (len $octezSigners) }}
-    {{- $_ := set $octezSigners $podName $signerConfig }}
+    {{- $podName := print $.Values.mavkit_signer_statefulset.name "-" (len $mavkitSigners) }}
+    {{- $_ := set $mavkitSigners $podName $signerConfig }}
 {{- end }}
-{{ $octezSigners | default dict | mustToPrettyJson | indent 4 }}
+{{ $mavkitSigners | default dict | mustToPrettyJson | indent 4 }}
   TACOINFRA_SIGNERS: |
 {{- $tacoinfraSigners := dict }}
 {{- range $signerName, $signerConfig := .Values.tacoinfraSigners }}
@@ -74,6 +73,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 {{- end }}
 ---
+{{- if eq .Values.accountsSecretName "" }}
 
 apiVersion: v1
 data:
@@ -87,6 +87,7 @@ kind: Secret
 metadata:
   name: mavryk-secret
   namespace: {{ .Release.Namespace }}
+{{- end }}
 ---
 {{- if (include "mavryk.shouldDeployBakerConfig" .) }}
 apiVersion: v1

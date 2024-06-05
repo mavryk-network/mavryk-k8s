@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# When the octez-node boots for the first time, if one of the bootstrap
-# nodes can't be contacted, then octez-node will give up.
+# When the mavkit-node boots for the first time, if one of the bootstrap
+# nodes can't be contacted, then mavkit-node will give up.
 # So at first boot (when peers.json is empty) we wait for bootstrap node.
 # This is probably a bug in mavryk core, though.
 
-if [ -s /var/tezos/node/peers.json ] && [ "$(jq length /var/tezos/node/peers.json)" -gt "0" ]; then
+if [ -s /var/mavryk/node/peers.json ] && [ "$(jq length /var/mavryk/node/peers.json)" -gt "0" ]; then
     printf "Node already has an internal list of peers, no need to wait for bootstrap \n"
     exit 0
 fi
@@ -20,10 +20,10 @@ fi
 
 #
 # BOOTSTRAP_PEERS will be a space separated list of all of the bootstrap
-# nodes.  We use jq to extract this list from /etc/tezos/config.json because
+# nodes.  We use jq to extract this list from /etc/mavryk/config.json because
 # the data structure is much simpler than what we find in $NODES.
 
-BOOTSTRAP_PEERS=$(< /etc/tezos/config.json jq -r	\
+BOOTSTRAP_PEERS=$(< /etc/mavryk/config.json jq -r	\
 	'.p2p."bootstrap-peers"[]|split(":")[0]')
 
 for peer in $BOOTSTRAP_PEERS; do

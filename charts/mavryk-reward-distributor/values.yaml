@@ -17,7 +17,7 @@ mavryk_node_addr: archive-baking-node-0.archive-baking-node:8732
 # May start with https://
 # Default value will connect to a mavryk-k8s private chain running in the same workspace, with
 # default parameters.
-signer_addr: mavryk-signer-0.tezos-signer:6732
+signer_addr: mavryk-signer-0.mavryk-signer:6732
 
 # The schedule for reward distribution cron job. By default, runs every 6 hours.
 # When there is nothing to pay, it just exits.

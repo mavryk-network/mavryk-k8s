@@ -20,11 +20,11 @@ from pymavryk import Key
 with open("/etc/secret-volume/ACCOUNTS", "r") as secret_file:
     ACCOUNTS = json.loads(secret_file.read())
 CHAIN_PARAMS = json.loads(os.environ["CHAIN_PARAMS"])
-DATA_DIR = "/var/tezos/node/data"
+DATA_DIR = "/var/mavryk/node/data"
 NODE_GLOBALS = json.loads(os.environ["NODE_GLOBALS"]) or {}
 NODES = json.loads(os.environ["NODES"])
 NODE_IDENTITIES = json.loads(os.getenv("NODE_IDENTITIES", "{}"))
-OCTEZ_SIGNERS = json.loads(os.getenv("OCTEZ_SIGNERS", "{}"))
+MAVKIT_SIGNERS = json.loads(os.getenv("MAVKIT_SIGNERS", "{}"))
 TACOINFRA_SIGNERS = json.loads(os.getenv("TACOINFRA_SIGNERS", "{}"))
 
 MY_POD_NAME = os.environ["MY_POD_NAME"]
@@ -55,7 +55,7 @@ if not MY_POD_CLASS and "MY_NODE_CLASS" in os.environ:
     MY_POD_CLASS = NODES[my_node_class]
 
 if MY_POD_TYPE == "signing":
-    MY_POD_CONFIG = OCTEZ_SIGNERS[MY_POD_NAME]
+    MY_POD_CONFIG = MAVKIT_SIGNERS[MY_POD_NAME]
 
 NETWORK_CONFIG = CHAIN_PARAMS["network"]
 
@@ -101,10 +101,10 @@ def main():
         protocol_parameters = create_protocol_parameters_json(all_accounts)
 
         protocol_params_json = json.dumps(protocol_parameters, indent=2)
-        with open("/etc/tezos/parameters.json", "w") as json_file:
+        with open("/etc/mavryk/parameters.json", "w") as json_file:
             print(protocol_params_json, file=json_file)
 
-        with open("/etc/tezos/activation_account_name", "w") as file:
+        with open("/etc/mavryk/activation_account_name", "w") as file:
             print(NETWORK_CONFIG["activation_account_name"], file=file)
 
     # Create config.json
@@ -113,14 +113,14 @@ def main():
         bootstrap_peers = CHAIN_PARAMS.get("bootstrap_peers", [])
 
         my_zerotier_ip = None
-        zerotier_data_file_path = Path("/var/tezos/zerotier_data.json")
+        zerotier_data_file_path = Path("/var/mavryk/zerotier_data.json")
         if is_chain_running_on_zerotier_net(zerotier_data_file_path):
             my_zerotier_ip = get_my_pods_zerotier_ip(zerotier_data_file_path)
             if bootstrap_peers == []:
                 bootstrap_peers.extend(get_zerotier_bootstrap_peer_ips())
 
         if JOIN_PUBLIC_NETWORK:
-            with open("/etc/tezos/data/config.json", "r") as f:
+            with open("/etc/mavryk/data/config.json", "r") as f:
                 bootstrap_peers.extend(json.load(f)["p2p"]["bootstrap-peers"])
         else:
             local_bootstrap_peers = []
@@ -155,7 +155,7 @@ def main():
         )
         print("Generated config.json :")
         print(node_config_json)
-        with open("/etc/tezos/config.json", "w") as json_file:
+        with open("/etc/mavryk/config.json", "w") as json_file:
             print(node_config_json, file=json_file)
 
         if not os.path.isdir(f"{DATA_DIR}/context"):
@@ -169,7 +169,7 @@ def main():
             if node_snapshot_config:
                 print("Generated snapshot_config.json :")
                 print(node_snapshot_config_json)
-                with open("/var/tezos/snapshot_config.json", "w") as json_file:
+                with open("/var/mavryk/snapshot_config.json", "w") as json_file:
                     print(node_snapshot_config_json, file=json_file)
 
 
@@ -280,7 +280,7 @@ def verify_this_bakers_account(accounts):
 
 
 #
-# import_keys() creates three files in /var/tezos/client which specify
+# import_keys() creates three files in /var/mavryk/client which specify
 # the keys for each of the accounts: secret_keys, public_keys, and
 # public_key_hashs.
 #
@@ -384,17 +384,17 @@ def get_remote_signer_url(account: tuple[str, dict], key: Key) -> Union[str, Non
     account_name, account_values = account
 
     signer_url = account_values.get("signer_url")
-    octez_signer = get_accounts_signer(OCTEZ_SIGNERS, account_name)
+    mavkit_signer = get_accounts_signer(MAVKIT_SIGNERS, account_name)
     tacoinfra_signer = get_accounts_signer(TACOINFRA_SIGNERS, account_name)
 
-    signers = (signer_url, octez_signer, tacoinfra_signer)
+    signers = (signer_url, mavkit_signer, tacoinfra_signer)
     if tuple(map(bool, (signers))).count(True) > 1:
         raise Exception(
             f"ERROR: Account '{account_name}' may only have a signer_url field or be signed for by a single signer."
         )
 
-    if octez_signer:
-        signer_url = f"http://{octez_signer['name']}.octez-signer:6732"
+    if mavkit_signer:
+        signer_url = f"http://{mavkit_signer['name']}.mavkit-signer:6732"
 
     if tacoinfra_signer:
         signer_url = f"http://{tacoinfra_signer['name']}:5000"
@@ -406,15 +406,15 @@ def get_secret_key(account, key: Key):
     """
     For nodes and activation job, check if there is a remote signer for the
     account. If found, use its url as the sk. If there is no signer and for all
-    other pod types (e.g. octez signer), use an actual sk.
+    other pod types (e.g. mavkit signer), use an actual sk.
     """
     account_name, _ = account
 
     sk = (key.is_secret or None) and f"unencrypted:{key.secret_key()}"
     if MY_POD_TYPE in ("node", "activating"):
         signer_url = get_remote_signer_url(account, key)
-        octez_signer = get_accounts_signer(OCTEZ_SIGNERS, account_name)
-        if (sk and signer_url) and not octez_signer:
+        mavkit_signer = get_accounts_signer(MAVKIT_SIGNERS, account_name)
+        if (sk and signer_url) and not mavkit_signer:
             raise Exception(
                 f"ERROR: Account {account_name} can't have both a secret key and cloud signer."
             )
@@ -428,7 +428,7 @@ def get_secret_key(account, key: Key):
 
 def import_keys(all_accounts):
     print("\nImporting keys")
-    tezdir = "/var/tezos/client"
+    tezdir = "/var/mavryk/client"
     secret_keys = []
     public_keys = []
     public_key_hashs = []
@@ -581,7 +581,7 @@ def get_my_pods_zerotier_ip(zerotier_data_file_path):
 
 
 def get_zerotier_bootstrap_peer_ips():
-    with open("/var/tezos/zerotier_network_members.json", "r") as f:
+    with open("/var/mavryk/zerotier_network_members.json", "r") as f:
         network_members = json.load(f)
     return [
         n["config"]["ipAssignments"][0]
@@ -592,7 +592,7 @@ def get_zerotier_bootstrap_peer_ips():
 
 
 def get_genesis_pubkey():
-    with open("/var/tezos/client/public_keys", "r") as f:
+    with open("/var/mavryk/client/public_keys", "r") as f:
         pubkeys = json.load(f)
         genesis_pubkey = None
         for _, pubkey in enumerate(pubkeys):
@@ -647,12 +647,12 @@ def create_node_config_json(
     node_config = recursive_update(node_config, computed_node_config)
 
     if THIS_IS_A_PUBLIC_NET:
-        # `octez-node config --network ...` will have been run in config-init.sh
+        # `mavkit-node config --network ...` will have been run in config-init.sh
         #  producing a config.json. The value passed to the `--network` flag may
         #  have been the chain name or a url to the config.json of the chain.
         #  Either way, set the `network` field here as the `network` object of the
         #  produced config.json.
-        with open("/etc/tezos/data/config.json", "r") as f:
+        with open("/etc/mavryk/data/config.json", "r") as f:
             node_config_orig = json.load(f)
             if "network" in node_config_orig:
                 node_config["network"] = node_config_orig["network"]
@@ -672,7 +672,7 @@ def create_node_config_json(
         node_config["network"].pop("activation_account_name")
         node_config["network"].pop("join_public_network", None)
 
-        node_config["network"]["sandboxed_chain_name"] = "SANDBOXED_TEZOS"
+        node_config["network"]["sandboxed_chain_name"] = "SANDBOXED_mavryk"
         node_config["network"]["default_bootstrap_peers"] = []
         node_config["network"]["genesis_parameters"] = {
             "values": {"genesis_pubkey": get_genesis_pubkey()}
@@ -703,7 +703,7 @@ def create_node_snapshot_config_json(history_mode):
         or full_snapshot_url
         or archive_tarball_url
     ):
-        print("Snapshot or tarball URL found, will ignore snapshot_source")
+        print("Snapshot or tarball URL found")
         match history_mode:
             case "rolling":
                 if rolling_tarball_url:
@@ -728,21 +728,21 @@ def create_node_snapshot_config_json(history_mode):
                 print(f"Error: history mode {history_mode} is not known.")
                 sys.exit(1)
 
-    if "images" in MY_POD_CLASS and "octez" in MY_POD_CLASS["images"]:
-        octez_container_version = MY_POD_CLASS["images"]["octez"]
+    if "images" in MY_POD_CLASS and "mavkit" in MY_POD_CLASS["images"]:
+        mavkit_container_version = MY_POD_CLASS["images"]["mavkit"]
     else:
-        octez_container_version = os.environ.get("OCTEZ_VERSION")
+        mavkit_container_version = os.environ.get("MAVKIT_VERSION")
     snapshot_source = os.environ.get("SNAPSHOT_SOURCE")
     if snapshot_source:
         all_snapshots = requests.get(snapshot_source).json()
     else:
         return
     try:
-        octez_long_version = octez_container_version.split(":")[1]
-        octez_version_re = re.search(r"v(\d+)", octez_long_version)
-        octez_version = octez_version_re and octez_version_re.group(1)
+        mavkit_long_version = mavkit_container_version.split(":")[1]
+        mavkit_version_re = re.search(r"v(\d+)", mavkit_long_version)
+        mavkit_version = mavkit_version_re and mavkit_version_re.group(1)
     except Exception:
-        octez_version = None
+        mavkit_version = None
 
     print(
         f"""
@@ -750,7 +750,7 @@ Searching for snapshots from {snapshot_source}
 with history mode {history_mode}
 and artifact type {artifact_type}
 and chain name {network_name}
-and octez version {octez_version}.
+and mavkit version {mavkit_version}.
     """
     )
     # find snapshot matching all the requested fields
@@ -761,14 +761,14 @@ and octez version {octez_version}.
         and s.get("artifact_type") == artifact_type
         and s.get("chain_name") == network_name
     ]
-    if octez_version:
+    if mavkit_version:
         version_matching_snapshots = [
             s
             for s in matching_snapshots
-            if int(octez_version) == s.get("mavryk_version").get("version").get("major")
+            if int(mavkit_version) == s.get("mavryk_version").get("version").get("major")
         ]
         if len(version_matching_snapshots):
-            # If we can't find snapshots of the right octez version, we just pick the most recent available.
+            # If we can't find snapshots of the right mavkit version, we just pick the most recent available.
             matching_snapshots = version_matching_snapshots
     matching_snapshots = sorted(matching_snapshots, key=lambda s: s.get("block_height"))
 

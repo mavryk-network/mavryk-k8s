@@ -1,11 +1,11 @@
-{{- $octezSigners := .Values.octezSigners | default dict }}
-{{- if and (not .Values.is_invitation) (len $octezSigners) }}
+{{- $mavkitSigners := .Values.mavkitSigners | default dict }}
+{{- if and (not .Values.is_invitation) (len $mavkitSigners) }}
   {{- include "mavryk.checkDupeSignerAccounts" $ }}
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.octez_signer_statefulset.name }}
+  name: {{ .Values.mavkit_signer_statefulset.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   clusterIP: None
@@ -13,28 +13,28 @@ spec:
     - port: 6732
       name: signer
   selector:
-    app: {{ .Values.octez_signer_statefulset.name }}
+    app: {{ .Values.mavkit_signer_statefulset.name }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.octez_signer_statefulset.name }}
+  name: {{ .Values.mavkit_signer_statefulset.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   podManagementPolicy: Parallel
-  replicas: {{ len $octezSigners }}
-  serviceName: {{ .Values.octez_signer_statefulset.name }}
+  replicas: {{ len $mavkitSigners }}
+  serviceName: {{ .Values.mavkit_signer_statefulset.name }}
   selector:
     matchLabels:
-      app: {{ .Values.octez_signer_statefulset.name }}
+      app: {{ .Values.mavkit_signer_statefulset.name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.octez_signer_statefulset.name }}
+        app: {{ .Values.mavkit_signer_statefulset.name }}
     spec:
       containers:
-      - name: octez-signer
-        image: "{{ .Values.images.octez }}"
+      - name: mavkit-signer
+        image: "{{ .Values.images.mavkit }}"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 6732
@@ -42,7 +42,7 @@ spec:
         command:
           - /bin/sh
         volumeMounts:
-        - mountPath: /var/tezos
+        - mountPath: /var/mavryk
           name: var-volume
         args:
           - "-c"
@@ -63,9 +63,9 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: MY_POD_TYPE
-            value: {{ .Values.octez_signer_statefulset.pod_type }}
+            value: {{ .Values.mavkit_signer_statefulset.pod_type }}
         volumeMounts:
-          - mountPath: /var/tezos
+          - mountPath: /var/mavryk
             name: var-volume
           - mountPath: /etc/secret-volume
             name: mavryk-accounts
@@ -76,6 +76,10 @@ spec:
           name: var-volume
         - name: mavryk-accounts
           secret:
+          {{- if eq .Values.accountsSecretName "" }}
             secretName: mavryk-secret
+          {{- else }}
+            secretName: {{ .Values.accountsSecretName }}
+          {{ end }}
 ---
 {{- end }}

@@ -57,9 +57,9 @@ def gen_key(image):
         image,
         "sh",
         "-c",
-        "'/usr/local/bin/octez-client "
+        "'/usr/local/bin/mavkit-client "
         + "--protocol PsDELPH1Kxsx gen keys mykey && "
-        + "/usr/local/bin/octez-client "
+        + "/usr/local/bin/mavkit-client "
         + "--protocol PsDELPH1Kxsx show address mykey -S'",
     ).split(b"\n")
 

@@ -42,17 +42,17 @@ for network, snapshots in snapshots_per_network.items():
         
         # Lowest version is the top item (int) of a sorted unique list of all the versions for this particular artifact type and history mode
                                 # newlist = [item for item in list if "value" in list]
-        #octez_versions = sorted(list(set([ s['mavryk_version']['version']['major'] for s in typed_snapshots if 'version' in s['mavryk_version'] ])))
+        #mavkit_versions = sorted(list(set([ s['mavryk_version']['version']['major'] for s in typed_snapshots if 'version' in s['mavryk_version'] ])))
 
-        octez_versions = []
+        mavkit_versions = []
         for s in typed_snapshots:
             if 'version' in s['mavryk_version']:
-                octez_versions.append(s['mavryk_version']['version']['major'])
+                mavkit_versions.append(s['mavryk_version']['version']['major'])
 
-        octez_versions = sorted(list(set(octez_versions)))
+        mavkit_versions = sorted(list(set(mavkit_versions)))
 
-        if octez_versions:
-            lowest_octez_version = octez_versions[0]
+        if mavkit_versions:
+            lowest_mavkit_version = mavkit_versions[0]
         else:
             # no metadata yet for this namespace, ignoring
             continue
@@ -60,7 +60,7 @@ for network, snapshots in snapshots_per_network.items():
         network_snapshots[path] = typed_snapshots
 
         # Latest offered should only show oldest supported build so let's filter by the oldest supported version we found above
-        typed_snapshots = [d for d in typed_snapshots if 'version' in d['mavryk_version'] and d['mavryk_version']['version']['major'] == lowest_octez_version ]
+        typed_snapshots = [d for d in typed_snapshots if 'version' in d['mavryk_version'] and d['mavryk_version']['version']['major'] == lowest_mavkit_version ]
 
             # Latest snapshot of type is the last item in typed_snapshots which we just filtered by the latest supported mavryk build
         network_latest_snapshots[path] = typed_snapshots[-1]

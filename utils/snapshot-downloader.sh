@@ -2,13 +2,13 @@
 
 set -e
 
-data_dir="/var/tezos"
+data_dir="/var/mavryk"
 node_dir="$data_dir/node"
 node_data_dir="$node_dir/data"
 snapshot_file=$node_dir/chain.snapshot
 
 if [ ! -d "$data_dir" ]; then
-  echo "ERROR: /var/tezos doesn't exist. There should be a volume mounted."
+  echo "ERROR: /var/mavryk doesn't exist. There should be a volume mounted."
   exit 1
 fi
 
