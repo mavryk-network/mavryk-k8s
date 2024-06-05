@@ -125,7 +125,7 @@ Either way, inside `$CHAIN_NAME_values.yaml`, change the `images` section to:
 
 ```yaml
 images:
-  octez: <image>
+  mavkit: <image>
 ```
 
 where image is `mavryk:latest` or whatever.

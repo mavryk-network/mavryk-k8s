@@ -34,4 +34,4 @@ helm install mavryk-mainnet mavryk-network/mavryk-chain \
 --namespace mavryk-network --create-namespace
 ```
 
-k8s will spin up an [Octez](https://tezos.gitlab.io/) node which will download and import a Mavryk [mainnet tarball](https://tezos.gitlab.io/). This will take a few minutes.
+k8s will spin up an [Mavkit](https://tezos.gitlab.io/) node which will download and import a Mavryk [mainnet tarball](https://tezos.gitlab.io/). This will take a few minutes.

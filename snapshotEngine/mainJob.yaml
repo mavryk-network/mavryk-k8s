@@ -23,7 +23,7 @@ spec:
               set -e
 
               # Give mavryk user full ownership of mounted cache volume for writing metadata later
-              sudo chown -R tezos /"${HISTORY_MODE}"-snapshot-cache-volume
+              sudo chown -R mavryk /"${HISTORY_MODE}"-snapshot-cache-volume
 
               # Set error trap in order to kill this job with the timer later
               trap "exit" SIGINT SIGTERM
@@ -32,13 +32,13 @@ spec:
               NETWORK="${NETWORK_OVERRIDE:-${NAMESPACE%%-*}}"
 
               # Set up config for headless RPC using new restored storage
-              octez-node config init \
-              --config-file /home/tezos/.tezos-node/config.json \
+              mavkit-node config init \
+              --config-file /home/tezos/.mavryk-node/config.json \
               --network "${CHAIN_NAME}" \
-              --data-dir /var/tezos/node/data
+              --data-dir /var/mavryk/node/data
 
               # Run headless mavryk node to validate storage on restored volume
-              octez-node run --connections 0 --config-file /home/tezos/.tezos-node/config.json --rpc-addr=127.0.0.1:8732 &
+              mavkit-node run --connections 0 --config-file /home/tezos/.mavryk-node/config.json --rpc-addr=127.0.0.1:8732 &
 
               # Limit validation to restoredStorageInitTime. If this takes longer then there is a mavryk error
               # and this job is tossed.
@@ -121,23 +121,23 @@ spec:
               wget -qO- http://127.0.0.1:8732/chains/main/blocks/head/header | sed -E 's/.*"timestamp":"?([^,"]*)"?.*/\1/' > /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP
 
               # Old version string
-              /usr/local/bin/octez-node --version > /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_VERSION
+              /usr/local/bin/mavkit-node --version > /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_VERSION
 
               # Get new version object from RPC
-              wget -qO- http://127.0.0.1:8732/version > /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_RPC_VERSION_INFO
+              wget -qO- http://127.0.0.1:8732/version > /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_RPC_VERSION_INFO
 
               # Print variables for debug
               printf "%s BLOCK_HASH is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HASH))\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
               printf "%s BLOCK_HEIGHT is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HEIGHT)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
               printf "%s BLOCK_TIMESTAMP is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_TIMESTAMP)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
-              printf "%s TEZOS_VERSION is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_VERSION)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
-              printf "%s MAVRYK_RPC_VERSION_INFO is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/tezos_RPC_VERSION_INFO)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
+              printf "%s MAVRYK_VERSION is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_VERSION)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
+              printf "%s MAVRYK_RPC_VERSION_INFO is...$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/mavryk_RPC_VERSION_INFO)\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
 
               # Blow open permissions for next job to write to volume
               sudo chmod -R 755 /"${HISTORY_MODE}"-snapshot-cache-volume
               fi
           volumeMounts:
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: persistent-storage
             - mountPath: /snapshot-cache-volume
               name: snapshot-cache-volume
@@ -159,8 +159,8 @@ spec:
               #!/bin/sh
               set -e
 
-              sudo chown -R tezos /"${HISTORY_MODE}"-snapshot-cache-volume
-              sudo chown -R tezos /rolling-tarball-restore
+              sudo chown -R mavryk /"${HISTORY_MODE}"-snapshot-cache-volume
+              sudo chown -R mavryk /rolling-tarball-restore
 
               # Strip network from namespace or use configmap value
               NETWORK="${NETWORK_OVERRIDE:-${NAMESPACE%%-*}}"
@@ -169,15 +169,15 @@ spec:
               BLOCK_HASH=$(cat /"${HISTORY_MODE}"-snapshot-cache-volume/BLOCK_HASH)
               ROLLING_SNAPSHOT_NAME="${NAMESPACE%%-*}"-"${BLOCK_HEIGHT}"
 
-              octez-node config init \
-              --config-file /home/tezos/.tezos-node/config.json \
+              mavkit-node config init \
+              --config-file /home/tezos/.mavryk-node/config.json \
               --network "${CHAIN_NAME}" \
-              --data-dir /var/tezos/node/data
+              --data-dir /var/mavryk/node/data
 
               if [ "${HISTORY_MODE}" = rolling ]; then
-                octez-node snapshot export \
+                mavkit-node snapshot export \
                 --block "${BLOCK_HASH}" \
-                --config-file /home/tezos/.tezos-node/config.json \
+                --config-file /home/tezos/.mavryk-node/config.json \
                 --rolling \
                 /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling
 
@@ -185,21 +185,21 @@ spec:
 
                 touch /rolling-tarball-restore/snapshot-import-in-progress
 
-                octez-node snapshot import \
+                mavkit-node snapshot import \
                 /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling \
                 --block "${BLOCK_HASH}" \
-                --config-file /home/tezos/.tezos-node/config.json \
-                --data-dir /rolling-tarball-restore/var/tezos/node/data
+                --config-file /home/tezos/.mavryk-node/config.json \
+                --data-dir /rolling-tarball-restore/var/mavryk/node/data
 
-                # Get octez snapshot version
-                /usr/local/bin/octez-node snapshot info /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling --json > /"${HISTORY_MODE}"-snapshot-cache-volume/SNAPSHOT_HEADER
+                # Get mavkit snapshot version
+                /usr/local/bin/mavkit-node snapshot info /"${HISTORY_MODE}"-snapshot-cache-volume/"${ROLLING_SNAPSHOT_NAME}".rolling --json > /"${HISTORY_MODE}"-snapshot-cache-volume/SNAPSHOT_HEADER
 
                 rm /rolling-tarball-restore/snapshot-import-in-progress
               else
                 printf "%s Skipping rolling snapshot import since this job is for an archive node.\n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
               fi
           volumeMounts:
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: persistent-storage
             - mountPath: /snapshot-cache-volume
               name: snapshot-cache-volume
@@ -219,7 +219,7 @@ spec:
           args:
               - "zip-and-upload"
           volumeMounts:
-            - mountPath: /var/tezos
+            - mountPath: /var/mavryk
               name: persistent-storage
               readOnly: true
             - mountPath: /snapshot-cache-volume

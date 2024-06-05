@@ -20,11 +20,11 @@ JOB_NAME="${JOB_NAME}" yq e -i '.metadata.name=strenv(JOB_NAME)' snapshotMakerJo
 while true; do
 
   # Pause if nodes are not ready
-  until [ "$(kubectl get pods -n "${NAMESPACE}" -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' -l appType=octez-node -l node_class_history_mode="${HISTORY_MODE}")" = "True" ]; do
+  until [ "$(kubectl get pods -n "${NAMESPACE}" -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' -l appType=mavkit-node -l node_class_history_mode="${HISTORY_MODE}")" = "True" ]; do
     printf "%s Mavryk node is not ready for snapshot.  Check node pod logs.  \n" "$(date "+%Y-%m-%d %H:%M:%S" "$@")"
-    until [ "$(kubectl get pods -n "${NAMESPACE}" -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' -l appType=octez-node -l node_class_history_mode="${HISTORY_MODE}")" = "True" ]; do
+    until [ "$(kubectl get pods -n "${NAMESPACE}" -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' -l appType=mavkit-node -l node_class_history_mode="${HISTORY_MODE}")" = "True" ]; do
       sleep 1m # without sleep, this loop is a "busy wait". this sleep vastly reduces CPU usage while we wait for node
-      if  [ "$(kubectl get pods -n "${NAMESPACE}" -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' -l appType=octez-node -l node_class_history_mode="${HISTORY_MODE}")" = "True" ]; then
+      if  [ "$(kubectl get pods -n "${NAMESPACE}" -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}' -l appType=mavkit-node -l node_class_history_mode="${HISTORY_MODE}")" = "True" ]; then
         break
       fi
     done

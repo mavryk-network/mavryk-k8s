@@ -21,7 +21,7 @@ spec:
   template:
     metadata:
       labels:
-        appType: octez-node
+        appType: mavkit-node
         node_class: {{ $.node_class }}
       {{- if has "baker" $.node_vals.runs }}
         baking_node: "true"
@@ -38,6 +38,7 @@ spec:
         {{- include "mavryk.container.zerotier"  $ | indent 8 }}
         {{- include "mavryk.container.sidecar"   $ | indent 8 }}
         {{- include "mavryk.container.vdf"       $ | indent 8 }}
+        {{- include "mavryk.container.photographer"   $ | indent 8 }}
       initContainers:
         {{- include "mavryk.init_container.config_init"         $ | indent 8 }}
         {{- include "mavryk.init_container.zerotier"            $ | indent 8 }}
@@ -59,7 +60,16 @@ spec:
           name: config-volume
         - name: mavryk-accounts
           secret:
+          {{- if eq $.Values.accountsSecretName "" }}
             secretName: mavryk-secret
+          {{- else }}
+            secretName: {{ $.Values.accountsSecretName }}
+          {{ end }}
+{{- if has "photographer" $.node_vals.runs }}
+        - name: gcp-credentials
+          secret:
+            secretName: {{ $.Values.photographer.gcpCredentialsSecretName }}
+{{- end }}
 {{- if has "baker" $.node_vals.runs }}
         - name: baker-config
           configMap:

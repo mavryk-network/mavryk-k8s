@@ -1,4 +1,4 @@
-CLIENT="/usr/local/bin/octez-client --endpoint http://mavryk-node-rpc:8732"
+CLIENT="/usr/local/bin/mavkit-client --endpoint http://mavryk-node-rpc:8732"
 
 OUTPUT=""
 until OUTPUT=$($CLIENT rpc get /chains/main/blocks/head/header) && echo "$OUTPUT" | grep '"level":'; do
@@ -13,9 +13,9 @@ if ! echo "$OUTPUT" | grep '"level": 0,'; then
 fi
 
 echo Activating chain:
-$CLIENT -d /var/tezos/client --block                                    \
+$CLIENT -d /var/mavryk/client --block                                    \
         genesis activate protocol                                       \
         {{ .Values.activation.protocol_hash }}                          \
         with fitness 1 and key                                          \
-        $( cat /etc/tezos/activation_account_name )                     \
-        and parameters /etc/tezos/parameters.json 2>&1 | head -200
+        $( cat /etc/mavryk/activation_account_name )                     \
+        and parameters /etc/mavryk/parameters.json 2>&1 | head -200

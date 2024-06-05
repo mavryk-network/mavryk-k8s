@@ -40,7 +40,7 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 
 ### Prerequisites
 
-- [tezos-client](https://assets.tqtezos.com/docs/setup/1-tezos-client/)
+- [mavryk-client](https://assets.tqtezos.com/docs/setup/1-mavryk-client/)
 
 ## Authentication flow
 
@@ -49,10 +49,10 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
 
    - Run
      ```shell
-     kubectl exec -it -n mavryk-network statefulset/tezos-baking-node -c octez-node -- octez-client rpc get /chains/main/chain_id
+     kubectl exec -it -n mavryk-network statefulset/mavryk-baking-node -c mavkit-node -- mavkit-client rpc get /chains/main/chain_id
      ```
    - Use a tool like [Lens](https://k8slens.dev/) to view the logs of the Mavryk node. (As well as the rest of your k8s infrastructure)
-   - Manually run the logs command `kubectl logs -n mavryk-network statefulset/tezos-baking-node -c octez-node`. The top of the logs should look similar to:
+   - Manually run the logs command `kubectl logs -n mavryk-network statefulset/mavryk-baking-node -c mavkit-node`. The top of the logs should look similar to:
      ```
      Dec 21 19:42:08 - node.main: starting the Mavryk node (chain = my-chain)
      Dec 21 19:42:08 - node.main: disabled local peer discovery
@@ -66,7 +66,7 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
      ```
      The chain id is printed on the last line: `NetXitypWekag8Z`.
 
-2. The user needs to have a Mavryk secret key either generated or imported by `octez-client`. The user's secret key is used to sign some data for the server to then verify.
+2. The user needs to have a Mavryk secret key either generated or imported by `mavkit-client`. The user's secret key is used to sign some data for the server to then verify.
 
 3. The user runs: `rpc-auth/client/init.sh --cluster-address $CLUSTER_IP --tz-alias $TZ_ALIAS --chain-id $CHAIN_ID`
 
@@ -78,5 +78,5 @@ helm upgrade $CHAIN_NAME mavryk-network/mavryk-chain \
    - `curl http://192.168.64.51/mavryk-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/chains/main/chain_id`
    - As of docker image `mavrykdynamics/mavryk:v9-release`:
      ```shell
-     octez-client --endpoint http://192.168.64.51/mavryk-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/ rpc get chains/main/chain_id
+     mavkit-client --endpoint http://192.168.64.51/mavryk-node-rpc/ffff3eb3d7dd4f6bbff3f2fd096722ae/ rpc get chains/main/chain_id
      ```
