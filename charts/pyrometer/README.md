@@ -1,6 +1,6 @@
 ## Pyrometer chart
 
-A chart to deploy the [pyrometer](https://gitlab.com/tezos-kiln/pyrometer) Mavryk monitoring tool.
+A chart to deploy the [pyrometer](https://gitlab.com/mavryk-network/mavryk-pyrometer) Mavryk monitoring tool.
 
 Pass a complete pyrometer configuration with the `config` key in values, yaml, it will be transparently applied to pyrometer.
 
@@ -8,7 +8,7 @@ Pass a complete pyrometer configuration with the `config` key in values, yaml, i
 
 Pyrometer is a self-sustaining tool that manages its own alerts and alerting channels.
 
-Quoting pyrometer [architecture doc](https://gitlab.com/tezos-kiln/pyrometer/-/blob/main/doc/monitoring.md):
+Quoting pyrometer [architecture doc](https://gitlab.com/mavryk-network/mavryk-pyrometer/-/blob/main/doc/monitoring.md):
 
 > Primary installation target for initial monitoring implementation is a
 personal computer. Consequently, implementation should prioritize
