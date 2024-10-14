@@ -164,13 +164,13 @@ jobs:
           install: true
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Login to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-multi-buildx-${{ matrix.container }}-${{ github.sha }}
@@ -179,7 +179,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository_owner }}/mavryk-k8s-${{ matrix.container }}
           tags: |
@@ -188,7 +188,7 @@ jobs:
             type=match,pattern=([0-9]+\.[0-9]+\.[0-9]+),group=1
 
       - name: Push ${{ matrix.container }} container to GHCR
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           push: true
           provenance: false
