@@ -1,0 +1,11 @@
+apiVersion: v2
+name: maven-finance-oracle
+description: A Helm chart for Maven Finance oracles on Kubernetes
+type: application
+version: 0.0.0
+keywords:
+  - mavryk
+  - maven finance
+  - defi
+  - blockchain
+home: https://github.com/mavryk-network/mavryk-k8s

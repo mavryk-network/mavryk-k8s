@@ -1,0 +1,121 @@
+# Name given to the oracle
+name: maven-finance-oracle
+
+# Mavryk RPC Node to push the data to
+rpcUrl: https://rpc.mavryk.network
+
+# List of aggregator contracts addresses.
+# The oracle will pull the pair from the contracts and push the fetched data on them.
+# Exemple
+# ```
+# aggregatorsAddresses:
+# - KT1DF7gcTusnYRks9AHdRGncEt2ZQd2GrkZG
+# - KT1J27dgN5U5Zo73pXyq74VmudcnHQq3uTEK
+# - KT1KuboiXGVbok9nFCgwKiUw8MbJA9mT5amT
+# - KT1LXtigQdv8WfF1T8uTtjB75C1uCyE9Ty6G
+# - KT1UZ4pxidJUVeCixmp8WjGUL2GuGCfLM3dp
+# ```
+# End Aggregators
+aggregatorsAddresses: []
+
+# Name of the secret to use to fill the /etc/secret.json of Signatory.
+# The Secret used should look like this:
+# ```
+# apiVersion: v1
+# stringData:
+#   secret.json: |
+#     [
+#       {
+#         "name": "oracle",
+#         "value": "[YOUR_MAVRYK_SECRET_KEY_GOES_HERE]"
+#       }
+#     ]
+# kind: Secret
+# metadata:
+#   name: signatory-secret
+# type: Opaque
+# ```
+signatorySecretName: signatory-secret
+
+# Address and public key of the Maven Finance Oracle
+# To become a Maven Finance Oracle, you need to be registered as a Satellite on Maven Finance
+# See: https://docs.mavenfinance.io/maven-finance/satellites-and-oracles/satellite-registration
+mavryk:
+  address: mv1FVuPj34FvgBHnjyNMkmHe4S9Cmnw4aZMz
+  publicKey: edpkuX5ihBUVb9nNqLYixvGiVJ5VXxnVk5hnf9ZMkTkvP5UsRsBWX6
+
+# P2P configuration of the Oracle
+p2p:
+  # The Peer ID and the Public/Private keys are following the libp2p implementation
+  # See: https://libp2p.io/ and https://github.com/libp2p/specs/blob/master/peer-ids/peer-ids.md
+  peerId: 12D3KooWBpgAXhUAgjPAwEk5FJ9DRB2kFbuj8KLkPPmqKKmzrXz2
+  peerPublicKey: CAESIB3LuOsvQXa/QtLkCtHqfEdDnXDiDtGIKB42deJZQSZb
+  peerPrivateKey:
+    # Name of the secret to use to store the P2P private key
+    secretName: oracle-secret
+    key: P2P_PRIVATE_KEY
+  # List of bootstrap peers to connect to.
+  # They should be other oracles.
+  # See libp2p docs about addressing: https://github.com/libp2p/specs/blob/master/addressing/README.md
+  # Example:
+  # ```
+  # bootstrapPeers:
+  # - /dns4/oracle.ipv4.example.com/tcp/23456/p2p/12D3KooWK87KmBGJZZMP3keux62VF515mFRbNRFwbYxib7wWQR34
+  # - /ip4/192.0.2.0/tcp/23456/p2p/12D3KooWBpgAXhUAgjPAwEk5FJ9DRB2kFbuj8KLkPPmqKKmzrXz2
+  # - /ip6/2604:1380:2000:7a00::1/tcp/23456/p2p/12D3KooWDgabT39cFp5j5mvJgiGPEppMuVgDCsNtBCh1Q8ejBCA5
+  # - /dns6/oracle.ipv6.example.com/tcp/23456/p2p/12D3KooWLL2Y1JmrAXkY7r8xbuSRtasfJLAarXmAaZPYxPnzgAJ3
+  # ```
+  # End Peers
+  bootstrapPeers: []
+
+# Fetchers configurations.
+fetchers:
+  alphavantage:
+    # Name of the secret to use to store the Alphavantage API key
+    secretName: alphavantage-secret
+    key: ALPHAVANTAGE_API_KEY
+  messari:
+    # Name of the secret to use to store the Messari API key
+    secretName: messari-secret
+    key: MESSARI_API_KEY
+  coingecko:
+    # List of coingecko supported coin ids (separated by a comma)
+    # Coingecko sorts its listed coins and token by their IDs instead of their symbols
+    # This can lead to errors when two tokens share the same symbol but have different IDs (exemple: USDT on Ethereum and USDT on Mavryk)
+    # This variable allows you to filter the tokens queried by their IDs to specifically fetch the one you want
+    # It'll avoid fetching the wrong token or worse: a fake one with a wrong price. Causing the oracles to fail.
+    # Example:
+    # ```
+    # supportedIds:
+    # - bitcoin
+    # - tether
+    # ```
+    # End IDs
+    supportedIds: []
+
+# Images used for the oracle goes here
+images:
+  mavenOracles:
+    imagePullSecrets: null
+    registry: ghcr.io
+    repository: mavenfinance/maven-oracles
+    tag: main
+    imagePullPolicy: IfNotPresent
+  signatory:
+    imagePullSecrets: null
+    registry: docker.io
+    repository: mavrykdynamics/signatory
+    tag: v0.3.3-beta-rc1-amd64
+    imagePullPolicy: IfNotPresent
+
+# The supported log levels are:
+# 'error', 'warn', 'info', 'verbose', 'debug'
+logLevel: info
+
+# Setting this to true will prevent you from calling the fetchers and push fake data instead.
+# FOR DEV ONLY. USE IT AT YOUR OWN RISK.
+# Pushing fake data may lead to a ban on Maven Finance.
+useFakeData: false
+
+# Mavryk Taquito polling interval from the RPC node in milliseconds.
+mavrykPollingIntervalMilliseconds: 2000

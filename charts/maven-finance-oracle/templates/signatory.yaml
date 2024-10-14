@@ -1,0 +1,89 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ .Values.name }}-signatory-config'
+data:
+  signatory.yaml: |
+    server:
+      # Address/Port that Signatory listens on
+      address: :6732
+      # Address/Port that Signatory serves prometheus metrics on
+      utility_address: :9583
+
+    vaults:
+      # Name of vault
+      local_file_keys:
+        driver: file
+        config:
+          file: /etc/secret.json
+
+    # List enabled public keys hashes here
+    mavryk:
+      {{ .Values.mavryk.address }}:
+        log_payloads: true
+        allowed_operations:
+          # List of [generic, block, endorsement]
+          - generic
+          - failing_noop
+        allowed_kinds:
+          # List of [endorsement, ballot, reveal, transaction, origination, delegation, seed_nonce_revelation, activate_account]
+          - transaction
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ .Values.name }}-signatory'
+  labels:
+    app: '{{ .Values.name }}-signatory'
+spec:
+  clusterIP: None
+  ports:
+    - port: 6732
+      protocol: TCP
+      targetPort: 6732
+  selector:
+    app: '{{ .Values.name }}-signatory'
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Values.name }}-signatory'
+  labels:
+    app: '{{ .Values.name }}-signatory'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: '{{ .Values.name }}-signatory'
+  template:
+    metadata:
+      labels:
+        app: '{{ .Values.name }}-signatory'
+    spec:
+      {{- if .Values.images.signatory.imagePullSecrets }}
+      imagePullSecrets:
+          - name: '{{ .Values.images.signatory.imagePullSecrets }}'
+      {{- end }}
+      volumes:
+        - name: signatory-config
+          configMap:
+            name: '{{ .Values.name }}-signatory-config'
+        - name: signatory-secret
+          secret:
+            secretName: '{{ .Values.images.signatorySecretName }}'
+      containers:
+        - name: signatory
+          image: '{{ .Values.images.signatory.registry }}/{{ .Values.images.signatory.repository }}:{{ .Values.images.signatory.tag }}'
+          imagePullPolicy: '{{ .Values.images.signatory.imagePullPolicy }}'
+          ports:
+            - containerPort: 6732
+              protocol: TCP
+          volumeMounts:
+            - name: signatory-config
+              mountPath: /etc/signatory.yaml
+              subPath: signatory.yaml
+            - name: signatory-secret
+              mountPath: /etc/secret.json
+              subPath: secret.json

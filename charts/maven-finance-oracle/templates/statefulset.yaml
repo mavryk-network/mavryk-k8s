@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: '{{ .Values.name }}-maven-finance-oracle'
+  labels:
+    app: '{{ .Values.name }}-maven-finance-oracle'
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  selector:
+    matchLabels:
+      app: '{{ .Values.name }}-maven-finance-oracle'
+  serviceName: '{{ .Values.name }}-maven-finance-oracle'
+  template:
+    volumeClaimTemplates:
+    metadata:
+      labels:
+        app: '{{ .Values.name }}-maven-finance-oracle'
+    spec:
+      {{- if .Values.images.mavenOracles.imagePullSecrets }}
+      imagePullSecrets:
+          - name: '{{ .Values.images.mavenOracles.imagePullSecrets }}'
+      {{- end }}
+      containers:
+        - name: oracle
+          env:
+            - name: MAVRYK_POLLING_INTERVAL_MILLISECONDS
+              value: '{{ .Values.mavrykPollingIntervalMilliseconds }}'
+            - name: SIGNER_URL
+              value: 'http://signatory.{{ .Release.namespace }}.svc.cluster.local:6732'
+            - name: RPC_URL
+              value: '{{ .Values.rpcUrl }}'
+            - name: P2P_BOOTSTRAP_PEERS
+              value: '{{ join " " .Values.p2p.bootstrapPeers }}'
+            - name: P2P_PEER_ID
+              value: '{{ .Values.p2p.peerId }}'
+            - name: P2P_PEER_PUBLIC_KEY
+              value: '{{ .Values.p2p.peerPublicKey }}'
+            - name: P2P_PEER_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.p2p.peerPrivateKey.secretName }}
+                  key: {{ .Values.p2p.peerPrivateKey.key }}
+            - name: MAVRYK_ADDRESS
+              value: '{{ .Values.mavryk.address }}'
+            - name: MAVRYK_PUBLIC_KEY
+              value: '{{ .Values.mavryk.publicKey }}'
+            - name: AGGREGATOR_SMART_CONTRACT_ADDRESSES
+              value: '{{ join "," .Values.aggregatorsAddresses }}'
+            - name: ALPHAVANTAGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.fetchers.alphavantage.secretName }}
+                  key: {{ .Values.fetchers.alphavantage.key }}
+            - name: MESSARI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.fetchers.messari.secretName }}
+                  key: {{ .Values.fetchers.messari.key }}
+            - name: COINGECKO_SUPPORTED_IDS
+              value: '{{ join "," .Values.fetchers.coingecko.supportedIds }}'
+            - name: LOG_LEVEL
+              value: '{{ .Values.logLevel }}'
+            - name: USE_FAKE_DATA
+              value: '{{ .Values.useFakeData }}'
+          image: '{{ .Values.images.mavenOracles.registry }}/{{ .Values.images.mavenOracles.repository }}:{{ .Values.images.mavenOracles.tag }}'
+          imagePullPolicy: '{{ .Values.images.mavenOracles.imagePullPolicy }}'
+          ports:
+            - name: p2p
+              containerPort: 23456
+              protocol: TCP
