@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1
 # load zeromq.
 
 COPY requirements.txt /requirements.txt
-RUN     PIP="pip --no-cache install"					\
+RUN     PIP="pip --no-cache"					\
   APK_ADD="apk add --no-cache";					\
   $APK_ADD --virtual .build-deps gcc python3-dev			\
   libffi-dev musl-dev make		\
