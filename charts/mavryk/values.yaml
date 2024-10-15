@@ -265,17 +265,17 @@ should_generate_unsafe_deterministic_data: false
 node_globals:
   config: {}
   env: {}
-nodes:
-  rolling-node:
-    storage_size: 100Gi
-    runs:
-      - mavkit_node
-    instances:
-      - is_bootstrap_node: false
-        config:
-          shell:
-            history_mode: rolling
-          metrics_addr: ["0.0.0.0:9932"]
+nodes: {}
+  # rolling-node:
+  #   storage_size: 100Gi
+  #   runs:
+  #     - mavkit_node
+  #   instances:
+  #     - is_bootstrap_node: false
+  #       config:
+  #         shell:
+  #           history_mode: rolling
+  #         metrics_addr: ["0.0.0.0:9932"]
 # End nodes
 
 ## Configuration for K8s Service resources. Configuring the labels selector of a
