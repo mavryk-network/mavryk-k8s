@@ -72,7 +72,7 @@ spec:
             name: '{{ .Values.name }}-signatory-config'
         - name: signatory-secret
           secret:
-            secretName: '{{ .Values.images.signatorySecretName }}'
+            secretName: '{{ .Values.signatorySecretName }}'
       containers:
         - name: signatory
           image: '{{ .Values.images.signatory.registry }}/{{ .Values.images.signatory.repository }}:{{ .Values.images.signatory.tag }}'
