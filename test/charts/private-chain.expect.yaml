@@ -186,7 +186,6 @@ data:
       },
       "us": {
         "instances": [
-          {},
           {}
         ],
         "runs": [
@@ -1408,7 +1407,7 @@ metadata:
   namespace: testing
 spec:
   podManagementPolicy: Parallel
-  replicas: 2
+  replicas: 1
   serviceName: us
   selector:
     matchLabels:

@@ -99,16 +99,14 @@ nodes:
     runs: [mavkit_node, baker, logger, metrics]
     storage_size: 15Gi
   us:
-    instances:
-    - {}
-    - {}
     runs: [mavkit_node, baker]
     storage_size: 15Gi
+    instances:
+    - {}
   as:
     runs: [mavkit_node]
     instances:
     - {}
-  rolling-node: null
 should_generate_unsafe_deterministic_data: true
 zerotier_config: {zerotier_network: null, zerotier_token: null}
 open_acls: true

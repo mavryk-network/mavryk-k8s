@@ -33,4 +33,3 @@ nodes:
     runs: [tezedge_node, logger, metrics]
     instances:
       - {}
-  rolling-node: null
