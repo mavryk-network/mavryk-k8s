@@ -1,0 +1,162 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mavryk-indexer
+  labels:
+    app: mavryk-indexer
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  serviceName: mavryk-indexer
+  selector:
+    matchLabels:
+      app: mavryk-indexer
+  template:
+    metadata:
+      labels:
+        app: mavryk-indexer
+    spec:
+      {{- if or (.Values.images.dipdupIndexer.imagePullSecret) (.Values.images.postgres.imagePullSecret) }}
+      imagePullSecrets:
+      {{- if .Values.images.dipdupIndexer.imagePullSecret }}
+          - name: '{{ .Values.images.dipdupIndexer.imagePullSecret }}'
+      {{- end }}
+      {{- if .Values.images.postgres.imagePullSecret }}
+          - name: '{{ .Values.images.postgres.imagePullSecret }}'
+      {{- end }}
+      {{- end }}
+      containers:
+        - name: mavryk-indexer
+          env:
+          {{- if .Values.hasura.enabled }}
+          - name: HASURA_URL
+            value: http://hasura.{{ .Release.Namespace }}.svc.cluster.local:8080
+          - name: ADMIN_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.hasura.hasuraSecretName }}
+                key: HASURA_GRAPHQL_ADMIN_SECRET
+          {{- end }}
+          {{- if .Values.postgres.internalDB.enabled }}
+          - name: POSTGRES_HOST
+            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local:5432
+          {{- else }}
+          - name: POSTGRES_HOST
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_HOST
+          {{- end }}
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_DB
+          - name: POSTGRES_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_PORT
+          - name: POSTGRES_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_USERNAME
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_USERNAME
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_PASSWORD
+          {{- range .Values.dipdupIndexer.extraEnv }}
+          - name: {{ .name }}
+            {{- if ((.value))}}
+            value: "{{.value}}"
+            {{- else }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .valueFrom.secretKeyRef.name }}
+                key: {{ .valueFrom.secretKeyRef.key }}
+            {{- end }}
+          {{- end }}
+          image: '{{ .Values.images.dipdupIndexer.registry }}/{{ .Values.images.dipdupIndexer.repository }}:{{ .Values.images.dipdupIndexer.tag }}'
+          imagePullPolicy: '{{ .Values.images.dipdupIndexer.imagePullPolicy }}'
+          {{- if .Values.dipdupIndexer.metrics.enabled }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.dipdupIndexer.metrics.port }}
+              protocol: TCP
+          {{- end }}
+{{- if .Values.postgres.internalDB.enabled }}
+        - name: db
+          env:
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_DB
+          - name: POSTGRES_HOST
+            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local:5432
+          - name: POSTGRES_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_PORT
+          - name: POSTGRES_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_USERNAME
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_USERNAME
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgres.postgresSecretName }}
+                key: POSTGRES_PASSWORD
+          {{- range .Values.postgres.extraEnv }}
+          - name: {{ .name }}
+            {{- if ((.value))}}
+            value: "{{.value}}"
+            {{- else }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .valueFrom.secretKeyRef.name }}
+                key: {{ .valueFrom.secretKeyRef.key }}
+            {{- end }}
+          {{- end }}
+          image: '{{ .Values.images.postgres.registry }}/{{ .Values.images.postgres.repository }}:{{ .Values.images.postgres.tag }}'
+          imagePullPolicy: '{{ .Values.images.postgres.imagePullPolicy }}'
+          ports:
+            - name: db
+              containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - name: indexer-db-storage
+              mountPath: /var/lib/postgres/data
+{{- if .Values.postgres.internalDB.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: indexer-db-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.postgres.internalDB.persistence.storageClass }}
+        storageClassName: {{ .Values.postgres.internalDB.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.postgres.internalDB.persistence.size }}
+{{- else }}
+      volumes:
+      - name: indexer-db-storage
+        emptyDir: {}
+{{- end }}
+{{- end }}

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: mavryk-dipdup-indexer
+description: A Helm chart for Mavryk Dipdup Indexer on Kubernetes
+type: application
+version: 0.0.0
+keywords:
+  - mavryk
+  - indexer
+  - defi
+  - blockchain
+home: https://github.com/mavryk-network/mavryk-k8s

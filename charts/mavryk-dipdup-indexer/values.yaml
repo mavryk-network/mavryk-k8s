@@ -1,0 +1,166 @@
+# This key configures the indexer.
+# The indexer must be build using dipdup.
+# See: https://dipdup.io/
+dipdupIndexer:
+  # If prometheus is configured on the dipdup instance, this should be enabled
+  # Expose the Prometheus metrics returned by the dipdup indexer to the k8s cluster.
+  metrics:
+    enabled: false
+    port: 9090
+  
+  # Environment variables to pass to the dipdup indexer
+  extraEnv: []
+
+# This key configures postgres.
+# An internal or an external db can be connected to the indexer
+postgres:
+  # Name of the secret to use to store the Postgres credentials
+  # Must contains these keys:
+  # - POSTGRES_DB
+  # - POSTGRES_HOST
+  # - POSTGRES_PORT
+  # - POSTGRES_USERNAME
+  # - POSTGRES_PASSWORD
+  # Exemple:
+  # ```
+  #   apiVersion: v1
+  # stringData:
+  #   POSTGRES_DB: dipdup
+  #   POSTGRES_HOST: my-postgres.org
+  #   POSTGRES_PASSWORD: test12345
+  #   POSTGRES_PORT: 5432
+  #   POSTGRES_USERNAME: dipdup
+  # kind: Secret
+  # metadata:
+  #   name: postgres-secret
+  # type: Opaque
+  # ```
+  # End Secret
+  # If the internalDB is enabled, the value of POSTGRES_HOST will be overriden 
+  # by the internal db's one.
+  postgresSecretName: postgres-secret
+
+  # Environment variables to pass to the postgres database
+  extraEnv: []
+
+  # Deploy an internal Postgres instance on another container next to the Indexer
+  internalDB:
+    enabled: true
+    persistence:
+      # Enable creating PVCs for the db
+      enabled: false
+      # Size of persistent disk
+      size: 1Gi
+      # Storage class to be used.
+      # If defined, storageClassName: <storageClass>.
+      # If set to "-", storageClassName: "", which disables dynamic provisioning.
+      # If empty or set to null, no storageClassName spec is
+      # set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS, and OpenStack).
+      storageClass: null
+
+hasura:
+  enabled: false
+  # Name of the secret to use to store the Hasura credentials
+  # Must contains these keys:
+  # - HASURA_GRAPHQL_ADMIN_SECRET
+  # - HASURA_GRAPHQL_DATABASE_URL\
+  # Exemple:
+  # ```
+  #   apiVersion: v1
+  # stringData:
+  #   HASURA_GRAPHQL_ADMIN_SECRET: test12345
+  #   HASURA_GRAPHQL_DATABASE_URL: postgresql://dipdup:test12345@my-postgres.org:5432/dipdup
+  # kind: Secret
+  # metadata:
+  #   name: hasura-secret
+  # type: Opaque
+  # ```
+  # End Secret
+  hasuraSecretName: hasura-secret
+  config:
+    # Sets dev mode for GraphQL requests, i.e. in case of errors, includes an internal key in the errors extensions of the response.
+    # See: https://hasura.io/docs/2.0/deployment/graphql-engine-flags/config-examples/#dev-mode
+    devMode: false
+
+    # Enable the Hasura Console (served by the server on / and /console).
+    enableConsole: false
+    
+    # Setting this enables or disables anonymous telemetry.
+    # See: https://hasura.io/docs/2.0/policies/telemetry/
+    enableTelemetry: false
+
+    # This identifies an unauthorized role, used when the x-hasura-admin-key is not sent or the Authorization header is absent in JWT mode.
+    # See: https://hasura.io/docs/2.0/auth/authentication/unauthenticated-access/
+    unauthorizedRole: user
+
+    # When utilizing live queries, updated results - if any - will be sent, at most, 
+    # once during this interval - measured in milliseconds - for any live queries which can be multiplexed.
+    # See: https://hasura.io/docs/2.0/subscriptions/observability-and-performance/#parameters
+    graphqlLiveQueriesMultiplexedRefetchInterval: 15000
+
+    # Multiplexed live queries are split into batches of the specified size.
+    # See: https://hasura.io/docs/2.0/deployment/performance-tuning/#hasura_graphql_live_queries_multiplexed_batch_size
+    graphqlLiveQueriesMultiplexedBatchSize: 1000
+
+    # List of domains, including scheme (http/https) and port, to allow for CORS. Wildcard domains are allowed. Setting an empty value will block requests from all other domains.
+    # Need to be configured on the ingress as well if enabled with an annotation.
+    # Exemple:
+    # ```
+    # nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    # ```
+    corsDomains:
+      - '*'
+      
+  # Environment variables to pass to the hasura api
+  extraEnv: []
+    
+  # Resource limits and requests for the hasura pod
+  # See: https://hasura.io/docs/2.0/enterprise/getting-started/start-using-hasura-ee/
+  resources:
+    enabled: false
+    requests:
+      memory: 8000Mi
+      cpu: 4
+    limits:
+      memory: 10000Mi
+      cpu: 5
+
+  # Ingress configuration of hasura
+  ingress:
+    # Enable an ingress resource for the hasura API
+    enabled: false
+    # Ingress hosts
+    # Hostname must be provided if Ingress is enabled.
+    # Secrets must be manually created in the namespace
+    host: ""
+    # Additional ingress annotations
+    annotations: {}
+    # Defines which ingress controller will implement the resource
+    className: ""
+    # Additional ingress labels
+    labels: {}
+    # Ingress path type. One of `Exact`, `Prefix` or `ImplementationSpecific`
+    pathType: Prefix
+    # Ingress TLS configuration
+    tls: []
+
+# Images used for the indexer goes here
+images:
+  dipdupIndexer:
+    imagePullSecret: null
+    registry: ""
+    repository: ""
+    tag: ""
+    imagePullPolicy: Always
+  postgres:
+    imagePullSecret: null
+    registry: docker.io
+    repository: timescale/timescaledb
+    tag: latest-pg15
+    imagePullPolicy: IfNotPresent
+  hasura:
+    imagePullSecret: null
+    registry: docker.io
+    repository: hasura/graphql-engine
+    tag: v2.44.0
+    imagePullPolicy: IfNotPresent
