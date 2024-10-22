@@ -28,7 +28,7 @@ spec:
             - name: MAVRYK_POLLING_INTERVAL_MILLISECONDS
               value: '{{ .Values.mavrykPollingIntervalMilliseconds }}'
             - name: SIGNER_URL
-              value: 'http://signatory.{{ .Release.Namespace }}.svc.cluster.local:6732'
+              value: 'http://{{ .Values.name }}-signatory.{{ .Release.Namespace }}.svc.cluster.local:6732'
             - name: RPC_URL
               value: '{{ .Values.rpcUrl }}'
             - name: P2P_BOOTSTRAP_PEERS
