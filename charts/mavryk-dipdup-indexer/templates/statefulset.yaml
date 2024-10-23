@@ -40,7 +40,7 @@ spec:
           {{- end }}
           {{- if .Values.postgres.internalDB.enabled }}
           - name: POSTGRES_HOST
-            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local:5432
+            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local
           {{- else }}
           - name: POSTGRES_HOST
             valueFrom:
@@ -101,7 +101,7 @@ spec:
                 name: {{ .Values.postgres.postgresSecretName }}
                 key: POSTGRES_DB
           - name: POSTGRES_HOST
-            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local:5432
+            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local
           - name: POSTGRES_PORT
             valueFrom:
               secretKeyRef:
