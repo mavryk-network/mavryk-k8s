@@ -11,6 +11,12 @@ spec:
       port: 5432
       protocol: TCP
       targetPort: db
+{{- if .Values.dipdupIndexer.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.dipdupIndexer.metrics.port }}
+      protocol: TCP
+      targetPort: metrics
+{{- end }}
   selector:
     app: mavryk-indexer
   type: ClusterIP

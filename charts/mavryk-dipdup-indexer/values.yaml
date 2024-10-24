@@ -7,6 +7,16 @@ dipdupIndexer:
   metrics:
     enabled: false
     port: 9090
+    # Prometheus Operator is required in your cluster in order to enable
+    # serviceMonitor below.
+    # ServiceMonitor allows you to scrape the prometheus endpoints of your mavryk dipdup indexer.
+    # Make sure the endpoints are active by enabling the metrics as well.
+    serviceMonitor:
+      enabled: false
+      namespace: 'service-monitor-namespace'
+      labels:
+        # release: my-monitoring-release
+      namespaceSelector: {}
   
   # Environment variables to pass to the dipdup indexer
   extraEnv: []

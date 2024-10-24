@@ -1,0 +1,24 @@
+{{- if .Values.dipdupIndexer.metrics.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mavryk-indexer-service-monitor
+  namespace: {{ .Values.dipdupIndexer.metrics.serviceMonitor.namespace }}
+  labels:
+{{- toYaml .Values.dipdupIndexer.metrics.serviceMonitor.labels | nindent 4 }}
+spec:
+  endpoints:
+    - honorLabels: true
+      port: metrics
+{{- if .Values.dipdupIndexer.metrics.serviceMonitor.namespaceSelector }}
+  namespaceSelector: {{ toYaml .Values.dipdupIndexer.metrics.serviceMonitor.namespaceSelector | nindent 4 }}
+{{- else }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: mavryk-indexer
+{{- end }}
