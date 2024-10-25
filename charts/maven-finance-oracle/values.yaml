@@ -108,6 +108,25 @@ images:
     tag: v0.3.3-beta-rc1-amd64
     imagePullPolicy: IfNotPresent
 
+# Resource limits and requests for the oracle pod and the signatory instance
+resources:
+  signatory:
+    enabled: false
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+  oracle:
+    enabled: false
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
 # The supported log levels are:
 # 'error', 'warn', 'info', 'verbose', 'debug'
 logLevel: info

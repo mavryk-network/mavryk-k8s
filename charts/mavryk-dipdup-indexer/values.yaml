@@ -2,6 +2,16 @@
 # The indexer must be build using dipdup.
 # See: https://dipdup.io/
 dipdupIndexer:
+  # Resource limits and requests for the postgres pod
+  resources:
+    enabled: true
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
   # If prometheus is configured on the dipdup instance, this should be enabled
   # Expose the Prometheus metrics returned by the dipdup indexer to the k8s cluster.
   metrics:
@@ -56,8 +66,19 @@ postgres:
   # Deploy an internal Postgres instance on another container next to the Indexer
   internalDB:
     enabled: true
+    
+    # Resource limits and requests for the postgres pod
+    resources:
+      enabled: true
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+    # Enable creating PVCs for the db
     persistence:
-      # Enable creating PVCs for the db
       enabled: false
       # Size of persistent disk
       size: 1Gi

@@ -24,6 +24,15 @@ spec:
       {{- end }}
       containers:
         - name: oracle
+      {{- if .Values.resources.oracle.enabled }}
+          resources:
+            requests:
+              cpu: '{{ .Values.resources.oracle.requests.cpu }}'
+              memory: '{{ .Values.resources.oracle.requests.memory }}'
+            limits:
+              cpu: '{{ .Values.resources.oracle.limits.cpu }}'
+              memory: '{{ .Values.resources.oracle.limits.memory }}'
+      {{- end }}
           env:
             - name: MAVRYK_POLLING_INTERVAL_MILLISECONDS
               value: '{{ .Values.mavrykPollingIntervalMilliseconds }}'

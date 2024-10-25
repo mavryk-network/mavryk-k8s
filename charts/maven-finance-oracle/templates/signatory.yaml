@@ -77,6 +77,15 @@ spec:
         - name: signatory
           image: '{{ .Values.images.signatory.registry }}/{{ .Values.images.signatory.repository }}:{{ .Values.images.signatory.tag }}'
           imagePullPolicy: '{{ .Values.images.signatory.imagePullPolicy }}'
+      {{- if .Values.resources.signatory.enabled }}
+          resources:
+            requests:
+              cpu: '{{ .Values.resources.signatory.requests.cpu }}'
+              memory: '{{ .Values.resources.signatory.requests.memory }}'
+            limits:
+              cpu: '{{ .Values.resources.signatory.limits.cpu }}'
+              memory: '{{ .Values.resources.signatory.limits.memory }}'
+      {{- end }}
           ports:
             - containerPort: 6732
               protocol: TCP

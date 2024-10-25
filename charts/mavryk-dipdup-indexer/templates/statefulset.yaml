@@ -28,6 +28,15 @@ spec:
       {{- end }}
       containers:
         - name: mavryk-indexer
+          {{- if .Values.dipdupIndexer.resources.enabled }}
+          resources:
+            requests:
+              memory: '{{ .Values.dipdupIndexer.resources.requests.memory }}'
+              cpu: '{{ .Values.dipdupIndexer.resources.requests.cpu }}'
+            limits:
+              memory: '{{ .Values.dipdupIndexer.resources.limits.memory }}'
+              cpu: '{{ .Values.dipdupIndexer.resources.limits.cpu }}'
+          {{- end }}
           env:
           {{- if .Values.hasura.enabled }}
           - name: HASURA_URL
@@ -94,6 +103,15 @@ spec:
           {{- end }}
 {{- if .Values.postgres.internalDB.enabled }}
         - name: db
+          {{- if .Values.postgres.internalDB.resources.enabled }}
+          resources:
+            requests:
+              memory: '{{ .Values.postgres.internalDB.resources.requests.memory }}'
+              cpu: '{{ .Values.postgres.internalDB.resources.requests.cpu }}'
+            limits:
+              memory: '{{ .Values.postgres.internalDB.resources.limits.memory }}'
+              cpu: '{{ .Values.postgres.internalDB.resources.limits.cpu }}'
+          {{- end }}
           env:
           - name: POSTGRES_DB
             valueFrom:
