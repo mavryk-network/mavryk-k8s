@@ -3,7 +3,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: mavryk-indexer-service-monitor
+  name: {{ .Release.Namespace }}-mavryk-indexer-service-monitor
   namespace: {{ .Values.dipdupIndexer.metrics.serviceMonitor.namespace }}
   labels:
 {{- toYaml .Values.dipdupIndexer.metrics.serviceMonitor.labels | nindent 4 }}
