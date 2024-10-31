@@ -1,10 +1,10 @@
 set -ex
 
-TEZ_VAR=/var/mavryk
-TEZ_BIN=/usr/local/bin
-CLIENT_DIR="$TEZ_VAR/client"
-NODE_DIR="$TEZ_VAR/node"
-NODE_DATA_DIR="$TEZ_VAR/node/data"
+MAV_VAR=/var/mavryk
+MAV_BIN=/usr/local/bin
+CLIENT_DIR="$MAV_VAR/client"
+NODE_DIR="$MAV_VAR/node"
+NODE_DATA_DIR="$MAV_VAR/node/data"
 BAKER_EXTRA_ARGS_FROM_ENV=${BAKER_EXTRA_ARGS}
 
 proto_command="{{ .command_in_tpl }}"
@@ -42,8 +42,8 @@ if [ -f /etc/mavryk/baker-config/${my_baker_account}_operations_pool ]; then
   extra_args="${extra_args} --operations-pool $(cat /etc/mavryk/baker-config/${my_baker_account}_operations_pool)"
 fi
 
-CLIENT="$TEZ_BIN/mavkit-client -d $CLIENT_DIR"
-CMD="$TEZ_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
+CLIENT="$MAV_BIN/mavkit-client -d $CLIENT_DIR"
+CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
 
 # ensure we can run mavkit-client commands without specifying client dir
 ln -s /var/mavryk/client /home/tezos/.mavryk-client

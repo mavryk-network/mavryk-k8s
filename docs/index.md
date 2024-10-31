@@ -2,7 +2,7 @@
 
 ![Mavryk](./static/img/mavryk-purple.svg)![Kubernetes](./static/img/kubernetes.svg)
 
-Mavryk-k8s is a collection of Helm charts and container images that can be used to deploy [Mavryk](https://tezos.com) blockchain infrastructure on a Kubernetes cluster.
+Mavryk-k8s is a collection of Helm charts and container images that can be used to deploy [Mavryk](https://mavryk.org) blockchain infrastructure on a Kubernetes cluster.
 
 Use it to deploy:
 
@@ -34,4 +34,4 @@ helm install mavryk-mainnet mavryk-network/mavryk-chain \
 --namespace mavryk-network --create-namespace
 ```
 
-k8s will spin up an [Mavkit](https://tezos.gitlab.io/) node which will download and import a Mavryk [mainnet tarball](https://tezos.gitlab.io/). This will take a few minutes.
+k8s will spin up an [Mavkit](https://protocol.mavryk.org/) node which will download and import a Mavryk [mainnet tarball](https://protocol.mavryk.org/). This will take a few minutes.

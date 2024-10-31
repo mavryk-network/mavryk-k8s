@@ -100,7 +100,7 @@ if [ ! -z "$NEW_BRANCH" ]; then
 fi
 
 CHART1="$MYDIR/chart1"
-helm template charts/mavryk/ --values "$NEW_VALUES" --namespace tez > "$CHART1"
+helm template charts/mavryk/ --values "$NEW_VALUES" --namespace mav > "$CHART1"
 
 if [ "$COMPARE_STASHED" = 1 ]; then
 	if [ "$(git diff | wc -c)" -gt 0 ]; then
@@ -116,6 +116,6 @@ if [ ! -z "$OLD_BRANCH" ]; then
 	fi
 	git checkout "$OLD_BRANCH"
 fi
-helm template charts/mavryk/ --values "$OLD_VALUES" --namespace tez > "$CHART2"
+helm template charts/mavryk/ --values "$OLD_VALUES" --namespace mav > "$CHART2"
 
 $DIFF $DIFF_ARGS "$CHART2" "$CHART1"

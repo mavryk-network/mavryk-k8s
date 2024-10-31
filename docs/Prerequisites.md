@@ -100,7 +100,7 @@ helm repo add mavryk-network https://charts.mavryk.org/
 ## Using a custom Mavryk build
 
 Create a clone of the `[mavryk](https://gitlab.com/mavryk-network/mavryk-protocol)`
-repository.  [Set up your development environment as usual](https://tezos.gitlab.io/introduction/howtoget.html#setting-up-the-development-environment-from-scratch).  Then run:
+repository.  [Set up your development environment as usual](https://protocol.mavryk.org/introduction/howtoget.html#setting-up-the-development-environment-from-scratch).  Then run:
 
 ```shell
 eval $(minikube docker-env)

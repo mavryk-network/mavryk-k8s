@@ -1,7 +1,7 @@
 # Public network node
 Connecting to a public net is easy!
 
-(See [here](https://tezos.gitlab.io/user/history_modes.html) for info on snapshots and node history modes)
+(See [here](https://protocol.mavryk.org/user/history_modes.html) for info on snapshots and node history modes)
 
 Simply run the following to spin up a rolling history node:
 

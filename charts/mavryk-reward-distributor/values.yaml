@@ -93,7 +93,7 @@ trd_config:
   #     bot_api_key: 988877766:SKDJFLSJDFJLJSKDFJLKSDJFLKJDF
   #     telegram_text: >
   #       Rewards for cycle %CYCLE% are completed.
-  #       We paid out %TREWARDS% tez in rewards to %NDELEGATORS% delegators.
+  #       We paid out %TREWARDS% mav in rewards to %NDELEGATORS% delegators.
   #   twitter:
   #     api_key: XXXXXXXX
   #     api_secret: ZZZZZZZZ
@@ -111,7 +111,7 @@ trd_config:
   #     send_admin: False
   #     discord_text: >
   #       Rewards for cycle %CYCLE% are completed.
-  #       We paid out %TREWARDS% tez in rewards to %NDELEGATORS% delegators.
+  #       We paid out %TREWARDS% mav in rewards to %NDELEGATORS% delegators.
 
 # optionally upload all TRD state to a bucket. This allows all data to be examined
 # when the cronjob is not running.

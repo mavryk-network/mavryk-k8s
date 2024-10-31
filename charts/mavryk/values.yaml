@@ -392,7 +392,7 @@ expected_proof_of_work: 26
 ## - Specify the name of the network which must be recognized by the
 ##   mavkit-node binary of the Mavkit image being used.
 ## - Pass a url that returns the config.json of the network. Example:
-##   "https://teztnets.xyz/mondaynet". It is helpful for running
+##   "https://testnets.mavryk.network/atlasnet". It is helpful for running
 ##   testnets and shouldn't be needed in general.
 node_config_network:
   chain_name: mainnet

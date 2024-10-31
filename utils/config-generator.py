@@ -428,7 +428,7 @@ def get_secret_key(account, key: Key):
 
 def import_keys(all_accounts):
     print("\nImporting keys")
-    tezdir = "/var/mavryk/client"
+    mavdir = "/var/mavryk/client"
     secret_keys = []
     public_keys = []
     public_key_hashs = []
@@ -484,10 +484,10 @@ def import_keys(all_accounts):
         )
 
     sk_path, pk_path, pkh_path, ak_path = (
-        f"{tezdir}/secret_keys",
-        f"{tezdir}/public_keys",
-        f"{tezdir}/public_key_hashs",
-        f"{tezdir}/authorized_keys",
+        f"{mavdir}/secret_keys",
+        f"{mavdir}/public_keys",
+        f"{mavdir}/public_key_hashs",
+        f"{mavdir}/authorized_keys",
     )
     print(f"\n  Writing {sk_path}")
     json.dump(secret_keys, open(sk_path, "w"), indent=4)

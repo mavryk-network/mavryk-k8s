@@ -31,18 +31,18 @@ enableCaptcha: true
 # Faucet won't dispense to an address if its balance will exceed this. Not
 # capped by default.
 maxBalance: null
-# The minimum Tez allowed per request.
-minTez: 1
-# The maximum Tez allowed per request.
-maxTez: 6000
+# The minimum Mav allowed per request.
+minMav: 1
+# The maximum Mav allowed per request.
+maxMav: 6000
 
 # Set to true to disable the requirement of solving PoW challenges.
 disableChallenges: false
-# Minimum number of challenges required for the minimum Tez request.
+# Minimum number of challenges required for the minimum Mav request.
 minChallenges: 1
-# Maximum number of challenges required for the maximum Tez request.
+# Maximum number of challenges required for the maximum Mav request.
 maxChallenges: 550
-# Maximum number of challenges required for the maximum Tez request when a
+# Maximum number of challenges required for the maximum Mav request when a
 # captcha is used.
 maxChallengesWithCaptcha: 66
 # How many bytes the challenge string should be.
