@@ -629,7 +629,7 @@ spec:
               
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/mavkit-node run				\
-              			--bootstrap-threshold 0			\
+              			--synchronisation-threshold 0		\
               			--config-file /etc/mavryk/config.json
               	sleep $d
               done
@@ -827,7 +827,7 @@ spec:
               
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/mavkit-node run				\
-              			--bootstrap-threshold 0			\
+              			--synchronisation-threshold 0		\
               			--config-file /etc/mavryk/config.json
               	sleep $d
               done
@@ -1441,7 +1441,7 @@ spec:
               
               for d in 1 1 5 10 20 60 120; do
               	/usr/local/bin/mavkit-node run				\
-              			--bootstrap-threshold 0			\
+              			--synchronisation-threshold 0		\
               			--config-file /etc/mavryk/config.json
               	sleep $d
               done
