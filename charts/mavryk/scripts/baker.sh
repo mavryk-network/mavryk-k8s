@@ -46,7 +46,7 @@ CLIENT="$MAV_BIN/mavkit-client -d $CLIENT_DIR"
 CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
 
 # ensure we can run mavkit-client commands without specifying client dir
-ln -s /var/mavryk/client /home/tezos/.mavryk-client
+ln -s /var/mavryk/client /home/mavryk/.mavryk-client
 
 while ! $CLIENT rpc get chains/main/blocks/head; do
     sleep 5

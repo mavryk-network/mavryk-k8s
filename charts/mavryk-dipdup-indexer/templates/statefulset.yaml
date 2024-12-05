@@ -113,6 +113,8 @@ spec:
               cpu: '{{ .Values.postgres.internalDB.resources.limits.cpu }}'
           {{- end }}
           env:
+          - name: PGDATA
+            value: /var/lib/postgres/data
           - name: POSTGRES_DB
             valueFrom:
               secretKeyRef:

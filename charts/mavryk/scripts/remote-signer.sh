@@ -13,6 +13,6 @@ fi
 CMD="$MAV_BIN/mavkit-signer -d $CLIENT_DIR ${extra_args} launch http signer -a 0.0.0.0 -p 6732"
 
 # ensure we can run mavryk-signer commands without specifying client dir
-ln -s /var/mavryk/client /home/tezos/.mavryk-signer
+ln -s /var/mavryk/client /home/mavryk/.mavryk-signer
 
 exec $CMD

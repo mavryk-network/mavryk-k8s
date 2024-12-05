@@ -554,7 +554,7 @@ spec:
             CMD="$MAV_BIN/mavkit-signer -d $CLIENT_DIR ${extra_args} launch http signer -a 0.0.0.0 -p 6732"
             
             # ensure we can run mavryk-signer commands without specifying client dir
-            ln -s /var/mavryk/client /home/tezos/.mavryk-signer
+            ln -s /var/mavryk/client /home/mavryk/.mavryk-signer
             
             exec $CMD
             
@@ -621,7 +621,7 @@ spec:
               set -xe
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing mavkit-node to fail.
@@ -819,7 +819,7 @@ spec:
               set -xe
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing mavkit-node to fail.
@@ -914,7 +914,7 @@ spec:
               CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -991,7 +991,7 @@ spec:
               CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1068,7 +1068,7 @@ spec:
               CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1145,7 +1145,7 @@ spec:
               CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1222,7 +1222,7 @@ spec:
               CMD="$MAV_BIN/mavkit-baker-$proto_command -d $CLIENT_DIR"
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               
               while ! $CLIENT rpc get chains/main/blocks/head; do
                   sleep 5
@@ -1433,7 +1433,7 @@ spec:
               set -xe
               
               # ensure we can run mavkit-client commands without specifying client dir
-              ln -s /var/mavryk/client /home/tezos/.mavryk-client
+              ln -s /var/mavryk/client /home/mavryk/.mavryk-client
               #
               # Not every error is fatal on start.  In particular, with zerotier,
               # the listen-addr may not yet be bound causing mavkit-node to fail.
