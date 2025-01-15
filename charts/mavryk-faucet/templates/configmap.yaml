@@ -34,3 +34,4 @@ data:
   MAX_CHALLENGES_WITH_CAPTCHA: "{{ .Values.maxChallengesWithCaptcha }}"
   CHALLENGE_SIZE: "{{ .Values.challengeSize }}"
   DIFFICULTY: "{{ .Values.difficulty }}"
+  FAUCET_CONTRACT_ADDRESS: "{{ .Values.faucetContractAddress }}"

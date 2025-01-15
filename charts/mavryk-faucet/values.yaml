@@ -49,6 +49,8 @@ maxChallengesWithCaptcha: 66
 challengeSize: 2048
 # Difficulty level for challenges.
 difficulty: 4
+# Faucet contract address, if using an external faucet for tokens deployed on chain
+faucetContractAddress: 
 
 # Config for the Redis backend for the PoW challenges. Redis is not needed if
 # challenges are disabled.
