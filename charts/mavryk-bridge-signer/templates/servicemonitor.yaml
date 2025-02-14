@@ -1,0 +1,24 @@
+{{- if .Values.metrics.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Namespace }}-{{ .Values.name }}-mavryk-bridge-signer-service-monitor
+  namespace: {{ .Values.metrics.serviceMonitor.namespace }}
+  labels:
+{{- toYaml .Values.metrics.serviceMonitor.labels | nindent 4 }}
+spec:
+  endpoints:
+    - honorLabels: true
+      port: metrics
+{{- if .Values.metrics.serviceMonitor.namespaceSelector }}
+  namespaceSelector: {{ toYaml .Values.metrics.serviceMonitor.namespaceSelector | nindent 4 }}
+{{- else }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: '{{ .Values.name }}-mavryk-bridge-signer'
+{{- end }}

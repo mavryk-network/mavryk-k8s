@@ -1,0 +1,51 @@
+# Name given to the signer
+name: ""
+
+# Name for the secret holding the signer secret keys for Mavryk and EVM
+# Requirements:
+# MAV_SIGNATORY_SK
+# ETH_SIGNATORY_SK
+signerSecretName: signer-secret
+mvktUrl: ""
+subsquidEvmUrl: ""
+evmNodeUrl: ""
+evmNodeWsUrl: ""
+mavrykRpcNode: ""
+  
+# Environment variables to pass to the dipdup indexer
+extraEnv: []
+
+# Resource limits and requests for the postgres pod
+resources:
+  enabled: true
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 100m
+    memory: 256Mi
+    
+# Images used for the indexer goes here
+images:
+  signer:
+    imagePullSecret: null
+    registry: ""
+    repository: ""
+    tag: ""
+    imagePullPolicy: Always
+
+# If prometheus is configured on the dipdup instance, this should be enabled
+# Expose the Prometheus metrics returned by the dipdup indexer to the k8s cluster.
+metrics:
+  enabled: false
+  port: 9090
+  # Prometheus Operator is required in your cluster in order to enable
+  # serviceMonitor below.
+  # ServiceMonitor allows you to scrape the prometheus endpoints of your mavryk dipdup indexer.
+  # Make sure the endpoints are active by enabling the metrics as well.
+  serviceMonitor:
+    enabled: false
+    namespace: 'service-monitor-namespace'
+    labels:
+      # release: my-monitoring-release
+    namespaceSelector: {}

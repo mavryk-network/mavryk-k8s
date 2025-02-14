@@ -1,0 +1,11 @@
+apiVersion: v2
+name: mavryk-bridge-signer
+description: A Helm chart for Mavryk Bridge Signer on Kubernetes
+type: application
+version: 0.0.0
+keywords:
+  - mavryk
+  - bridge
+  - signer
+  - blockchain
+home: https://github.com/mavryk-network/mavryk-k8s

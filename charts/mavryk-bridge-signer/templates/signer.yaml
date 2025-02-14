@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Values.name }}-mavryk-bridge-signer'
+  labels:
+    app: '{{ .Values.name }}-mavryk-bridge-signer'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: '{{ .Values.name }}-mavryk-bridge-signer'
+  template:
+    metadata:
+      labels:
+        app: '{{ .Values.name }}-mavryk-bridge-signer'
+    spec:
+      {{- if .Values.images.signer.imagePullSecret }}
+      imagePullSecrets:
+          - name: '{{ .Values.images.signer.imagePullSecret }}'
+      {{- end }}
+      containers:
+        - name: mavryk-bridge-signer
+          {{- if .Values.resources.enabled }}
+          resources:
+            requests:
+              memory: '{{ .Values.resources.requests.memory }}'
+              cpu: '{{ .Values.resources.requests.cpu }}'
+            limits:
+              memory: '{{ .Values.resources.limits.memory }}'
+              cpu: '{{ .Values.resources.limits.cpu }}'
+          {{- end }}
+          env:
+          - name: MAV_SIGNATORY_SK
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.signerSecretName }}
+                key: MAV_SIGNATORY_SK
+          - name: ETH_SIGNATORY_SK
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.signerSecretName }}
+                key: ETH_SIGNATORY_SK
+          - name: MVKT_ATLASNET_URL
+            value: {{ .Values.mvktUrl }}
+          - name: SUBSQUID_EVM_URL
+            value: {{ .Values.subsquidEvmUrl }}
+          - name: EVM_NODE_URL
+            value: {{ .Values.evmNodeUrl }}
+          - name: EVM_NODE_WS_URL
+            value: {{ .Values.evmNodeWsUrl }}
+          - name: RPC_NODE_URL
+            value: {{ .Values.mavrykRpcNode }}
+          {{- range .Values.extraEnv }}
+          - name: {{ .name }}
+            {{- if ((.value))}}
+            value: "{{.value}}"
+            {{- else }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .valueFrom.secretKeyRef.name }}
+                key: {{ .valueFrom.secretKeyRef.key }}
+            {{- end }}
+          {{- end }}
+          image: '{{ .Values.images.signer.registry }}/{{ .Values.images.signer.repository }}:{{ .Values.images.signer.tag }}'
+          imagePullPolicy: '{{ .Values.images.signer.imagePullPolicy }}'
+          {{- if .Values.metrics.enabled }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+          {{- end }}
