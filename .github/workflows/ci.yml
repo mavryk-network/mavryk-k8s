@@ -83,7 +83,7 @@ jobs:
       fail-fast: false
       # after we test that the module works on all systems we only need to build one since this is a pure python module
       matrix:
-        python-version: [3.8]
+        python-version: [3.9]
         os: [ubuntu-latest]
 
     steps:
