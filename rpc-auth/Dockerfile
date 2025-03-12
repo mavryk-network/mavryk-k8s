@@ -15,7 +15,14 @@ RUN apt-get update -y \
   libsodium-dev \
   libtool \
   pkg-config \
+  python3-dev \
   && echo
+
+# Upgrade pip and install essential tools
+RUN pip install --upgrade pip setuptools wheel
+
+# Install pytest-runner explicitly if needed
+RUN pip install pytest-runner
 
 COPY ./requirements.txt .
 RUN mkdir wheels \
@@ -35,6 +42,9 @@ RUN apt-get update -y \
   libsodium-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip in the runtime container
+RUN pip install --upgrade pip setuptools wheel
 
 # Installing python dependencies
 COPY --from=builder /var/rpc-auth/wheels wheels
