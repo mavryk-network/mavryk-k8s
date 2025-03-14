@@ -60,15 +60,15 @@ postgres:
   # by the internal db's one.
   postgresSecretName: postgres-secret
 
-  # Max connections for the postgres database
-  maxConnections: 60
-
   # Environment variables to pass to the postgres database
   extraEnv: []
 
   # Deploy an internal Postgres instance on another container next to the Indexer
   internalDB:
     enabled: true
+
+    # Max connections for the postgres database
+    maxConnections: 60
     
     # Resource limits and requests for the postgres pod
     resources:
