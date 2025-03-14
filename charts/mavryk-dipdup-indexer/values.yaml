@@ -60,6 +60,9 @@ postgres:
   # by the internal db's one.
   postgresSecretName: postgres-secret
 
+  # Max connections for the postgres database
+  maxConnections: 60
+
   # Environment variables to pass to the postgres database
   extraEnv: []
 

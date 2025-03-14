@@ -26,6 +26,25 @@ spec:
           - name: '{{ .Values.images.postgres.imagePullSecret }}'
       {{- end }}
       {{- end }}
+      {{- if .Values.postgres.internalDB.enabled }}
+      initContainers:
+        - command:
+          - sh
+          - -c
+          - |
+            CONF_FILE="/var/lib/postgres/data/postgresql.conf"
+            sed -i 's/^max_connections.*/max_connections = {{- .Values.postgres.maxConnections }}/' "$CONF_FILE"
+            grep -q "^max_connections" "$CONF_FILE" || echo "max_connections = {{- .Values.postgres.maxConnections }}" >> "$CONF_FILE"
+          image: busybox
+          imagePullPolicy: Always
+          name: init-config
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/postgres
+            name: indexer-db-storage
+      {{- end }}
       containers:
         - name: mavryk-indexer
           {{- if .Values.dipdupIndexer.resources.enabled }}
