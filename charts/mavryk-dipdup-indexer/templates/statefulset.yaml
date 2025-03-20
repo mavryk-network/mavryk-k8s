@@ -33,8 +33,48 @@ spec:
           - -c
           - |
             CONF_FILE="/var/lib/postgres/data/postgresql.conf"
-            sed -i 's/^max_connections.*/max_connections = {{- .Values.postgres.maxConnections }}/' "$CONF_FILE"
-            grep -q "^max_connections" "$CONF_FILE" || echo "max_connections = {{- .Values.postgres.maxConnections }}" >> "$CONF_FILE"
+            
+            # Original settings
+            sed -i 's/^max_connections.*/max_connections = {{- .Values.postgres.internalDB.maxConnections }}/' "$CONF_FILE"
+            grep -q "^max_connections" "$CONF_FILE" || echo "max_connections = {{- .Values.postgres.internalDB.maxConnections }}" >> "$CONF_FILE"
+            sed -i 's/^work_mem.*/work_mem = {{- .Values.postgres.internalDB.workMem }}/' "$CONF_FILE"
+            grep -q "^work_mem" "$CONF_FILE" || echo "work_mem = {{- .Values.postgres.internalDB.workMem }}" >> "$CONF_FILE"
+            
+            # Memory allocation
+            sed -i 's/^shared_buffers.*/shared_buffers = {{- .Values.postgres.internalDB.sharedBuffers }}/' "$CONF_FILE"
+            grep -q "^shared_buffers" "$CONF_FILE" || echo "shared_buffers = {{- .Values.postgres.internalDB.sharedBuffers }}" >> "$CONF_FILE"
+            sed -i 's/^maintenance_work_mem.*/maintenance_work_mem = {{- .Values.postgres.internalDB.maintenanceWorkMem }}/' "$CONF_FILE"
+            grep -q "^maintenance_work_mem" "$CONF_FILE" || echo "maintenance_work_mem = {{- .Values.postgres.internalDB.maintenanceWorkMem }}" >> "$CONF_FILE"
+            sed -i 's/^effective_cache_size.*/effective_cache_size = {{- .Values.postgres.internalDB.effectiveCacheSize }}/' "$CONF_FILE"
+            grep -q "^effective_cache_size" "$CONF_FILE" || echo "effective_cache_size = {{- .Values.postgres.internalDB.effectiveCacheSize }}" >> "$CONF_FILE"
+            
+            # CPU utilization
+            sed -i 's/^max_worker_processes.*/max_worker_processes = {{- .Values.postgres.internalDB.maxWorkerProcesses }}/' "$CONF_FILE"
+            grep -q "^max_worker_processes" "$CONF_FILE" || echo "max_worker_processes = {{- .Values.postgres.internalDB.maxWorkerProcesses }}" >> "$CONF_FILE"
+            sed -i 's/^max_parallel_workers.*/max_parallel_workers = {{- .Values.postgres.internalDB.maxParallelWorker }}/' "$CONF_FILE"
+            grep -q "^max_parallel_workers" "$CONF_FILE" || echo "max_parallel_workers = {{- .Values.postgres.internalDB.maxParallelWorker }}" >> "$CONF_FILE"
+            sed -i 's/^max_parallel_workers_per_gather.*/max_parallel_workers_per_gather = {{- .Values.postgres.internalDB.maxParallelWorkerPerGather }}/' "$CONF_FILE"
+            grep -q "^max_parallel_workers_per_gather" "$CONF_FILE" || echo "max_parallel_workers_per_gather = {{- .Values.postgres.internalDB.maxParallelWorkerPerGather }}" >> "$CONF_FILE"
+            
+            # Write performance
+            sed -i 's/^wal_buffers.*/wal_buffers = {{- .Values.postgres.internalDB.walBuffers }}/' "$CONF_FILE"
+            grep -q "^wal_buffers" "$CONF_FILE" || echo "wal_buffers = {{- .Values.postgres.internalDB.walBuffers }}" >> "$CONF_FILE"
+            sed -i 's/^checkpoint_completion_target.*/checkpoint_completion_target = {{- .Values.postgres.internalDB.checkpointCompletionTarget }}/' "$CONF_FILE"
+            grep -q "^checkpoint_completion_target" "$CONF_FILE" || echo "checkpoint_completion_target = {{- .Values.postgres.internalDB.checkpointCompletionTarget }}" >> "$CONF_FILE"
+            sed -i 's/^random_page_cost.*/random_page_cost = {{- .Values.postgres.internalDB.randomPageCost }}/' "$CONF_FILE"
+            grep -q "^random_page_cost" "$CONF_FILE" || echo "random_page_cost = {{- .Values.postgres.internalDB.randomPageCost }}" >> "$CONF_FILE"
+            
+            # Connection settings with pgbouncer
+            sed -i 's/^idle_in_transaction_session_timeout.*/idle_in_transaction_session_timeout = {{- .Values.postgres.internalDB.idleInTransactionSessionsTimeout }}/' "$CONF_FILE"
+            grep -q "^idle_in_transaction_session_timeout" "$CONF_FILE" || echo "idle_in_transaction_session_timeout = {{- .Values.postgres.internalDB.idleInTransactionSessionsTimeout }}" >> "$CONF_FILE"
+            sed -i 's/^statement_timeout.*/statement_timeout = {{- .Values.postgres.internalDB.statementTimeout }}/' "$CONF_FILE"
+            grep -q "^statement_timeout" "$CONF_FILE" || echo "statement_timeout = {{- .Values.postgres.internalDB.statementTimeout }}" >> "$CONF_FILE"
+            
+            # TimescaleDB specific
+            sed -i 's/^timescaledb.max_background_workers.*/timescaledb.max_background_workers = {{- .Values.postgres.internalDB.timescaleDBmaxBackgroundWorkers }}/' "$CONF_FILE"
+            grep -q "^timescaledb.max_background_workers" "$CONF_FILE" || echo "timescaledb.max_background_workers = {{- .Values.postgres.internalDB.timescaleDBmaxBackgroundWorkers }}" >> "$CONF_FILE"
+            sed -i 's/^timescaledb.max_insert_batch_size.*/timescaledb.max_insert_batch_size = {{- .Values.postgres.internalDB.timescaleDBMaxInsetBatchSize }}/' "$CONF_FILE"
+            grep -q "^timescaledb.max_insert_batch_size" "$CONF_FILE" || echo "timescaledb.max_insert_batch_size = {{- .Values.postgres.internalDB.timescaleDBMaxInsetBatchSize }}" >> "$CONF_FILE"
           image: busybox
           imagePullPolicy: Always
           name: init-config

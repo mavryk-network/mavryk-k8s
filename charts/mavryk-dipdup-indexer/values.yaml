@@ -67,9 +67,25 @@ postgres:
   internalDB:
     enabled: true
 
-    # Max connections for the postgres database
+    # Postgres configuration
     maxConnections: 60
-    
+    workMem: 16MB
+    sharedBuffers: 2GB
+    maintenanceWorkMem: 512MB
+    effectiveCacheSize: 6GB
+    maxWorkerProcesses: 8
+    maxParallelWorker: 8
+    maxParallelWorkerPerGather: 4
+    walBuffers: 16MB
+    checkpointCompletionTarget: 0.9
+    randomPageCost: 1.1
+    idleInTransactionSessionsTimeout: 10min
+    statementTimeout: 30s
+
+    # TimescaleDB configuration
+    timescaleDBmaxBackgroundWorkers: 4
+    timescaleDBMaxInsetBatchSize: 10000
+
     # Resource limits and requests for the postgres pod
     resources:
       enabled: true
