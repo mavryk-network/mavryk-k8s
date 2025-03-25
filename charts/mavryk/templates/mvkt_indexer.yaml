@@ -55,6 +55,7 @@ data:
 
     echo "Importing snapshot $SNAPSHOT_URL"
     psql -U "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE;"
+    psql -U "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "CREATE SCHEMA public;"
     pg_restore -U "$POSTGRES_USER" \
     -v --no-owner --clean \
     --if-exists --exit-on-error \
