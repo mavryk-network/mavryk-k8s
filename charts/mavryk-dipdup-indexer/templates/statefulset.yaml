@@ -159,7 +159,16 @@ spec:
             - |
               # Initialize PostgreSQL if needed
               if [ ! -s "$PGDATA/PG_VERSION" ]; then
-                initdb -D "$PGDATA"
+                # Create postgres user if it doesn't exist
+                if ! getent passwd postgres >/dev/null 2>&1; then
+                  useradd -r -s /bin/bash postgres
+                fi
+                
+                # Set proper ownership
+                chown -R postgres:postgres "$PGDATA"
+                
+                # Initialize database as postgres user
+                su - postgres -c "initdb -D '$PGDATA'"
                 
                 # Update PostgreSQL configuration
                 CONF_FILE="$PGDATA/postgresql.conf"
@@ -190,10 +199,13 @@ spec:
                 # TimescaleDB specific
                 sed -i 's/^timescaledb.max_background_workers.*/timescaledb.max_background_workers = {{- .Values.postgres.internalDB.timescaleDBmaxBackgroundWorkers }}/' "$CONF_FILE"
                 sed -i 's/^timescaledb.max_insert_batch_size.*/timescaledb.max_insert_batch_size = {{- .Values.postgres.internalDB.timescaleDBMaxInsetBatchSize }}/' "$CONF_FILE"
+                
+                # Set proper permissions after configuration
+                chown -R postgres:postgres "$PGDATA"
               fi
               
-              # Start PostgreSQL
-              exec postgres -D "$PGDATA"
+              # Start PostgreSQL as postgres user
+              exec su - postgres -c "postgres -D '$PGDATA'"
           ports:
             - name: db
               containerPort: 5432
