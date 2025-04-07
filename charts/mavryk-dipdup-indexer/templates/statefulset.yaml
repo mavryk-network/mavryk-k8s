@@ -26,57 +26,6 @@ spec:
           - name: '{{ .Values.images.postgres.imagePullSecret }}'
       {{- end }}
       {{- end }}
-      {{- if .Values.postgres.internalDB.enabled }}
-      initContainers:
-        - command:
-          - sh
-          - -c
-          - |
-            # Create PostgreSQL config directory if it doesn't exist
-            mkdir -p /var/lib/postgres/data
-            
-            # Copy default PostgreSQL config
-            cp /usr/share/postgresql/postgresql.conf.sample /var/lib/postgres/data/postgresql.conf
-            
-            # Update specific settings
-            CONF_FILE="/var/lib/postgres/data/postgresql.conf"
-            
-            # Connection settings
-            sed -i 's/^max_connections.*/max_connections = {{- .Values.postgres.internalDB.maxConnections }}/' "$CONF_FILE"
-            sed -i 's/^work_mem.*/work_mem = {{- .Values.postgres.internalDB.workMem }}/' "$CONF_FILE"
-            
-            # Memory allocation
-            sed -i 's/^shared_buffers.*/shared_buffers = {{- .Values.postgres.internalDB.sharedBuffers }}/' "$CONF_FILE"
-            sed -i 's/^maintenance_work_mem.*/maintenance_work_mem = {{- .Values.postgres.internalDB.maintenanceWorkMem }}/' "$CONF_FILE"
-            sed -i 's/^effective_cache_size.*/effective_cache_size = {{- .Values.postgres.internalDB.effectiveCacheSize }}/' "$CONF_FILE"
-            
-            # CPU utilization
-            sed -i 's/^max_worker_processes.*/max_worker_processes = {{- .Values.postgres.internalDB.maxWorkerProcesses }}/' "$CONF_FILE"
-            sed -i 's/^max_parallel_workers.*/max_parallel_workers = {{- .Values.postgres.internalDB.maxParallelWorker }}/' "$CONF_FILE"
-            sed -i 's/^max_parallel_workers_per_gather.*/max_parallel_workers_per_gather = {{- .Values.postgres.internalDB.maxParallelWorkerPerGather }}/' "$CONF_FILE"
-            
-            # Write performance
-            sed -i 's/^wal_buffers.*/wal_buffers = {{- .Values.postgres.internalDB.walBuffers }}/' "$CONF_FILE"
-            sed -i 's/^checkpoint_completion_target.*/checkpoint_completion_target = {{- .Values.postgres.internalDB.checkpointCompletionTarget }}/' "$CONF_FILE"
-            sed -i 's/^random_page_cost.*/random_page_cost = {{- .Values.postgres.internalDB.randomPageCost }}/' "$CONF_FILE"
-            
-            # Connection settings with pgbouncer
-            sed -i 's/^idle_in_transaction_session_timeout.*/idle_in_transaction_session_timeout = {{- .Values.postgres.internalDB.idleInTransactionSessionsTimeout }}/' "$CONF_FILE"
-            sed -i 's/^statement_timeout.*/statement_timeout = {{- .Values.postgres.internalDB.statementTimeout }}/' "$CONF_FILE"
-            
-            # TimescaleDB specific
-            sed -i 's/^timescaledb.max_background_workers.*/timescaledb.max_background_workers = {{- .Values.postgres.internalDB.timescaleDBmaxBackgroundWorkers }}/' "$CONF_FILE"
-            sed -i 's/^timescaledb.max_insert_batch_size.*/timescaledb.max_insert_batch_size = {{- .Values.postgres.internalDB.timescaleDBMaxInsetBatchSize }}/' "$CONF_FILE"
-          image: '{{ .Values.images.postgres.registry }}/{{ .Values.images.postgres.repository }}:{{ .Values.images.postgres.tag }}'
-          imagePullPolicy: '{{ .Values.images.postgres.imagePullPolicy }}'
-          name: init-config
-          resources: {}
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
-          volumeMounts:
-          - mountPath: /var/lib/postgres
-            name: indexer-db-storage
-      {{- end }}
       containers:
         - name: mavryk-indexer
           {{- if .Values.dipdupIndexer.resources.enabled }}
@@ -152,7 +101,6 @@ spec:
               containerPort: {{ .Values.dipdupIndexer.metrics.port }}
               protocol: TCP
           {{- end }}
-{{- if .Values.postgres.internalDB.enabled }}
         - name: db
           {{- if .Values.postgres.internalDB.resources.enabled }}
           resources:
@@ -213,6 +161,51 @@ spec:
           volumeMounts:
             - name: indexer-db-storage
               mountPath: /var/lib/postgres
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    # Wait for PostgreSQL to initialize
+                    while [ ! -f "/var/lib/postgres/data/postgresql.conf" ]; do
+                      echo "Waiting for PostgreSQL to initialize..."
+                      sleep 2
+                    done
+                    
+                    # Update specific settings
+                    CONF_FILE="/var/lib/postgres/data/postgresql.conf"
+                    
+                    # Connection settings
+                    sed -i 's/^max_connections.*/max_connections = {{- .Values.postgres.internalDB.maxConnections }}/' "$CONF_FILE"
+                    sed -i 's/^work_mem.*/work_mem = {{- .Values.postgres.internalDB.workMem }}/' "$CONF_FILE"
+                    
+                    # Memory allocation
+                    sed -i 's/^shared_buffers.*/shared_buffers = {{- .Values.postgres.internalDB.sharedBuffers }}/' "$CONF_FILE"
+                    sed -i 's/^maintenance_work_mem.*/maintenance_work_mem = {{- .Values.postgres.internalDB.maintenanceWorkMem }}/' "$CONF_FILE"
+                    sed -i 's/^effective_cache_size.*/effective_cache_size = {{- .Values.postgres.internalDB.effectiveCacheSize }}/' "$CONF_FILE"
+                    
+                    # CPU utilization
+                    sed -i 's/^max_worker_processes.*/max_worker_processes = {{- .Values.postgres.internalDB.maxWorkerProcesses }}/' "$CONF_FILE"
+                    sed -i 's/^max_parallel_workers.*/max_parallel_workers = {{- .Values.postgres.internalDB.maxParallelWorker }}/' "$CONF_FILE"
+                    sed -i 's/^max_parallel_workers_per_gather.*/max_parallel_workers_per_gather = {{- .Values.postgres.internalDB.maxParallelWorkerPerGather }}/' "$CONF_FILE"
+                    
+                    # Write performance
+                    sed -i 's/^wal_buffers.*/wal_buffers = {{- .Values.postgres.internalDB.walBuffers }}/' "$CONF_FILE"
+                    sed -i 's/^checkpoint_completion_target.*/checkpoint_completion_target = {{- .Values.postgres.internalDB.checkpointCompletionTarget }}/' "$CONF_FILE"
+                    sed -i 's/^random_page_cost.*/random_page_cost = {{- .Values.postgres.internalDB.randomPageCost }}/' "$CONF_FILE"
+                    
+                    # Connection settings with pgbouncer
+                    sed -i 's/^idle_in_transaction_session_timeout.*/idle_in_transaction_session_timeout = {{- .Values.postgres.internalDB.idleInTransactionSessionsTimeout }}/' "$CONF_FILE"
+                    sed -i 's/^statement_timeout.*/statement_timeout = {{- .Values.postgres.internalDB.statementTimeout }}/' "$CONF_FILE"
+                    
+                    # TimescaleDB specific
+                    sed -i 's/^timescaledb.max_background_workers.*/timescaledb.max_background_workers = {{- .Values.postgres.internalDB.timescaleDBmaxBackgroundWorkers }}/' "$CONF_FILE"
+                    sed -i 's/^timescaledb.max_insert_batch_size.*/timescaledb.max_insert_batch_size = {{- .Values.postgres.internalDB.timescaleDBMaxInsetBatchSize }}/' "$CONF_FILE"
+                    
+                    # Reload PostgreSQL configuration
+                    pg_ctl reload -D /var/lib/postgres/data
 {{- if .Values.postgres.internalDB.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
@@ -229,5 +222,4 @@ spec:
       volumes:
       - name: indexer-db-storage
         emptyDir: {}
-{{- end }}
 {{- end }}
