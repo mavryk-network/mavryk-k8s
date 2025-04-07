@@ -9,7 +9,7 @@ data:
     set -e
     
     # Wait for PostgreSQL to be ready
-    until pg_isready -h localhost -p 5432; do
+    until pg_isready -p 5432; do
       echo "Waiting for PostgreSQL to be ready..."
       sleep 1
     done
@@ -207,8 +207,8 @@ spec:
               containerPort: 5432
               protocol: TCP
           volumeMounts:
-            - name: data
-              mountPath: /var/lib/postgres/data
+            - name: indexer-db-storage
+              mountPath: /var/lib/postgres
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d
           command: ["/bin/sh", "-c"]
