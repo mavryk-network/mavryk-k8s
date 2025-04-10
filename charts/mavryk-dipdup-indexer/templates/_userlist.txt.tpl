@@ -6,7 +6,7 @@ For further information, check https://www.pgbouncer.org/config.html#authenticat
 */}}
 
 {{ define "userlist.txt" }}
-{{- range $k, $v := .Values.userlist }}
+{{- range $k, $v := .Values.pgBouncer.userlist }}
   {{ $k | quote }} {{ $v | quote }}
 {{- end }}
 {{ end }}

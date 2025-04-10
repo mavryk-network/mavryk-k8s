@@ -17,6 +17,27 @@ spec:
       labels:
         app: {{ include "indexer.fullname" . }}
     spec:
+{{- if or .Values.pgBouncer.enabled (not .Values.postgres.internalDB.persistence.enabled) }}
+      volumes:
+{{- if not .Values.postgres.internalDB.persistence.enabled }}
+      - name: indexer-db-storage
+        emptyDir: {}
+{{- end }}
+{{- if .Values.pgBouncer.enabled }}
+      - name: config
+        projected:
+          sources:
+            - configMap:          
+                name: {{ include "indexer.configFile" . }}
+    {{- if .Values.pgBouncer.userlist }}
+            - secret:
+                name: {{ include "indexer.userlistFile" . }}
+    {{- end }}
+    {{- if ne .Values.pgBouncer.userListSecretName "" }}
+            - secret:
+                name: {{ .Values.pgBouncer.userListSecretName }}
+    {{- end }}
+{{- end }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -354,23 +375,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.postgres.internalDB.persistence.size }}
-{{- end }}
-{{- if or .Values.pgBouncer.enabled (not .Values.postgres.internalDB.persistence.enabled) }}
-      volumes:
-{{- if not .Values.postgres.internalDB.persistence.enabled }}
-      - name: indexer-db-storage
-        emptyDir: {}
-{{- end }}
-{{- if .Values.pgBouncer.enabled }}
-      - name: config
-        projected:
-          sources:
-            - configMap:          
-                name: {{ include "indexer.configFile" . }}
-    {{- if .Values.userlist }}
-            - secret:
-                name: {{ include "indexer.userlistFile" . }}
-    {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
