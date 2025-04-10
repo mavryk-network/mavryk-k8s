@@ -33,7 +33,7 @@ spec:
             - secret:
                 name: {{ include "indexer.userlistFile" . }}
     {{- end }}
-    {{- if and .Values.pgBouncer.userListSecretName (ne (trim .Values.pgBouncer.userListSecretName) "") }}
+    {{- if or .Values.pgBouncer.userListSecretName (ne (trim .Values.pgBouncer.userListSecretName) "") }}
             - secret:
                 name: {{ .Values.pgBouncer.userListSecretName }}
     {{- end }}
