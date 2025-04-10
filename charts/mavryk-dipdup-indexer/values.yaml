@@ -44,7 +44,7 @@ postgres:
   host: localhost
   port: 5432
   user: dipdup
-  password: #if empty, then the value in the secret will be used
+  password: "" #if empty, then the value in the secret will be used
   db: dipdup
 
   # Name of the secret to use to store the Postgres credentials
@@ -612,7 +612,7 @@ pgBouncer:
 
   # User list secret override
   # Fill if you want to override the secret containing the user list
-  userListSecretName: null
+  userListSecretName: ""
 
   # Authentication file format
   userlist: {}

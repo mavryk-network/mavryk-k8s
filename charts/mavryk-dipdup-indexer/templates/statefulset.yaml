@@ -94,7 +94,7 @@ spec:
           env:
           {{- if .Values.hasura.enabled }}
           - name: HASURA_URL
-            value: http://localhost:8080
+            value: 'http://localhost:8080'
           - name: ADMIN_SECRET
             valueFrom:
               secretKeyRef:
@@ -103,7 +103,7 @@ spec:
           {{- end }}
           {{- if .Values.postgres.internalDB.enabled }}
           - name: POSTGRES_HOST
-            value: localhost
+            value: 'localhost'
           {{- else }}
           - name: POSTGRES_HOST
             valueFrom:
@@ -112,18 +112,18 @@ spec:
                 key: POSTGRES_HOST
           {{- end }}
           - name: POSTGRES_DB
-            value: {{ .Values.postgres.db }}
+            value: '{{ .Values.postgres.db }}'
           {{- if .Values.pgBouncer.enabled }}
           - name: POSTGRES_PORT
-            value: {{ .Values.pgBouncer.internalPort }}
+            value: '{{ .Values.pgBouncer.internalPort }}'
           {{- else }}
           - name: POSTGRES_PORT
-            value: {{ .Values.postgres.port }}
+            value: '{{ .Values.postgres.port }}'
           {{- end }}
           - name: POSTGRES_USERNAME
-            value: {{ .Values.postgres.user }}
+            value: '{{ .Values.postgres.user }}'
           - name: POSTGRES_USER
-            value: {{ .Values.postgres.user }}
+            value: '{{ .Values.postgres.user }}'
           {{- if eq .Values.postgres.password "" }}
           - name: POSTGRES_PASSWORD
             valueFrom:
@@ -132,7 +132,7 @@ spec:
                 key: POSTGRES_PASSWORD
           {{- else }}
           - name: POSTGRES_PASSWORD
-            value: {{ .Values.postgres.password }}
+            value: "{{ .Values.postgres.password }}"
           {{- end }}
           {{- range .Values.dipdupIndexer.extraEnv }}
           - name: {{ .name }}
@@ -301,17 +301,17 @@ spec:
           {{- end }}
           env:
           - name: PGDATA
-            value: /var/lib/postgres/data
+            value: '/var/lib/postgres/data'
           - name: POSTGRES_DB
-            value: {{ .Values.postgres.db }}
+            value: '{{ .Values.postgres.db }}'
           - name: POSTGRES_HOST
-            value: localhost
+            value: 'localhost'
           - name: POSTGRES_PORT
-            value: {{ .Values.postgres.port }}
+            value: '{{ .Values.postgres.port }}'
           - name: POSTGRES_USERNAME
-            value: {{ .Values.postgres.user }}
+            value: '{{ .Values.postgres.user }}'
           - name: POSTGRES_USER
-            value: {{ .Values.postgres.user }}
+            value: '{{ .Values.postgres.user }}'
           {{- if eq .Values.postgres.password "" }}
           - name: POSTGRES_PASSWORD
             valueFrom:
@@ -320,7 +320,7 @@ spec:
                 key: POSTGRES_PASSWORD
           {{- else }}
           - name: POSTGRES_PASSWORD
-            value: {{ .Values.postgres.password }}
+            value: '{{ .Values.postgres.password }}'
           {{- end }}
           {{- range .Values.postgres.extraEnv }}
           - name: {{ .name }}
