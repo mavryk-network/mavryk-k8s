@@ -2,15 +2,35 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mavryk-indexer-db
+  name:  {{ include "indexer.fullname" . }}
   labels:
-    app: mavryk-indexer
+    app: {{ include "indexer.fullname" . }}
 spec:
   ports:
+{{- if .Values.postgres.internalDB.enabled }}
     - name: db
-      port: 5432
+      port: {{ .Values.postgres.port }}
       protocol: TCP
       targetPort: db
+{{- end }}
+{{- if .Values.hasura.enabled }}
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: http
+{{- end }}
+{{- if .Values.pgBouncer.enabled }}
+    - port: {{ .Values.pgBouncer.servicePort }}
+      targetPort: {{ .Values.pgBouncer.internalPort }}
+      protocol: TCP
+      name: pgbouncer
+    {{- if .Values.pgBouncer.pgbouncerExporter.enabled }}
+    - port: {{ .Values.pgBouncer.pgbouncerExporter.port }}
+      targetPort: http-metrics-pg
+      protocol: TCP
+      name: http-metrics-pg
+    {{- end }}
+{{- end }}
 {{- if .Values.dipdupIndexer.metrics.enabled }}
     - name: metrics
       port: {{ .Values.dipdupIndexer.metrics.port }}
@@ -18,5 +38,5 @@ spec:
       targetPort: metrics
 {{- end }}
   selector:
-    app: mavryk-indexer
+    app: {{ include "indexer.fullname" . }}
   type: ClusterIP

@@ -2,29 +2,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mavryk-indexer
+  name: {{ include "indexer.fullname" . }}
   labels:
-    app: mavryk-indexer
+    app: {{ include "indexer.fullname" . }}
 spec:
   podManagementPolicy: Parallel
-  replicas: 1
-  serviceName: mavryk-indexer
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ include "indexer.fullname" . }}
   selector:
     matchLabels:
-      app: mavryk-indexer
+      app: {{ include "indexer.fullname" . }}
   template:
     metadata:
       labels:
-        app: mavryk-indexer
+        app: {{ include "indexer.fullname" . }}
     spec:
-      {{- if or (.Values.images.dipdupIndexer.imagePullSecret) (.Values.images.postgres.imagePullSecret) }}
+      {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
-      {{- if .Values.images.dipdupIndexer.imagePullSecret }}
-          - name: '{{ .Values.images.dipdupIndexer.imagePullSecret }}'
-      {{- end }}
-      {{- if .Values.images.postgres.imagePullSecret }}
-          - name: '{{ .Values.images.postgres.imagePullSecret }}'
-      {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.postgres.internalDB.enabled }}
       initContainers:
@@ -99,7 +94,7 @@ spec:
           env:
           {{- if .Values.hasura.enabled }}
           - name: HASURA_URL
-            value: http://hasura.{{ .Release.Namespace }}.svc.cluster.local:8080
+            value: http://localhost:8080
           - name: ADMIN_SECRET
             valueFrom:
               secretKeyRef:
@@ -108,7 +103,7 @@ spec:
           {{- end }}
           {{- if .Values.postgres.internalDB.enabled }}
           - name: POSTGRES_HOST
-            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local
+            value: localhost
           {{- else }}
           - name: POSTGRES_HOST
             valueFrom:
@@ -117,30 +112,28 @@ spec:
                 key: POSTGRES_HOST
           {{- end }}
           - name: POSTGRES_DB
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_DB
+            value: {{ .Values.postgres.db }}
+          {{- if .Values.pgBouncer.enabled }}
           - name: POSTGRES_PORT
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_PORT
+            value: {{ .Values.pgBouncer.internalPort }}
+          {{- else }}
+          - name: POSTGRES_PORT
+            value: {{ .Values.postgres.port }}
+          {{- end }}
           - name: POSTGRES_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_USERNAME
+            value: {{ .Values.postgres.user }}
           - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_USERNAME
+            value: {{ .Values.postgres.user }}
+          {{- if eq .Values.postgres.password "" }}
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.postgres.postgresSecretName }}
                 key: POSTGRES_PASSWORD
+          {{- else }}
+          - name: POSTGRES_PASSWORD
+            value: {{ .Values.postgres.password }}
+          {{- end }}
           {{- range .Values.dipdupIndexer.extraEnv }}
           - name: {{ .name }}
             {{- if ((.value))}}
@@ -160,6 +153,141 @@ spec:
               containerPort: {{ .Values.dipdupIndexer.metrics.port }}
               protocol: TCP
           {{- end }}
+{{- if .Values.hasura.enabled }}
+        - name: hasura
+          {{- if .Values.hasura.resources.enabled }}
+          resources:
+            requests:
+              memory: '{{ .Values.hasura.resources.requests.memory }}'
+              cpu: '{{ .Values.hasura.resources.requests.cpu }}'
+            limits:
+              memory: '{{ .Values.hasura.resources.limits.memory }}'
+              cpu: '{{ .Values.hasura.resources.limits.cpu }}'
+          {{- end }}
+          env:
+            - name: HASURA_GRAPHQL_ENABLE_TELEMETRY
+              value: '{{ .Values.hasura.config.enableTelemetry }}'
+            - name: HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+              value: '{{ .Values.hasura.config.graphqlLiveQueriesMultiplexedRefetchInterval }}'
+            - name: HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE
+              value: '{{ .Values.hasura.config.graphqlLiveQueriesMultiplexedBatchSize }}'
+            - name: HASURA_GRAPHQL_ENABLE_CONSOLE
+              value: '{{ .Values.hasura.config.enableConsole }}'
+            - name: HASURA_GRAPHQL_DEV_MODE
+              value: '{{ .Values.hasura.config.devMode }}'
+            - name: HASURA_GRAPHQL_ENABLED_LOG_TYPES
+              value: startup, http-log, webhook-log, websocket-log, query-log
+            - name: HASURA_GRAPHQL_UNAUTHORIZED_ROLE
+              value: '{{ .Values.hasura.config.unauthorizedRole }}'
+            - name: HASURA_GRAPHQL_ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: '{{ .Values.hasura.hasuraSecretName }}'
+                  key: HASURA_GRAPHQL_ADMIN_SECRET
+            - name: HASURA_GRAPHQL_CORS_DOMAIN
+              value: '{{ include "listToCSV" .Values.hasura.config.corsDomains }}'
+          {{- if .Values.hasura.overrideDatabaseUrl }}
+            - name: HASURA_GRAPHQL_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: '{{ .Values.hasura.hasuraSecretName }}'
+                  key: HASURA_GRAPHQL_DATABASE_URL
+          {{- else }}
+            - name: HASURA_GRAPHQL_DATABASE_URL
+              value: {{ include "indexer.hasuraGraphqlDatabaseUrl" . }}
+          {{- end }}
+          {{- range .Values.hasura.extraEnv }}
+            - name: {{ .name }}
+              {{- if ((.value))}}
+              value: "{{.value}}"
+              {{- else }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .valueFrom.secretKeyRef.name }}
+                  key: {{ .valueFrom.secretKeyRef.key }}
+              {{- end }}
+          {{- end }}
+          image: '{{ .Values.images.hasura.registry }}/{{ .Values.images.hasura.repository }}:{{ .Values.images.hasura.tag }}'
+          imagePullPolicy: '{{ .Values.images.hasura.imagePullPolicy }}'
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+{{- end }}
+{{- if .Values.pgBouncer.enabled }}
+        - name: pgbouncer
+          image: '{{ .Values.images.pgBouncer.registry }}/{{ .Values.images.pgBouncer.repository }}:{{ .Values.images.pgBouncer.tag }}'
+          imagePullPolicy: '{{ .Values.images.pgBouncer.imagePullPolicy }}'
+          ports:
+            - name: pgbouncer
+              containerPort: {{ .Values.pgBouncer.internalPort }}
+          {{- if .Values.pgBouncer.deployment.readinessProbe.enabled }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.pgBouncer.internalPort }}
+            initialDelaySeconds: {{ .Values.pgBouncer.deployment.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.pgBouncer.deployment.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.pgBouncer.deployment.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.pgBouncer.deployment.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.pgBouncer.deployment.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.pgBouncer.deployment.livenessProbe.enabled }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.pgBouncer.internalPort }}
+            initialDelaySeconds: {{ .Values.pgBouncer.deployment.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.pgBouncer.deployment.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.pgBouncer.deployment.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.pgBouncer.deployment.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.pgBouncer.deployment.livenessProbe.failureThreshold }}
+          {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                # So termination grace period is handling by terminationGracePeriodSeconds
+                command: ["/bin/sh", "-c", "killall -INT pgbouncer && sleep infinity"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['all']
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pgbouncer
+              readOnly: true
+            {{- if .Values.pgBouncer.extraVolumeMounts -}}
+            {{ toYaml .Values.pgBouncer.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          {{- if .Values.pgBouncer.resources }}
+          resources:
+            {{- toYaml .Values.pgBouncer.resources | nindent 12 }}
+          {{- end }}
+        {{- if .Values.pgBouncer.pgbouncerExporter.enabled }}
+        - name: exporter
+          image: '{{ .Values.images.pgBouncerExporter.registry }}/{{ .Values.images.pgBouncerExporter.repository }}:{{ .Values.images.pgBouncerExporter.tag }}'
+          imagePullPolicy: '{{ .Values.images.pgBouncerExporter.imagePullPolicy }}'
+          args:
+          - --web.listen-address=:{{ .Values.pgBouncer.pgbouncerExporter.port }}
+          - --web.telemetry-path=/metrics
+          - --log.level={{ .Values.pgBouncer.pgbouncerExporter.log.level }}
+          - --log.format={{ .Values.pgBouncer.pgbouncerExporter.log.format }}
+          - --pgBouncer.connectionString=postgres://$(PGBOUNCER_USER):$(PGBOUNCER_PWD)@localhost:$(PGBOUNCER_PORT)/pgbouncer?sslmode=disable&connect_timeout=10
+          env:
+            {{- if .Values.pgBouncer.pgbouncerExporter.extraEnvFrom }}
+            {{- toYaml .Values.pgBouncer.pgbouncerExporter.extraEnvFrom | nindent 12 }}
+            {{- end }}
+            {{- if .Values.pgBouncer.pgbouncerExporter.extraEnv }}
+            {{- toYaml .Values.pgBouncer.pgbouncerExporter.extraEnv | nindent 12 }}
+            {{- end }}
+          {{- if .Values.pgBouncer.pgbouncerExporter.resources }}
+          resources:
+          {{- toYaml .Values.pgBouncer.pgbouncerExporter.resources | nindent 12 }}
+          {{- end }}
+          ports:
+          - name: http-metrics-pg
+            containerPort: {{ .Values.pgBouncer.pgbouncerExporter.port }}
+            protocol: TCP
+        {{- end }}
+{{- end }}
 {{- if .Values.postgres.internalDB.enabled }}
         - name: db
           {{- if .Values.postgres.internalDB.resources.enabled }}
@@ -175,32 +303,25 @@ spec:
           - name: PGDATA
             value: /var/lib/postgres/data
           - name: POSTGRES_DB
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_DB
+            value: {{ .Values.postgres.db }}
           - name: POSTGRES_HOST
-            value: mavryk-indexer-db.{{ .Release.Namespace }}.svc.cluster.local
+            value: localhost
           - name: POSTGRES_PORT
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_PORT
+            value: {{ .Values.postgres.port }}
           - name: POSTGRES_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_USERNAME
+            value: {{ .Values.postgres.user }}
           - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.postgres.postgresSecretName }}
-                key: POSTGRES_USERNAME
+            value: {{ .Values.postgres.user }}
+          {{- if eq .Values.postgres.password "" }}
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.postgres.postgresSecretName }}
                 key: POSTGRES_PASSWORD
+          {{- else }}
+          - name: POSTGRES_PASSWORD
+            value: {{ .Values.postgres.password }}
+          {{- end }}
           {{- range .Values.postgres.extraEnv }}
           - name: {{ .name }}
             {{- if ((.value))}}
@@ -216,7 +337,7 @@ spec:
           imagePullPolicy: '{{ .Values.images.postgres.imagePullPolicy }}'
           ports:
             - name: db
-              containerPort: 5432
+              containerPort: {{ .Values.postgres.port }}
               protocol: TCP
           volumeMounts:
             - name: indexer-db-storage
@@ -233,9 +354,23 @@ spec:
         resources:
           requests:
             storage: {{ .Values.postgres.internalDB.persistence.size }}
-{{- else }}
+{{- end }}
+{{- if or .Values.pgBouncer.enabled (not .Values.postgres.internalDB.persistence.enabled) }}
       volumes:
+{{- if not .Values.postgres.internalDB.persistence.enabled }}
       - name: indexer-db-storage
         emptyDir: {}
+{{- end }}
+{{- if .Values.pgBouncer.enabled }}
+      - name: config
+        projected:
+          sources:
+            - configMap:          
+                name: {{ include "indexer.configFile" . }}
+    {{- if .Values.userlist }}
+            - secret:
+                name: {{ include "indexer.userlistFile" . }}
+    {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
