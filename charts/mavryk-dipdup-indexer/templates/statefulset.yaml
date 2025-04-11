@@ -260,7 +260,7 @@ spec:
               while :
               do
                 # Check if the dipdup_index table exists
-                result=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM dipdup_index;" 2>/tmp/psql_error | tr -d '[:space:]')
+                result=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index;" 2>/tmp/psql_error | tr -d '[:space:]')
 
                 if grep -q "does not exist" /tmp/psql_error; then
                   echo "Table dipdup_index does not exist yet. Still waiting..."
@@ -270,7 +270,7 @@ spec:
                   rm -f /tmp/synced
                 else
                   # Check for syncing rows
-                  syncing_count=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status = 'syncing';" | tr -d '[:space:]')
+                  syncing_count=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status = 'syncing';" | tr -d '[:space:]')
                   
                   if [ "$syncing_count" -eq "0" ]; then
                     echo "All indexes synced"
