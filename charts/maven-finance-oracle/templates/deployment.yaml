@@ -1,19 +1,16 @@
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: '{{ .Values.name }}-maven-finance-oracle'
   labels:
     app: '{{ .Values.name }}-maven-finance-oracle'
 spec:
-  podManagementPolicy: Parallel
   replicas: 1
   selector:
     matchLabels:
       app: '{{ .Values.name }}-maven-finance-oracle'
-  serviceName: '{{ .Values.name }}-maven-finance-oracle'
   template:
-    volumeClaimTemplates:
     metadata:
       labels:
         app: '{{ .Values.name }}-maven-finance-oracle'

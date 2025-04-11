@@ -68,28 +68,12 @@ postgres:
   # Environment variables to pass to the postgres database
   extraEnv: []
 
+  # Configuration override passed as argument of the postgres container
+  configOverrides: {}
+
   # Deploy an internal Postgres instance on another container next to the Indexer
   internalDB:
     enabled: true
-
-    # Postgres configuration
-    maxConnections: 60
-    workMem: 16MB
-    sharedBuffers: 2GB
-    maintenanceWorkMem: 512MB
-    effectiveCacheSize: 6GB
-    maxWorkerProcesses: 8
-    maxParallelWorker: 8
-    maxParallelWorkerPerGather: 4
-    walBuffers: 16MB
-    checkpointCompletionTarget: 0.9
-    randomPageCost: 1.1
-    idleInTransactionSessionsTimeout: 10min
-    statementTimeout: 30s
-
-    # TimescaleDB configuration
-    timescaleDBmaxBackgroundWorkers: 4
-    timescaleDBMaxInsetBatchSize: 10000
 
     # Resource limits and requests for the postgres pod
     resources:
