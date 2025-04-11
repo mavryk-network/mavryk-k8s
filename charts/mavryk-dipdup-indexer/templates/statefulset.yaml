@@ -270,7 +270,7 @@ spec:
                   rm -f /tmp/synced
                 else
                   # Check for syncing rows
-                  syncing_count=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status = 'syncing';" | tr -d '[:space:]')
+                  syncing_count=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status IN ('syncing', 'new');" | tr -d '[:space:]')
                   
                   if [ "$syncing_count" -eq "0" ]; then
                     echo "All indexes synced"
