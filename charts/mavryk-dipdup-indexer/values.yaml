@@ -68,12 +68,12 @@ postgres:
   # Environment variables to pass to the postgres database
   extraEnv: []
 
-  # Configuration override passed as argument of the postgres container
-  configOverrides: {}
-
   # Deploy an internal Postgres instance on another container next to the Indexer
   internalDB:
     enabled: true
+
+    # Configuration override passed as argument of the postgres container
+    configOverrides: {}
 
     # Resource limits and requests for the postgres pod
     resources:

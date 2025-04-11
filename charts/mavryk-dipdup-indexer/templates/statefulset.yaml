@@ -259,19 +259,30 @@ spec:
             - |
               while :
               do
-                result=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status = 'syncing';" 2>/tmp/psql_error | tr -d '[:space:]')
+                # Check if the dipdup_index table exists
+                result=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM dipdup_index;" 2>/tmp/psql_error | tr -d '[:space:]')
+
                 if grep -q "does not exist" /tmp/psql_error; then
                   echo "Table dipdup_index does not exist yet. Still waiting..."
                   rm -f /tmp/synced
-                elif [ "$result" = "0" ]; then
-                  echo "All indexes synced"
-                  touch /tmp/synced
-                else
-                  echo "Waiting for indexes to sync ($result remaining)..."
+                elif [ "$result" -eq "0" ]; then
+                  echo "The dipdup_index table is empty, not marking as ready"
                   rm -f /tmp/synced
+                else
+                  # Check for syncing rows
+                  syncing_count=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status = 'syncing';" | tr -d '[:space:]')
+                  
+                  if [ "$syncing_count" -eq "0" ]; then
+                    echo "All indexes synced"
+                    touch /tmp/synced
+                  else
+                    echo "Waiting for indexes to sync ($syncing_count remaining)..."
+                    rm -f /tmp/synced
+                  fi
                 fi
                 sleep 8
               done
+
           env:
           {{- if eq .Values.postgres.password "" }}
           - name: POSTGRES_PASSWORD
@@ -328,9 +339,9 @@ spec:
               memory: '{{ .Values.postgres.internalDB.resources.limits.memory }}'
               cpu: '{{ .Values.postgres.internalDB.resources.limits.cpu }}'
           {{- end }}
-          {{- if .Values.postgres.configOverrides }}
+          {{- if .Values.postgres.internalDB.configOverrides }}
           args:
-          {{- range $key, $value := .Values.postgres.configOverrides }}
+          {{- range $key, $value := .Values.postgres.internalDB.configOverrides }}
             - "-c"
             - "{{ $key }}={{ $value }}"
           {{- end }}
