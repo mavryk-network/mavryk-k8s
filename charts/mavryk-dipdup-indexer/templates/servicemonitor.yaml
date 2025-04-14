@@ -3,7 +3,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "pgbouncer.fullname" . }}
+  name: {{ include "indexer.fullname" . }}
   namespace: {{ .Values.dipdupIndexer.metrics.serviceMonitor.namespace }}
   labels:
 {{- toYaml .Values.dipdupIndexer.metrics.serviceMonitor.labels | nindent 4 }}
@@ -20,5 +20,5 @@ spec:
 {{- end }}
   selector:
     matchLabels:
-      app: {{ include "pgbouncer.fullname" . }}
+      app: {{ include "indexer.fullname" . }}
 {{- end }}
