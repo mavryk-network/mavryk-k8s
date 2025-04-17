@@ -97,6 +97,11 @@ postgres:
       # set, choosing the default provisioner (gp2 on AWS, standard on GKE, AWS, and OpenStack).
       storageClass: null
 
+    # Enable override the shared memory of the postgres db stored in /dev/shm
+    sharedMemoryOverride:
+      enabled: false
+      sizeLimit: 512MB
+
 hasura:
   enabled: true
   # Name of the secret to use to store the Hasura credentials

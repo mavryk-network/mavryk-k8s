@@ -17,7 +17,7 @@ spec:
       labels:
         app: {{ include "indexer.fullname" . }}
     spec:
-      {{- if or .Values.pgBouncer.enabled (not .Values.postgres.internalDB.persistence.enabled) }}
+      {{- if or .Values.pgBouncer.enabled (or (not .Values.postgres.internalDB.persistence.enabled) .Values.postgres.internalDB.sharedMemoryOverride.enabled) }}
       volumes:
         {{- if not .Values.postgres.internalDB.persistence.enabled }}
         - name: indexer-db-storage
@@ -37,6 +37,12 @@ spec:
               - secret:
                   name: {{ .Values.pgBouncer.userListSecretName }}
               {{- end }}
+        {{- end }}
+        {{- if .Values.postgres.internalDB.sharedMemoryOverride.enabled }}
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.postgres.internalDB.sharedMemoryOverride.sizeLimit }} 
         {{- end }}
       {{- end }}
       {{- with .Values.images.imagePullSecrets }}
@@ -390,6 +396,10 @@ spec:
           volumeMounts:
             - name: indexer-db-storage
               mountPath: /var/lib/postgres
+          {{- if .Values.postgres.internalDB.sharedMemoryOverride.enabled }}
+            - mountPath: /dev/shm
+              name: dshm
+          {{- end }}
 {{- if .Values.postgres.internalDB.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
