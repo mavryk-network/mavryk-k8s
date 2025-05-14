@@ -266,25 +266,31 @@ spec:
             - |
               while :
               do
-                # Check if the dipdup_index table exists
-                result=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index;" 2>/tmp/psql_error | tr -d '[:space:]')
-
+                # Check if the dipdup_meta table exists and get progress value
+                result=$(PAGER=cat psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -A -P pager=off -c "SELECT value FROM dipdup_meta WHERE key='dipdup_metrics';" 2>/tmp/psql_error)
+                
                 if grep -q "does not exist" /tmp/psql_error; then
-                  echo "Table dipdup_index does not exist yet. Still waiting..."
+                  echo "Table dipdup_meta does not exist yet. Still waiting..."
                   rm -f /tmp/synced
-                elif [ "$result" -eq "0" ]; then
-                  echo "The dipdup_index table is empty, not marking as ready"
+                elif [ -z "$result" ]; then
+                  echo "No dipdup_metrics data found yet. Still waiting..."
                   rm -f /tmp/synced
                 else
-                  # Check for syncing rows
-                  syncing_count=$(psql -h "$POSTGRES_HOST" -U "$POSTGRES_USERNAME" -d "$POSTGRES_DB" -t -c "SELECT COUNT(*) FROM dipdup_index WHERE status IN ('syncing', 'new');" | tr -d '[:space:]')
+                  # Extract progress value from JSON
+                  progress=$(echo "$result" | grep -o '"progress": [0-9.]*' | awk -F': ' '{print $2}')
                   
-                  if [ "$syncing_count" -eq "0" ]; then
-                    echo "All indexes synced"
-                    touch /tmp/synced
-                  else
-                    echo "Waiting for indexes to sync ($syncing_count remaining)..."
+                  if [ -z "$progress" ]; then
+                    echo "Could not extract progress value. Still waiting..."
                     rm -f /tmp/synced
+                  else
+                    # Compare progress with 1
+                    if awk "BEGIN {exit !($progress >= 1)}"; then
+                      echo "Progress value is $progress (greater than or equal to 1). Ready!"
+                      touch /tmp/synced
+                    else
+                      echo "Progress value is $progress (less than 1). Still waiting..."
+                      rm -f /tmp/synced
+                    fi
                   fi
                 fi
                 sleep 8
