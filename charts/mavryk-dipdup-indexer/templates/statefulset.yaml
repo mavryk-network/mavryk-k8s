@@ -1,4 +1,14 @@
 ---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "indexer.fullname" . }}
+spec:
+  minAvailable: 1 
+  selector:
+    matchLabels:
+      app: {{ include "indexer.fullname" . }}
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -6,6 +16,10 @@ metadata:
   labels:
     app: {{ include "indexer.fullname" . }}
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
   podManagementPolicy: Parallel
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ include "indexer.fullname" . }}
