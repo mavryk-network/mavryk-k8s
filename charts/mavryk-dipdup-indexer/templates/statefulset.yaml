@@ -271,6 +271,7 @@ spec:
             protocol: TCP
         {{- end }}
 {{- end }}
+{{- if .Values.dipdupIndexer.readiness.enabled }}
         - name: readiness
           image: '{{ .Values.images.postgres.registry }}/{{ .Values.images.postgres.repository }}:{{ .Values.images.postgres.tag }}'
           imagePullPolicy: '{{ .Values.images.postgres.imagePullPolicy }}'
@@ -355,6 +356,7 @@ spec:
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+{{- end }}
 {{- if .Values.postgres.internalDB.enabled }}
         - name: db
           {{- if .Values.postgres.internalDB.resources.enabled }}

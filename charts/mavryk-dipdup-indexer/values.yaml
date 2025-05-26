@@ -33,7 +33,11 @@ dipdupIndexer:
       labels:
         # release: my-monitoring-release
       namespaceSelector: {}
-  
+
+  # Enable the sidecar container for indexing readiness
+  readiness:
+    enabled: true
+
   # Environment variables to pass to the dipdup indexer
   extraEnv: []
 
