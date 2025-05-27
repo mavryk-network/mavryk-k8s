@@ -633,7 +633,7 @@ def create_node_config_json(
         "data-dir": DATA_DIR,
         "rpc": {
             "listen-addrs": [f"{os.getenv('MY_POD_IP')}:8732", "127.0.0.1:8732"],
-            # "acl": [{"address": os.getenv("MY_POD_IP"), "blacklist": []}],
+            "acl": [{"address": os.getenv("MY_POD_IP"), "blacklist": []}],
         },
         "p2p": {
             "bootstrap-peers": bootstrap_peers,
