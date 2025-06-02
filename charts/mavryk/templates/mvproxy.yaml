@@ -1,0 +1,95 @@
+{{- if .Values.mvproxy.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mvproxy.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.mvproxy.name }}
+spec:
+  selector:
+    app: {{ .Values.mvproxy.name }}
+  type: ClusterIP
+  ports:
+    - name: api
+      port: 8732
+      protocol: TCP
+      targetPort: api
+{{- if .Values.mvproxy.metrics.enabled }}
+    - name: metrics
+      port: 9000
+      protocol: TCP
+      targetPort: metrics
+{{- if .Values.mvproxy.metrics.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+{{- toYaml .Values.mvproxy.metrics.serviceMonitor.labels | nindent 4 }}
+  name: {{ .Values.mvproxy.name }}-service-monitor
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpoints:
+  - interval: 15s
+    port: metrics
+    path: /metrics
+  selector:
+    matchLabels:
+      name: {{ .Values.mvproxy.name }}
+{{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mvproxy.name }}-config
+data:
+  mvproxy.yaml: |
+    host: 0.0.0.0:8080
+    mavryk_host:
+{{ include "mavryk.getMvproxyHostList" . | indent 6 }}
+    metrics:
+      enabled: {{ .Values.mvproxy.metrics.enabled }}
+      host: 0.0.0.0:9000
+      pprof: false
+{{- toYaml .Values.mvproxy.config | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mvproxy.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.mvproxy.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mvproxy.name }}
+    spec:
+      volumes:
+        - name: mvproxy-config
+          configMap:
+            name: {{ .Values.mvproxy.name }}-config
+      containers:
+        - name: mvproxy
+          image: {{ .Values.mvproxy.image }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: mvproxy-config
+              mountPath: /mvproxy.yaml
+              subPath: mvproxy.yaml
+          ports:
+            - name: api
+              containerPort: 8080
+              protocol: TCP
+          {{- if .Values.mvproxy.metrics.enabled }}
+            - name: metrics
+              containerPort: 9000
+              protocol: TCP
+          {{- end }}
+{{- end }}

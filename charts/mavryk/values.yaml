@@ -173,6 +173,8 @@ should_generate_unsafe_deterministic_data: false
 #                    chain with external bakers, such as a new test chain.
 #                    Otherwise, the chain may become unreachable externally
 #                    while waiting for other nodes to come online.
+# - `is_mvproxy_host`: Boolean to specify if this node should be included in the mvproxy
+#                    mavryk_host list. Defaults to false.
 # - `instances`: A list of nodes to fire up, each is a dictionary defining:
 #    - `bake_using_account`: Account name that should be used for baking.
 #                            Don't also set `bake_using_accounts`.
@@ -228,6 +230,7 @@ should_generate_unsafe_deterministic_data: false
 #     images: # (optional field)
 #       mavkit: mavrykdynamics/mavryk:v...
 #     local_storage: false
+#     is_mvproxy_host: true # Include this node in the mvproxy mavryk_host list
 #     runs:
 #       - mavkit_node
 #       - baker
@@ -627,3 +630,112 @@ photographer:
   retention:
     maxDays: '7'
     maxMonths: '6'
+
+## Deploy a MvProxy reverse proxy connected to a configured set of nodes. A MvProxy allows routes
+## configuration as-well-as caching and load balancing when exposing rpc nodes publicly.
+## See: https://github.com/mavryk-network/mvproxy
+mvproxy:
+  enabled: false
+  # Name of the MvProxy service.
+  name: mvproxy
+  # Image of the MvProxy service.
+  image: ghcr.io/mavryk-network/mvproxy:v1.0.0
+  # List of Mavryk nodes to use as backends (fallback if no nodes are configured with is_mvproxy_host: true)
+  # mavryk_host:
+  #   - node-0.node.namespace.svc.cluster.local:8732
+  #   - node-1.node.namespace.svc.cluster.local:8732
+  # Metrics configuration for the MvProxy service.
+  metrics:
+    enabled: false
+    # Prometheus Operator is required in your cluster in order to enable
+    # serviceMonitor below.
+    # ServiceMonitor allows you to scrape the prometheus endpoints of your mavryk nodes.
+    # Make sure the endpoints are active by adding:
+    #     metrics_addr: [ ":9932" ]
+    # to your config.
+    serviceMonitor:
+      enabled: false
+      labels:
+        # release: my-monitoring-release
+  # Configuration for the mvproxy.yaml file used as the configuration file in MvProxy.
+  # See: https://github.com/mavryk-network/mvproxy/blob/main/mvproxy.yaml
+  # Part of the configuration is directly templated at the chart level and don't need to be configured here.
+  # This includes:
+  # - mavryk_host
+  # - metrics
+  # - host
+  config:
+    allow_routes:
+      enabled: true
+      values:
+        - GET/chains/.*/blocks
+        - GET/chains/.*/chain_id
+        - GET/chains.*/checkpoint
+        - GET/chains/.*/invalid_blocks
+        - GET/chains.*/invalid_blocks.*
+        - GET/chains/.*/is_bootstrapped
+        - GET/chains.*/mempool/filter
+        - GET/chains/.*/mempool/monitor_operations
+        - GET/chains/.*/mempool/pending_operations
+        - GET/config/network/user_activated_protocol_overrides
+        - GET/config/network/user_activated_upgrades
+        - GET/config/network/dal
+        - GET/network/stat
+        - GET/network/version
+        - GET/network/versions
+        - GET/protocols
+        - GET/protocols.*
+        - GET/protocols.*/environment
+        - GET/monitor.*
+        - GET/version
+        - POST/chains/.*/blocks/.*/helpers
+        - POST/chains/.*/blocks/.*/script
+        - POST/chains/.*/blocks/.*/context/contracts.*/big_map_get
+        - POST/chains/.*/blocks/.*/context/contracts.*/ticket_balance
+        - POST/injection/operation
+    cache:
+      disabled_routes:
+        - GET/monitor/.*
+        - GET/chains/.*/mempool
+        - GET/chains/.*/blocks.*head
+      enabled: true
+      size_mb: 100
+      ttl: 5
+    cors:
+      enabled: false
+    deny_ips:
+      enabled: false
+      values: []
+    deny_routes:
+      enabled: true
+      values:
+        - GET/workers.*
+        - GET/worker.*
+        - GET/stats.*
+        - GET/chains/.*/blocks/.*/helpers/baking_rights
+        - GET/chains/.*/blocks/.*/helpers/endorsing_rights
+        - GET/helpers/baking_rights
+        - GET/helpers/endorsing_rights
+        - GET/chains/.*/blocks/.*/context/contracts(/?)$
+        - GET/chains/.*/blocks/.*/context/raw/bytes
+        - POST/injection/block
+        - POST/injection/protocol
+    dev_mode: false
+    gc:
+      optimize_memory_store: true
+      percent: 100
+    gzip:
+      enabled: true
+    load_balancer:
+      ttl: 600
+    logger:
+      bunch_size: 1000
+      pool_interval_seconds: 1
+    rate_limit:
+      enabled: false
+      max: 300
+      minutes: 1
+    redis:
+      enabled: false
+      host: ""
+    mavryk_host_retry: ""

@@ -235,3 +235,28 @@ metadata:
     {{- end }}
   {{- end }}
 {{- end }}
+
+{{/*
+  Generate list of mavryk_host entries for mvproxy based on node instances.
+  Returns a YAML list of hosts.
+  
+  If no nodes are configured with is_mvproxy_host: true, will use 
+  .Values.mvproxy.mavryk_host if defined, or return an empty list otherwise.
+*/}}
+{{- define "mavryk.getMvproxyHostList" -}}
+{{- $hosts := list -}}
+{{- range $node_name, $node := .Values.nodes -}}
+  {{- if $node.is_mvproxy_host | default false -}}
+    {{- range $idx, $instance := $node.instances -}}
+      {{- $pod_name := printf "%s-%d" $node_name $idx -}}
+      {{- $service_name := $node_name -}}
+      {{- $host := printf "%s.%s.%s.svc.cluster.local:8732" $pod_name $service_name $.Release.Namespace -}}
+      {{- $hosts = append $hosts $host -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if and (empty $hosts) (.Values.mvproxy.mavryk_host) -}}
+  {{- $hosts = .Values.mvproxy.mavryk_host -}}
+{{- end -}}
+{{- $hosts | toYaml -}}
+{{- end -}}
