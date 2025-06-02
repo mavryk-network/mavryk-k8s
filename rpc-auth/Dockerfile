@@ -26,7 +26,7 @@ RUN pip install pytest-runner
 
 COPY ./requirements.txt .
 RUN mkdir wheels \
-  && pip wheel -r requirements.txt \
+  && pip wheel -r requirements.txt --use-pep517 \
   --wheel-dir ./wheels --no-cache-dir
 
 FROM python:3.9-slim AS src

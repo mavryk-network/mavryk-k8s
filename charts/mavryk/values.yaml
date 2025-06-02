@@ -649,10 +649,6 @@ mvproxy:
     enabled: false
     # Prometheus Operator is required in your cluster in order to enable
     # serviceMonitor below.
-    # ServiceMonitor allows you to scrape the prometheus endpoints of your mavryk nodes.
-    # Make sure the endpoints are active by adding:
-    #     metrics_addr: [ ":9932" ]
-    # to your config.
     serviceMonitor:
       enabled: false
       labels:
