@@ -164,6 +164,7 @@ should_generate_unsafe_deterministic_data: false
 #      automatically for you.
 # - `node_selector`: Specify a kubernetes node selector in `key: value` format
 #     for your mavryk nodes.
+# - `tolerations`: Specify kubernetes tolerations as a list for your mavryk nodes.
 # - `readiness_probe`: Attach a probe to the node. The probe checks whether
 #                    the most recent block is recent enough. If not, the
 #                    services will be unreachable. Defaults to True.
@@ -173,8 +174,6 @@ should_generate_unsafe_deterministic_data: false
 #                    chain with external bakers, such as a new test chain.
 #                    Otherwise, the chain may become unreachable externally
 #                    while waiting for other nodes to come online.
-# - `is_mvproxy_host`: Boolean to specify if this node should be included in the mvproxy
-#                    mavryk_host list. Defaults to false.
 # - `instances`: A list of nodes to fire up, each is a dictionary defining:
 #    - `bake_using_account`: Account name that should be used for baking.
 #                            Don't also set `bake_using_accounts`.
@@ -226,11 +225,15 @@ should_generate_unsafe_deterministic_data: false
 #       rpc_node: "true" # Forward RPC traffic to this node types instances
 #     node_selector:
 #       nodeSelectorKey: nodeSelectorValue
+#     tolerations:
+#       - key: "mavryk-node"
+#         operator: "Equal"
+#         value: "true"
+#         effect: "NoSchedule"
 #     storage_size: 15Gi
 #     images: # (optional field)
 #       mavkit: mavrykdynamics/mavryk:v...
 #     local_storage: false
-#     is_mvproxy_host: true # Include this node in the mvproxy mavryk_host list
 #     runs:
 #       - mavkit_node
 #       - baker
@@ -640,10 +643,6 @@ mvproxy:
   name: mvproxy
   # Image of the MvProxy service.
   image: ghcr.io/mavryk-network/mvproxy:v1.0.0
-  # List of Mavryk nodes to use as backends (fallback if no nodes are configured with is_mvproxy_host: true)
-  # mavryk_host:
-  #   - node-0.node.namespace.svc.cluster.local:8732
-  #   - node-1.node.namespace.svc.cluster.local:8732
   # Metrics configuration for the MvProxy service.
   metrics:
     enabled: false
@@ -734,4 +733,5 @@ mvproxy:
     redis:
       enabled: false
       host: ""
+    mavryk_host: []
     mavryk_host_retry: ""

@@ -50,6 +50,7 @@ spec:
       securityContext:
         fsGroup: 1000
 {{- include "mavryk.nodeSelectorConfig" $ | indent 6 }}
+{{- include "mavryk.tolerationsConfig" $ | indent 6 }}
       volumes:
       {{- if (include "mavryk.doesZerotierConfigExist" $) }}
         - hostPath:

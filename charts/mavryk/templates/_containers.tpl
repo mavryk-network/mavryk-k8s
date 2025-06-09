@@ -451,3 +451,15 @@ nodeSelector:
 {{- "" }}
 {{- end }}
 {{- end }}
+
+{{/*
+  Tolerations config section
+*/}}
+{{- define "mavryk.tolerationsConfig" -}}
+{{- if hasKey $.node_vals "tolerations" }}
+tolerations:
+{{ toYaml $.node_vals.tolerations | indent 2 }}
+{{- else }}
+{{- "" }}
+{{- end }}
+{{- end }}

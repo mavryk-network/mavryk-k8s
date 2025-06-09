@@ -48,8 +48,6 @@ metadata:
 data:
   mvproxy.yaml: |
     host: 0.0.0.0:8080
-    mavryk_host:
-{{ include "mavryk.getMvproxyHostList" . | indent 6 }}
     metrics:
       enabled: {{ .Values.mvproxy.metrics.enabled }}
       host: 0.0.0.0:9000
