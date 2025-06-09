@@ -766,7 +766,7 @@ spec:
             - mountPath: /var/mavryk
               name: var-volume
       securityContext:
-        fsGroup: 1000      
+        fsGroup: 1000            
       volumes:
         - emptyDir: {}
           name: config-volume
@@ -1378,7 +1378,7 @@ spec:
             - mountPath: /var/mavryk
               name: var-volume
       securityContext:
-        fsGroup: 1000      
+        fsGroup: 1000            
       volumes:
         - emptyDir: {}
           name: config-volume
@@ -1579,7 +1579,7 @@ spec:
             - mountPath: /var/mavryk
               name: var-volume
       securityContext:
-        fsGroup: 1000      
+        fsGroup: 1000            
       volumes:
         - emptyDir: {}
           name: config-volume
