@@ -18,7 +18,7 @@ spec:
   {{- end }}
   selector:
     app: {{ .Values.bcd_indexer_statefulset.name }}
-  type: NodePort
+  type: {{ .Values.bcd_indexer_statefulset.serviceType }}
 
 ---
 apiVersion: v1

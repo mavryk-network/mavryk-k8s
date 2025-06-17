@@ -65,6 +65,9 @@ faucetPrivateKey: "" # edsk3X...
 # Reference an existing secret and override the created secret
 existingSecretName: ""
 
+# Type of the service exposing the faucet deployment
+serviceType: NodePort
+
 ingress:
   enabled: false
   className: ""

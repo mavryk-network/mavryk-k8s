@@ -26,6 +26,9 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+# Type of the service exposing the pyrometer deployment
+serviceType: NodePort
+
 # Prometheus Operator is required in your cluster in order to enable
 # serviceMonitor and prometheusRule below.
 serviceMonitor:

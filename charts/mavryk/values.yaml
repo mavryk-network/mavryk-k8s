@@ -20,8 +20,10 @@ mavryk_k8s_images:
 ## scripts that will look up some of these values. They should not be modified.
 mvkt_indexer_statefulset:
   name: mvkt-indexer
+  serviceType: NodePort
 bcd_indexer_statefulset:
   name: bcd-indexer
+  serviceType: NodePort
 mavkit_signer_statefulset:
   name: mavkit-signer
   pod_type: signing
@@ -291,6 +293,7 @@ services:
   ## Configure the labels selector of the Mavryk node RPC service. Traffic will
   ## be forwarded to all nodes if no labels are specified.
   mavryk_node_rpc:
+    serviceType: NodePort
     selector:
 #      rpc_node: "true"
 
