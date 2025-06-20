@@ -160,8 +160,6 @@ spec:
               value: '{{ .Values.hasura.config.devMode }}'
             - name: HASURA_GRAPHQL_ENABLED_LOG_TYPES
               value: startup, http-log, webhook-log, websocket-log, query-log
-            - name: HASURA_GRAPHQL_UNAUTHORIZED_ROLE
-              value: '{{ .Values.hasura.config.unauthorizedRole }}'
             - name: HASURA_GRAPHQL_ADMIN_SECRET
               valueFrom:
                 secretKeyRef:

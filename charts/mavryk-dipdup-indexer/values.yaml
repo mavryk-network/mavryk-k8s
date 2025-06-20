@@ -141,10 +141,6 @@ hasura:
     # See: https://hasura.io/docs/2.0/policies/telemetry/
     enableTelemetry: false
 
-    # This identifies an unauthorized role, used when the x-hasura-admin-key is not sent or the Authorization header is absent in JWT mode.
-    # See: https://hasura.io/docs/2.0/auth/authentication/unauthenticated-access/
-    unauthorizedRole: user
-
     # When utilizing live queries, updated results - if any - will be sent, at most, 
     # once during this interval - measured in milliseconds - for any live queries which can be multiplexed.
     # See: https://hasura.io/docs/2.0/subscriptions/observability-and-performance/#parameters
