@@ -2,6 +2,7 @@ images:
   pyrometer: mavrykdynamics/mavryk-pyrometer:latest
 mavryk_k8s_images:
   utils: ghcr.io/mavryk-network/mavryk-k8s-utils:master
+
 # Pass below the pyrometer config, in yaml format
 config:
   node_monitor:
@@ -28,6 +29,10 @@ ingress:
 
 # Type of the service exposing the pyrometer deployment
 serviceType: NodePort
+
+persistence:
+  storageClassName:
+  storage: 1G
 
 # Prometheus Operator is required in your cluster in order to enable
 # serviceMonitor and prometheusRule below.

@@ -4,9 +4,9 @@ metadata:
   name: pyrometer-volume
   namespace: {{ .Release.Namespace }}
 spec:
- storageClassName:
+ storageClassName: {{ .Values.persistence.storageClassName }}
  accessModes:
     - ReadWriteOnce
  resources:
    requests:
-     storage: 1Gi
+     storage: {{ .Values.persistence.storage }}
