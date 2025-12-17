@@ -25,7 +25,7 @@ RUN set -eux; \
   DESTDIR=/tmp/build make install; \
   mv /tmp/build/usr/sbin/* /usr/sbin/; \
   mkdir /var/lib/zerotier-one; \
-  apk del build-dependencies; \
+  apk del --no-scripts build-dependencies; \
   rm -rf /tmp/build; \
   rm -rf /ZeroTierOne-$ZEROTIER_VERSION; \
   rm -rf /zerotier.zip; \
