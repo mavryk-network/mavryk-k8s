@@ -13,7 +13,7 @@ ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt /requirements.txt
 RUN     PIP="pip --no-cache"					\
-  APK_ADD="apk add --no-cache";					\
+  APK_ADD="apk add --no-cache --no-scripts";					\
   $APK_ADD --virtual .build-deps gcc python3-dev			\
   libffi-dev musl-dev make		\
   && $APK_ADD libsodium-dev libsecp256k1-dev gmp-dev			\
