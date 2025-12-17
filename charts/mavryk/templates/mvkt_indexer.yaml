@@ -243,6 +243,16 @@ spec:
           {{- /* https://github.com/mavryk-network/mvkt/blob/198e3879d4/docker-compose.yml#L26 */}}
           - name: MVKT_API_KESTREL__ENDPOINTS__HTTP__URL
             value: "http://0.0.0.0:5000"
+          {{- if $mvkt_indexer.extraEnv }}
+            {{- range $key, $value := ($mvkt_indexer.extraEnv.all | default dict) }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+            {{- end }}
+            {{- range $key, $value := ($mvkt_indexer.extraEnv.api | default dict) }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
           envFrom:
           - secretRef:
               name: db-creds
@@ -262,6 +272,16 @@ spec:
             value: {{ $postgres_command_timeout }}
           - name: ConnectionStrings__DefaultConnection
             value: {{- include "mavryk.mvkt.setDbConnectionEnvVar" . }}
+          {{- if $mvkt_indexer.extraEnv }}
+            {{- range $key, $value := ($mvkt_indexer.extraEnv.all | default dict) }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+            {{- end }}
+            {{- range $key, $value := ($mvkt_indexer.extraEnv.indexer | default dict) }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
           envFrom:
           - secretRef:
               name: db-creds
