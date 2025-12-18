@@ -576,6 +576,15 @@ protocols:
 #       rpc_url: http://rolling-node-0.rolling-node:8732
 #       # api_log_level: Debug
 #       # indexer_log_level: Debug
+#
+#     ## Extra environment variables
+#     extraEnv:
+#       all:
+#         MY_CUSTOM_VAR: "value"
+#       api:
+#         API_SPECIFIC_VAR: "api-value"
+#       indexer:
+#         INDEXER_SPECIFIC_VAR: "indexer-value"
 
 ## Set values `indexerRpcUrl` and `db.password` for an indexer to be created.
 bcdIndexer:

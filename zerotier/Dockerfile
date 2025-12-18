@@ -3,15 +3,15 @@ FROM alpine
 ENV ZEROTIER_VERSION=1.6.6
 
 RUN set -eux; \
-  apk add --no-cache \
+  apk add --no-cache --no-scripts \
   libgcc \
   libstdc++ \
   ; \
-  apk add --no-cache --virtual build-dependencies \
+  apk add --no-cache --no-scripts --virtual build-dependencies \
   build-base \
   linux-headers \
   ; \
-  apk add --update supervisor \
+  apk add --update --no-scripts supervisor \
   bash \
   iptables\
   openrc \
@@ -25,7 +25,7 @@ RUN set -eux; \
   DESTDIR=/tmp/build make install; \
   mv /tmp/build/usr/sbin/* /usr/sbin/; \
   mkdir /var/lib/zerotier-one; \
-  apk del build-dependencies; \
+  apk del --no-scripts build-dependencies; \
   rm -rf /tmp/build; \
   rm -rf /ZeroTierOne-$ZEROTIER_VERSION; \
   rm -rf /zerotier.zip; \
