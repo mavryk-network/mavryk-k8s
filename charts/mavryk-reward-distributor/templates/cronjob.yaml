@@ -31,9 +31,11 @@ spec:
             - name: config-volume
               configMap:
                 name: {{ include "mavryk-reward-distributor.fullname" . }}-config
+            {{- if .Values.bucket_upload.bucket_name }}
             - name: secret-volume
               secret:
                 secretName: {{ include "mavryk-reward-distributor.fullname" . }}-secret
+            {{- end }}
           initContainers:
             # Work around a bug where fsGroup is ignored
             - name: change-ownership-container
@@ -41,52 +43,26 @@ spec:
               command:
               - /bin/sh
               - -c
-              - "mkdir -p /trd/cfg && chown -R 1000:1000 /trd"
+              - "mkdir -p /mrd/cfg && chown -R 1000:1000 /mrd"
               securityContext:
                 runAsUser: 0
                 privileged: true
               volumeMounts:
-              - mountPath: /trd
+              - mountPath: /mrd
                 name: storage
-            - name: mavryk-reward-distributor-cron-job
-              image: {{ .Values.images.mavryk_reward_distributor }}
-              imagePullPolicy: IfNotPresent
-              volumeMounts:
-                - mountPath: /trd
-                  name: storage
-                - mountPath: /trd/cfg/config.yaml
-                  name: config-volume
-                  subPath: config.yaml
-              command:
-              - /bin/sh
-              args:
-              - "-c"
-              - |
-{{ tpl ($.Files.Get (print "scripts/run.sh")) $ | indent 16 }}
-              env:
-              - name: REWARD_DATA_PROVIDER
-                value: "{{ .Values.reward_data_provider }}"
-              - name: MAVRYK_NODE_ADDR
-                value: "{{ .Values.mavryk_node_addr }}"
-              - name: SIGNER_ADDR
-                value: "{{ .Values.signer_addr }}"
-              - name: EXTRA_TRD_ARGS
-                value: "{{ .Values.extra_trd_args }}"
-              - name: NETWORK
-                value: "{{ .Values.network }}"
-              - name: ADJUSTED_EARLY_PAYOUTS
-                value: "{{ .Values.adjusted_early_payouts }}"
-              - name: INITIAL_CYCLE
-                value: "{{ .Values.initial_cycle }}"
-              - name: DRY_RUN
-                value: "{{ .Values.dry_run }}"
+            {{- if .Values.bucket_upload.bucket_name }}
+            # When uploading reports, MRD runs as an init container so it fully
+            # completes before the uploader (the main container) runs.
+            {{- include "mavryk-reward-distributor.runContainer" . | nindent 12 }}
+            {{- end }}
           containers:
+            {{- if .Values.bucket_upload.bucket_name }}
             - name: report-uploader
               image: {{ .Values.mavryk_k8s_images.snapshotEngine }}
               volumeMounts:
-              - mountPath: /trd
+              - mountPath: /mrd
                 name: storage
-              - mountPath: /trd/cfg/bucket_upload_secrets
+              - mountPath: /mrd/cfg/bucket_upload_secrets
                 name: secret-volume
                 subPath: bucket_upload_secrets
               command:
@@ -102,4 +78,8 @@ spec:
                 value: "{{ .Values.bucket_upload.bucket_name }}"
               - name: BAKER_NAME
                 value: {{ include "mavryk-reward-distributor.fullname" . }}
+            {{- else }}
+            # No report upload configured: MRD is the pod's main container.
+            {{- include "mavryk-reward-distributor.runContainer" . | nindent 12 }}
+            {{- end }}
           restartPolicy: OnFailure

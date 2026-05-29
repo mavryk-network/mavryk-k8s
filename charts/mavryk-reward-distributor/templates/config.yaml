@@ -4,4 +4,4 @@ metadata:
   name: {{ include "mavryk-reward-distributor.fullname" . }}-config
 data:
   config.yaml: |2+
-    {{ toYaml $.Values.trd_config |nindent 4}}
+    {{ toYaml $.Values.mrd_config |nindent 4}}

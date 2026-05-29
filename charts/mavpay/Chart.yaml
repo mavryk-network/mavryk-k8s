@@ -1,6 +1,6 @@
 apiVersion: v2
-name: mavryk-reward-distributor
-description: A chart for the Mavryk Reward Distributor (MRD), a payout tool for Mavryk bakers/validators
+name: mavpay
+description: A chart for MavPay, a payout tool for Mavryk bakers/validators (a fork of tezpay)
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -21,4 +21,4 @@ version: 0.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "master"
+appVersion: "0.24.4"

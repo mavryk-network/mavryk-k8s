@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mavpay.fullname" . }}-reports
+  labels:
+    {{- include "mavpay.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.reports.size }}
+  {{- with .Values.reports.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
