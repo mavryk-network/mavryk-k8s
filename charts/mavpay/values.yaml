@@ -1,0 +1,92 @@
+image:
+  # MavPay is published to GHCR. Tags are release versions (e.g. "0.24.4").
+  # Pin to a release tag in production.
+  repository: ghcr.io/mavryk-network/mavpay
+  tag: "0.24.4"
+  pullPolicy: Always
+
+# Arguments passed to the mavpay entrypoint.
+# "continual" watches for newly finalized cycles and pays them out automatically.
+# Other commands (e.g. "pay", "generate-payouts") are documented at
+# https://bake.mavryk.org/mavpay/reference/
+args:
+  - continual
+
+# Keep at 1: mavpay holds a per-cycle lock and writes to a ReadWriteOnce volume.
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Persistent storage for payout reports (and per-cycle lock files).
+reports:
+  size: 2Gi
+  # Leave empty to use the cluster default StorageClass.
+  storageClassName: do-block-storage
+  mountPath: /mavpay/reports
+
+config:
+  # Reference an existing Secret instead of creating one from the values below.
+  # The Secret must contain a "config.hjson" key and either a
+  # "payout_wallet_private.key" key or a "remote_signer.hjson" key.
+  existingSecret: ""
+
+  # MavPay configuration (config.hjson). Used only when existingSecret is empty.
+  # See https://bake.mavryk.org/mavpay/configuration/ for all available options.
+  content: |
+    {
+      # version of the configuration file
+      mavpay_config_version: 0
+
+      # baker's public key hash
+      baker: your-baker-address
+
+      payouts: {
+        # portion of the reward charged to delegators (0.1 = 10%)
+        fee: 0.1
+        # minimum amount to pay out; smaller payouts are skipped
+        minimum_payout_amount: 0.01
+      }
+
+      delegators: {
+        requirements: {
+          # minimum delegator balance (in mav) to be considered for payout
+          minimum_balance: 10
+        }
+      }
+
+      overdelegation: {
+        protect: true
+      }
+    }
+
+  # Payout wallet private key (payout_wallet_private.key). Used only when existingSecret
+  # is empty and remoteSigner is not set.
+  # SECURITY: prefer a remote signer or an externally managed Secret (existingSecret)
+  # over storing the private key in plain values.
+  privateKey: ""
+
+  # Optional remote signer configuration (remote_signer.hjson). When set, it is mounted
+  # and exported via REMOTE_SIGNER_CONFIGURATION_FILE. Leave empty to use privateKey.
+  remoteSigner: ""
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "50m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# Pod security context. mavpay runs fine as an unprivileged user; 65534 = nobody.
+# fsGroup makes the reports volume and the mounted config/key readable/writable.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,5 +1,11 @@
 images:
-  mavryk_reward_distributor: trdo/tezos-reward-distributor:latest
+  # Mavryk Reward Distributor (MRD). The image is published to Docker Hub
+  # (mavrykdynamics/mavryk-reward-distributor) and mirrored to GHCR
+  # (ghcr.io/mavryk-network/mavryk-reward-distributor).
+  # Available tags: "master" (rolling, built from the master branch) and release
+  # tags such as "1.2.3" (built from vX.Y.Z git tags). There is no "latest" tag.
+  # Pin to a release tag in production.
+  mavryk_reward_distributor: mavrykdynamics/mavryk-reward-distributor:master
 
 mavryk_k8s_images:
   # snapshotEngine is needed for upload of logs to bucket
@@ -7,13 +13,22 @@ mavryk_k8s_images:
   # just for this task.
   snapshotEngine: ghcr.io/mavryk-network/mavryk-k8s-snapshotengine:master
 
-# The node endpoint. It must be an archive node.
+# Persistent storage for MRD state (cycle data, reports, locks), mounted at /mrd.
+storage:
+  size: 1Gi
+  # Leave empty to use the cluster default StorageClass.
+  storageClassName: ""
+
+# The node endpoint (-A/--node_endpoint). Used by the client for RPC queries and
+# for injecting the payout operations. With the mvkt provider it does NOT need to
+# be an archive node.
 # May start with https://
 # Default value will connect to a mavryk-k8s private chain running in the same workspace, with
 # default parameters.
 mavryk_node_addr: archive-baking-node-0.archive-baking-node:8732
 
-# The signer endpoint. Must be able to sign for the TRD payment address configured below.
+# The signer endpoint (-E/--signer_endpoint). Must be able to sign for the MRD payment
+# address configured below.
 # May start with https://
 # Default value will connect to a mavryk-k8s private chain running in the same workspace, with
 # default parameters.
@@ -23,17 +38,12 @@ signer_addr: mavryk-signer-0.mavryk-signer:6732
 # When there is nothing to pay, it just exits.
 schedule: "0 */6 * * *"
 
-# Where TRD gets its payout data from.
-# Defaults to rpc. When using rpc, you must set `mavryk_node_addr` to an archive node.
-#
-# Pick one of "rpc", "tzstats", "mvkt"
-reward_data_provider: "rpc"
+# Source of reward data (-P/--reward_data_provider). MRD only supports the MvKT API.
+# "mvkt" is currently the only valid choice.
+reward_data_provider: "mvkt"
 
 # Mavryk Network. Can be MAINNET or BASENET
 network: MAINNET
-
-# Enable adjusted early payouts. Pay out 6-9 days after delegation instead of 18-21 days.
-adjusted_early_payouts: false
 
 # Set initial cycle to pay rewards from. Set to -1 to start from just finished cycle.
 initial_cycle: -1
@@ -41,12 +51,26 @@ initial_cycle: -1
 # Dry-run. Set to "true" to not actually perform the payouts.
 dry_run: false
 
-extra_trd_args: "--do_not_publish_stats"
+# Extra arguments passed verbatim to MRD (src/main.py). See src/util/parser.py for the
+# full list. "--do_not_publish_stats" disables anonymous usage statistics.
+extra_mrd_args: "--do_not_publish_stats"
 
-# This is an example of TRD config. Customize to your needs.
-# For details, please consult TRD documentation:
-#  https://tezos-reward-distributor-organization.github.io/tezos-reward-distributor/
-trd_config:
+# The MRD config (mrd_config below) is rendered into a Secret rather than a
+# ConfigMap, since it can hold sensitive plugin credentials (telegram bot_api_key,
+# email smtp_pass, twitter keys, webhook/discord tokens). A Secret is RBAC-gated
+# and kept out of `kubectl describe` output.
+#
+# For real secrets, prefer providing your own pre-created Secret (e.g. via
+# SealedSecrets / SOPS / external-secrets) so credentials never land in these
+# values or in git. Set existing_config_secret to its name; it must contain a
+# "config.yaml" key with the full MRD config. When set, mrd_config below is ignored.
+# Note: a plain Secret is only base64-encoded unless etcd encryption-at-rest is on.
+existing_config_secret: ""
+
+# This is an example of MRD config. Customize to your needs.
+# For details, please consult MRD documentation:
+#  https://mavryk-network.github.io/mavryk-reward-distributor/
+mrd_config:
   # version: 1.0
   # baking_address: mv1PrNm1ovqs396uKKcKNwzVbbtmyHd2EDcp
   # payment_address: mv1PrNm1ovqs396uKKcKNwzVbbtmyHd2EDcp
@@ -81,7 +105,7 @@ trd_config:
   #     smtp_host: smtp.example.com
   #     smtp_port: 587
   #     smtp_tls: true
-  #     smtp_sender: trdnotice@example.com
+  #     smtp_sender: mrdnotice@example.com
   #     smtp_recipients:
   #       - bob@example.com
   #       - alice@example.com
@@ -113,7 +137,7 @@ trd_config:
   #       Rewards for cycle %CYCLE% are completed.
   #       We paid out %TREWARDS% mav in rewards to %NDELEGATORS% delegators.
 
-# optionally upload all TRD state to a bucket. This allows all data to be examined
+# optionally upload all MRD state to a bucket. This allows all data to be examined
 # when the cronjob is not running.
 bucket_upload:
   bucket_endpoint_url:

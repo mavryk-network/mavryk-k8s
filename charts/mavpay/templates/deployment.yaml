@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mavpay.fullname" . }}
+  labels:
+    {{- include "mavpay.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "mavpay.selectorLabels" . | nindent 6 }}
+  # Recreate (not RollingUpdate): the reports volume is ReadWriteOnce and mavpay
+  # must not run twice concurrently.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mavpay.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: mavpay
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+          env:
+            - name: CONFIGURATION_FILE
+              value: /mavpay/cfg/config.hjson
+            - name: PRIVATE_KEY_FILE
+              value: /mavpay/cfg/payout_wallet_private.key
+            {{- if .Values.config.remoteSigner }}
+            - name: REMOTE_SIGNER_CONFIGURATION_FILE
+              value: /mavpay/cfg/remote_signer.hjson
+            {{- end }}
+            - name: REPORTS_DIRECTORY
+              value: {{ .Values.reports.mountPath | quote }}
+          volumeMounts:
+            - name: config
+              mountPath: /mavpay/cfg
+              readOnly: true
+            - name: reports
+              mountPath: {{ .Values.reports.mountPath }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "mavpay.secretName" . }}
+            defaultMode: 0440
+        - name: reports
+          persistentVolumeClaim:
+            claimName: {{ include "mavpay.fullname" . }}-reports
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

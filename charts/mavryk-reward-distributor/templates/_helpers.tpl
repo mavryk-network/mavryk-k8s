@@ -60,3 +60,54 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Name of the Secret holding the MRD config.yaml. Either user-provided via
+.Values.existing_config_secret (must contain a "config.yaml" key) or the one
+this chart generates ({{ fullname }}-config).
+*/}}
+{{- define "mavryk-reward-distributor.configSecretName" -}}
+{{- if .Values.existing_config_secret }}
+{{- .Values.existing_config_secret }}
+{{- else }}
+{{- printf "%s-config" (include "mavryk-reward-distributor.fullname" .) }}
+{{- end }}
+{{- end }}
+
+{{/*
+The container that runs the MRD payout (src/main.py via scripts/run.sh).
+Rendered either as the trailing init container (when the report uploader needs to
+run after it) or as the pod's main container (when bucket upload is disabled).
+*/}}
+{{- define "mavryk-reward-distributor.runContainer" -}}
+- name: mavryk-reward-distributor-cron-job
+  image: {{ .Values.images.mavryk_reward_distributor }}
+  imagePullPolicy: IfNotPresent
+  volumeMounts:
+    - mountPath: /mrd
+      name: storage
+    - mountPath: /mrd/cfg/config.yaml
+      name: config-volume
+      subPath: config.yaml
+  command:
+    - /bin/sh
+  args:
+    - "-c"
+    - |
+{{ tpl (.Files.Get "scripts/run.sh") . | indent 6 }}
+  env:
+    - name: REWARD_DATA_PROVIDER
+      value: "{{ .Values.reward_data_provider }}"
+    - name: MAVRYK_NODE_ADDR
+      value: "{{ .Values.mavryk_node_addr }}"
+    - name: SIGNER_ADDR
+      value: "{{ .Values.signer_addr }}"
+    - name: EXTRA_MRD_ARGS
+      value: "{{ .Values.extra_mrd_args }}"
+    - name: NETWORK
+      value: "{{ .Values.network }}"
+    - name: INITIAL_CYCLE
+      value: "{{ .Values.initial_cycle }}"
+    - name: DRY_RUN
+      value: "{{ .Values.dry_run }}"
+{{- end }}
