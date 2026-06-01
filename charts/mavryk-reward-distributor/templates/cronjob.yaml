@@ -29,8 +29,8 @@ spec:
               persistentVolumeClaim:
                 claimName: {{ include "mavryk-reward-distributor.fullname" . }}-volume
             - name: config-volume
-              configMap:
-                name: {{ include "mavryk-reward-distributor.fullname" . }}-config
+              secret:
+                secretName: {{ include "mavryk-reward-distributor.configSecretName" . }}
             {{- if .Values.bucket_upload.bucket_name }}
             - name: secret-volume
               secret:

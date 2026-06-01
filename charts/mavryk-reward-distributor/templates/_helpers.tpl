@@ -62,6 +62,19 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
+Name of the Secret holding the MRD config.yaml. Either user-provided via
+.Values.existing_config_secret (must contain a "config.yaml" key) or the one
+this chart generates ({{ fullname }}-config).
+*/}}
+{{- define "mavryk-reward-distributor.configSecretName" -}}
+{{- if .Values.existing_config_secret }}
+{{- .Values.existing_config_secret }}
+{{- else }}
+{{- printf "%s-config" (include "mavryk-reward-distributor.fullname" .) }}
+{{- end }}
+{{- end }}
+
+{{/*
 The container that runs the MRD payout (src/main.py via scripts/run.sh).
 Rendered either as the trailing init container (when the report uploader needs to
 run after it) or as the pod's main container (when bucket upload is disabled).

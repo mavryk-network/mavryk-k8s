@@ -1,7 +1,9 @@
+{{- if not .Values.existing_config_secret }}
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
   name: {{ include "mavryk-reward-distributor.fullname" . }}-config
-data:
+stringData:
   config.yaml: |2+
     {{ toYaml $.Values.mrd_config |nindent 4}}
+{{- end }}

@@ -55,6 +55,18 @@ dry_run: false
 # full list. "--do_not_publish_stats" disables anonymous usage statistics.
 extra_mrd_args: "--do_not_publish_stats"
 
+# The MRD config (mrd_config below) is rendered into a Secret rather than a
+# ConfigMap, since it can hold sensitive plugin credentials (telegram bot_api_key,
+# email smtp_pass, twitter keys, webhook/discord tokens). A Secret is RBAC-gated
+# and kept out of `kubectl describe` output.
+#
+# For real secrets, prefer providing your own pre-created Secret (e.g. via
+# SealedSecrets / SOPS / external-secrets) so credentials never land in these
+# values or in git. Set existing_config_secret to its name; it must contain a
+# "config.yaml" key with the full MRD config. When set, mrd_config below is ignored.
+# Note: a plain Secret is only base64-encoded unless etcd encryption-at-rest is on.
+existing_config_secret: ""
+
 # This is an example of MRD config. Customize to your needs.
 # For details, please consult MRD documentation:
 #  https://mavryk-network.github.io/mavryk-reward-distributor/
