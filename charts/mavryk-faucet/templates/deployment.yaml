@@ -44,6 +44,9 @@ spec:
           {{- else }}
                 name: {{ .Values.existingSecretName }}
           {{- end }}
+          volumeMounts:
+            - name: faucet-data
+              mountPath: /app/data
       {{- if .Values.enableUI }}
         - name: faucet
           image: {{ .Values.images.mavrykFaucet }}
@@ -64,6 +67,13 @@ spec:
         - name: faucet-backend-config
           configMap:
             name: faucet-backend-config
+        - name: faucet-data
+      {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: faucet-data
+      {{- else }}
+          emptyDir: {}
+      {{- end }}
       {{- if .Values.enableUI }}
         - name: faucet-config
           configMap:

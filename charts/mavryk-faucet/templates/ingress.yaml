@@ -5,13 +5,7 @@
   {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
   {{- end }}
 {{- end }}
-{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
-{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1
-{{- else -}}
-apiVersion: extensions/v1beta1
-{{- end }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
@@ -49,6 +43,13 @@ spec:
                 port:
                   number: 3000
           {{- end }}
+          - path: /status
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: 3000
 
         {{- if .Values.enableUI }}
           - path: /
@@ -59,4 +60,55 @@ spec:
                 port:
                   number: 8080
         {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.ingress.backend.enabled -}}
+{{- $fullName := "mavryk-faucet" -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mavryk-faucet.labels" . | nindent 4 }}
+  {{- with .Values.ingress.backend.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.backend.className }}
+  ingressClassName: {{ .Values.ingress.backend.className }}
+  {{- end }}
+  {{- if .Values.ingress.backend.tls }}
+  tls:
+    {{- range .Values.ingress.backend.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.backend.host | quote }}
+      http:
+        paths:
+          {{- range $path := list "/info" "/challenge" "/verify" }}
+          - path: {{ $path }}
+            pathType: Exact
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: 3000
+          {{- end }}
+          - path: /status
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: 3000
 {{- end }}
