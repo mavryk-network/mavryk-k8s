@@ -21,9 +21,9 @@ mavryk_k8s_images:
 mvkt_indexer_statefulset:
   name: mvkt-indexer
   serviceType: NodePort
-bcd_indexer_statefulset:
-  name: bcd-indexer
-  serviceType: NodePort
+nexus_indexer_statefulset:
+  name: nexus-indexer
+  serviceType: ClusterIP
 mavkit_signer_statefulset:
   name: mavkit-signer
   pod_type: signing
@@ -530,7 +530,7 @@ protocols:
 ## contents in a database for efficient indexing. Most dapps need it.
 ## Supported indexers:
 ## * mvkt: https://github.com/mavryk-network/mvkt
-## * bcd: https://github.com/mavryk-network/bcdhub
+## * nexus: https://github.com/mavryk-network/nexushub (Mavryk Nexus, a BCDHUB fork)
 ## Templatized indexer configuration values go in the config field.
 ##
 # indexers:
@@ -585,57 +585,76 @@ protocols:
 #         API_SPECIFIC_VAR: "api-value"
 #       indexer:
 #         INDEXER_SPECIFIC_VAR: "indexer-value"
-
-## Set values `indexerRpcUrl` and `db.password` for an indexer to be created.
-bcdIndexer:
-  images:
-    api: ghcr.io/mavryk-network/bcdhub-api:4.4.0
-    indexer: ghcr.io/mavryk-network/bcdhub-indexer:4.4.0
-    gui: ghcr.io/mavryk-network/bcdhub-gui:4.4.0
-    postgres: postgres:14
-
-  # Url of the RPC backend for the indexer to index
-  rpcUrl: "" # http://archive-baking-node-0.archive-baking-node:8732
-  # When creating an ingress, this will be the BCD api's hostname/FQDN (stripped
-  # of http(s)). When deploying the BCD gui, this will also be the api's full
-  # url called by the frontend.
-  apiUrl: "" # http://localhost:14000
-
-  gui:
-    enabled: false
-    # Url of the RPC backend for the frontend to query
-    rpcUrl: http://localhost:8732
-
-  ingress:
-    enabled: false
-    # Hostname for BCD frontend. The ingress rule will only be created when this
-    # is set and gui is enabled.
-    guiHostname: ""
-    annotations: {}
-    className: ""
-    labels: {}
-    pathType: Prefix
-    tls: []
-
-  db:
-    # By default creates a postgres db container. Setting to true won't create
-    # it and instead expects credentials for an external postgres database.
-    isExternal: false
-    hostname: localhost
-    name: bcd
-    password: bcd-password
-    user: bcd
-
-  # For the pv for the optional postgres container
-  storageClassName: ""
-  storage: "300Gi"
-
-  imagePullSecrets: {}
-  podAnnotations: {}
-  podSecurityContext: {}
-  affinity: {}
-  nodeSelector: {}
-  tolerations: {}
+#
+#   ## Mavryk Nexus (NEXUSHUB-based contract explorer backend).
+#   ## Set `rpcUrl` and either `db.password` (chart-managed credentials) or
+#   ## `db.existingSecret` (user-supplied Secret) for the indexer to be created.
+#   nexus:
+#     images:
+#       api: ghcr.io/mavryk-network/nexushub-api:2.0.0
+#       indexer: ghcr.io/mavryk-network/nexushub-indexer:2.0.0
+#       # TimescaleDB on Postgres 15. Vanilla `postgres:15` also works if you
+#       # don't need TimescaleDB features.
+#       postgres: timescale/timescaledb:2.19.3-pg15
+#
+#     # Url of the RPC backend for the indexer to index
+#     rpcUrl: "" # http://archive-baking-node-0.archive-baking-node:8732
+#     # IPFS gateway for off-chain metadata (FA2 token info, contract metadata).
+#     # Leave empty to disable.
+#     ipfsGateway: "" # https://cloudflare-ipfs.com
+#     # NEXUSHUB application environment. "sandbox" is the only supported value
+#     # today.
+#     nexusEnv: sandbox
+#     # Gin web framework mode for the API container ("debug" or "release").
+#     ginMode: debug
+#
+#     ingress:
+#       enabled: false
+#       # Hostname/FQDN to use as the Ingress rule's host (required when
+#       # enabled). Pass as a bare host, no scheme.
+#       host: "" # basenet.nexus.mavryk.network
+#       annotations: {}
+#       className: ""
+#       labels: {}
+#       pathType: Prefix
+#       tls: []
+#
+#     db:
+#       # By default creates a postgres db container. Setting to true won't
+#       # create it and instead expects credentials for an external postgres
+#       # database.
+#       isExternal: false
+#       # Name of a pre-existing Secret to use for DB credentials instead of
+#       # generating one from the values below. The Secret must contain keys
+#       # POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB. Leave empty to
+#       # have the chart generate the Secret from the values below (default).
+#       # `db.hostname` is set as an explicit env var on the containers, not
+#       # from this Secret.
+#       existingSecret: ""
+#       hostname: localhost
+#       name: nexus
+#       password: nexus-password
+#       user: nexus
+#       # Resource requests/limits for the postgres container (ignored when
+#       # isExternal is true).
+#       resources: {}
+#       #   limits:
+#       #     cpu: 200m
+#       #     memory: 4Gi
+#       #   requests:
+#       #     cpu: 100m
+#       #     memory: 1Gi
+#
+#     # For the pv for the optional postgres container
+#     storageClassName: ""
+#     storage: "300Gi"
+#
+#     imagePullSecrets: {}
+#     podAnnotations: {}
+#     podSecurityContext: {}
+#     affinity: {}
+#     nodeSelector: {}
+#     tolerations: {}
 
 photographer:
   networks:
