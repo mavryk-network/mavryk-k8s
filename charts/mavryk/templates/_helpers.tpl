@@ -151,14 +151,16 @@ metadata:
 {{- end }}
 
 {{/*
-  Checks if `bcdIndexer` has `rpcUrl` and `dbPassword` set.
-  Returns the true type or empty string which is falsey.
+  Checks if `nexusIndexer` has `rpcUrl` and DB credentials set (either
+  `db.password` for chart-managed credentials, or `db.existingSecret` for a
+  user-supplied Secret). Returns "true" or empty string which is falsey.
 */}}
-{{- define "mavryk.shouldDeployBcdIndexer" -}}
-  {{- if and .rpcUrl .db.password }}
-    {{- "true" }}
-  {{- else }}
-    {{- "" }}
+{{- define "mavryk.shouldDeployNexusIndexer" -}}
+  {{- if .rpcUrl }}
+    {{- $db := .db | default dict }}
+    {{- if or $db.password $db.existingSecret }}
+      {{- "true" }}
+    {{- end }}
   {{- end }}
 {{- end }}
 

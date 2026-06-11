@@ -1,61 +1,60 @@
-{{- $indexerConfig := .Values.bcdIndexer | default dict }}
-{{- if (include "mavryk.shouldDeployBcdIndexer" $indexerConfig) }}
+{{- $indexers := .Values.indexers | default dict }}
+{{- $indexerConfig := $indexers.nexus | default dict }}
+{{- if (include "mavryk.shouldDeployNexusIndexer" $indexerConfig) }}
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: bcd
+  name: nexus
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
     - port: 14000
-      name: bcd
-      targetPort: bcd
-  {{- if $indexerConfig.gui.enabled }}
-    - port: 8080
-      name: gui
-      targetPort: gui
-  {{- end }}
+      name: nexus
+      targetPort: nexus
   selector:
-    app: {{ .Values.bcd_indexer_statefulset.name }}
-  type: {{ .Values.bcd_indexer_statefulset.serviceType }}
+    app: {{ .Values.nexus_indexer_statefulset.name }}
+  type: {{ .Values.nexus_indexer_statefulset.serviceType }}
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: bcd-env
+  name: nexus-env
   namespace: {{ .Release.Namespace }}
 data:
-  BCD_ENV: sandbox
-  GIN_MODE: debug
-  SANDBOX_NODE_URI: {{ $indexerConfig.rpcUrl }}
+  NEXUS_ENV: {{ $indexerConfig.nexusEnv | default "sandbox" | quote }}
+  GIN_MODE: {{ $indexerConfig.ginMode | default "debug" | quote }}
+  SANDBOX_NODE_URI: {{ $indexerConfig.rpcUrl | quote }}
+  {{- with $indexerConfig.ipfsGateway }}
+  SANDBOX_IPFS_GATEWAY: {{ . | quote }}
+  {{- end }}
 
+{{- if not $indexerConfig.db.existingSecret }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: db-creds
+  name: nexus-db-creds
   namespace: {{ .Release.Namespace }}
 data:
-  # `DB_HOSTNAME` is the env var looked up by the app
-  DB_HOSTNAME: {{ b64enc ($indexerConfig.db.hostname | default "localhost") }}
   POSTGRES_USER: {{ b64enc $indexerConfig.db.user }}
   POSTGRES_PASSWORD: {{ b64enc $indexerConfig.db.password }}
   POSTGRES_DB: {{ b64enc $indexerConfig.db.name }}
 {{- if not $indexerConfig.db.isExternal }}
   PGDATA: {{ b64enc "/var/lib/postgresql/data/pgdata" }}
 {{- end }}
+{{- end }}
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sandbox-config
+  name: nexus-sandbox-config
   namespace: {{ .Release.Namespace }}
 data:
   # Based on:
-  # https://github.com/mavryk-network/bcdhub/blob/fa7e36f6c890d543d72a3d494f7a2509cd41871a/configs/sandbox.yml
+  # https://github.com/mavryk-network/nexushub/blob/fa7e36f6c890d543d72a3d494f7a2509cd41871a/configs/sandbox.yml
   sandbox.yml: |
     rpc:
       sandboxnet:
@@ -67,11 +66,11 @@ data:
         host: ${DB_HOSTNAME:-db}
         port: 5432
         user: ${POSTGRES_USER}
-        dbname: ${POSTGRES_DB:-bcd}
+        dbname: ${POSTGRES_DB:-nexus}
         password: ${POSTGRES_PASSWORD}
         sslmode: disable
       timeout: 10
-    share_path: /etc/bcd
+    share_path: /etc/nexus
     base_url: http://localhost:8000
     api:
       project_name: api
@@ -85,8 +84,6 @@ data:
         ga_enabled: false
         mempool_enabled: false
         sandbox_mode: true
-        rpc:
-          sandboxnet: {{ $indexerConfig.gui.rpcUrl | default "" }}
       networks:
         - sandboxnet
       connections:
@@ -109,18 +106,18 @@ data:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.bcd_indexer_statefulset.name }}
+  name: {{ .Values.nexus_indexer_statefulset.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   podManagementPolicy: Parallel
   selector:
     matchLabels:
-      app: {{ .Values.bcd_indexer_statefulset.name }}
+      app: {{ .Values.nexus_indexer_statefulset.name }}
   serviceName: ""
   template:
     metadata:
       labels:
-        app: {{ .Values.bcd_indexer_statefulset.name }}
+        app: {{ .Values.nexus_indexer_statefulset.name }}
     {{- with $indexerConfig.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -146,71 +143,67 @@ spec:
       {{- toYaml . | nindent 8 }}
   {{- end }}
       volumes:
-        - name: sandbox-config
+        - name: nexus-sandbox-config
           configMap:
-            name: sandbox-config
+            name: nexus-sandbox-config
+        - name: nexus-shared
+          emptyDir: {}
       containers:
         - image: {{ $indexerConfig.images.api }}
           name: api
           ports:
             - containerPort: 14000
-              name: bcd
+              name: nexus
           envFrom:
             - configMapRef:
-                name: bcd-env
+                name: nexus-env
             - secretRef:
-                name: db-creds
+                name: {{ $indexerConfig.db.existingSecret | default "nexus-db-creds" }}
+          env:
+            - name: DB_HOSTNAME
+              value: {{ $indexerConfig.db.hostname | default "localhost" | quote }}
           volumeMounts:
-            - name: sandbox-config
+            - name: nexus-sandbox-config
               mountPath: /app/api/sandbox.yml
               subPath: sandbox.yml
+            - name: nexus-shared
+              mountPath: /etc/nexus
+              subPath: nexus
         - image: {{ $indexerConfig.images.indexer }}
           name: indexer
           envFrom:
             - configMapRef:
-                name: bcd-env
+                name: nexus-env
             - secretRef:
-                name: db-creds
+                name: {{ $indexerConfig.db.existingSecret | default "nexus-db-creds" }}
+          env:
+            - name: DB_HOSTNAME
+              value: {{ $indexerConfig.db.hostname | default "localhost" | quote }}
           volumeMounts:
-            - name: sandbox-config
+            - name: nexus-sandbox-config
               mountPath: /app/indexer/sandbox.yml
               subPath: sandbox.yml
-      {{- if $indexerConfig.gui.enabled }}
-        {{- $_ := required "apiUrl is required for gui" $indexerConfig.apiUrl }}
-        {{- $_ := required "gui.rpcUrl is required for gui" $indexerConfig.gui.rpcUrl }}
-        - image: {{ $indexerConfig.images.gui }}
-          name: gui
-          ports:
-            - containerPort: 80
-              name: gui
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              set -ex
-
-              api_url="{{ $indexerConfig.apiUrl }}/v1"
-
-              for file in js/*; do
-                echo $file
-                sed -i -E \
-                  "s~http://localhost:14000/v1~$api_url~g; s~process\.env.VUE_APP_API_URI~\"$api_url\"~g" \
-                  "$file"
-              done
-
-              /docker-entrypoint.sh nginx -g "daemon off;"
-      {{- end }}
+            - name: nexus-shared
+              mountPath: /etc/nexus
+              subPath: nexus
 
 {{- if not $indexerConfig.db.isExternal }}
         - image: {{ $indexerConfig.images.postgres }}
           name: db
           imagePullPolicy: IfNotPresent
+          {{- with $indexerConfig.db.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - containerPort: 5432
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: indexer-db
+              subPath: data
           envFrom:
             - secretRef:
-                name: db-creds
+                name: {{ $indexerConfig.db.existingSecret | default "nexus-db-creds" }}
   volumeClaimTemplates:
     - metadata:
         name: indexer-db
@@ -223,27 +216,28 @@ spec:
             storage: {{ $indexerConfig.storage | default "300Gi" }}
 {{- end }}
 
+{{- $ingress := $indexerConfig.ingress | default dict }}
+{{- if $ingress.enabled }}
+{{- $_ := required "ingress.host is required when ingress.enabled is true" $ingress.host }}
 ---
-{{- if $indexerConfig.ingress.enabled }}
-{{- $_ := required "apiUrl is required for ingress" $indexerConfig.apiUrl }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bcd
+  name: nexus
   namespace: {{ .Release.Namespace }}
-{{- with $indexerConfig.ingress.labels }}
+{{- with $ingress.labels }}
   labels:
     {{- toYaml . | nindent 4 }}
 {{- end }}
-{{- with $indexerConfig.ingress.annotations }}
+{{- with $ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 spec:
-  ingressClassName: {{ $indexerConfig.ingress.className }}
-  {{- if $indexerConfig.ingress.tls }}
+  ingressClassName: {{ $ingress.className }}
+  {{- if $ingress.tls }}
   tls:
-    {{- range $indexerConfig.ingress.tls }}
+    {{- range $ingress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -252,28 +246,16 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    - host: {{ regexReplaceAll "(https?://)" $indexerConfig.apiUrl "" }}
+    - host: {{ $ingress.host }}
       http:
         paths:
-          - pathType: {{ $indexerConfig.ingress.pathType }}
+          - pathType: {{ $ingress.pathType | default "Prefix" }}
             path: /
             backend:
               service:
-                name: bcd
+                name: nexus
                 port:
                   number: 14000
-  {{- if and $indexerConfig.gui.enabled $indexerConfig.ingress.guiHostname }}
-    - host: {{ $indexerConfig.ingress.guiHostname }}
-      http:
-        paths:
-          - pathType: {{ $indexerConfig.ingress.pathType }}
-            path: /
-            backend:
-              service:
-                name: bcd
-                port:
-                  number: 8080
-    {{- end }}
 {{- end }}
 
 {{- end }}
