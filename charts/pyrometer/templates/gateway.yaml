@@ -1,0 +1,147 @@
+{{- if .Values.gateway.enabled -}}
+{{- $_ := required "gateway.host is required when gateway.enabled is true" .Values.gateway.host -}}
+{{- $fullName := "pyrometer" -}}
+{{- $useTLS := ne (.Values.gateway.tlsSecretName | toString) "" -}}
+{{- $section := ternary "https" "http" $useTLS -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "pyrometer.labels" . | nindent 4 }}
+    {{- with .Values.gateway.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className | default "envoy" }}
+  listeners:
+    {{- if $useTLS }}
+    - name: https
+      hostname: {{ .Values.gateway.host | quote }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ .Values.gateway.tlsSecretName | quote }}
+    {{- else }}
+    - name: http
+      hostname: {{ .Values.gateway.host | quote }}
+      port: 80
+      protocol: HTTP
+    {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "pyrometer.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ $fullName }}
+      sectionName: {{ $section }}
+  hostnames:
+    - {{ .Values.gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ $fullName }}
+          port: 8080
+{{- if .Values.gateway.cors.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ $fullName }}-cors
+  labels:
+    {{- include "pyrometer.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $fullName }}
+  cors:
+    {{- with .Values.gateway.cors.allowOrigins }}
+    allowOrigins:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.allowMethods }}
+    allowMethods:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.allowHeaders }}
+    allowHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.exposeHeaders }}
+    exposeHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.maxAge }}
+    maxAge: {{ . | quote }}
+    {{- end }}
+    allowCredentials: {{ .Values.gateway.cors.allowCredentials }}
+{{- end }}
+{{- $bt := or .Values.gateway.rateLimit.enabled .Values.gateway.timeout.enabled .Values.gateway.connection.enabled }}
+{{- if $bt }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: {{ $fullName }}-backend-traffic
+  labels:
+    {{- include "pyrometer.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $fullName }}
+  {{- if .Values.gateway.rateLimit.enabled }}
+  rateLimit:
+    type: Local
+    local:
+      rules:
+        {{- toYaml .Values.gateway.rateLimit.rules | nindent 8 }}
+  {{- end }}
+  {{- if .Values.gateway.timeout.enabled }}
+  timeout:
+    {{- with .Values.gateway.timeout.tcp }}
+    tcp:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.timeout.http }}
+    http:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.gateway.connection.enabled }}
+  connection:
+    bufferLimit: {{ .Values.gateway.connection.bufferLimit | quote }}
+  {{- end }}
+{{- end }}
+{{- if .Values.gateway.client.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: {{ $fullName }}-client-traffic
+  labels:
+    {{- include "pyrometer.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $fullName }}
+  connection:
+    bufferLimit: {{ .Values.gateway.client.bufferLimit | quote }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,154 @@
+{{- if and .Values.hasura.enabled .Values.hasura.gateway.enabled }}
+{{- $_ := required "hasura.gateway.host is required when hasura.gateway.enabled is true" .Values.hasura.gateway.host -}}
+{{- $useTLS := ne (.Values.hasura.gateway.tlsSecretName | toString) "" -}}
+{{- $section := ternary "https" "http" $useTLS -}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "indexer.fullname" . }}
+{{- with .Values.hasura.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- with .Values.hasura.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  gatewayClassName: {{ .Values.hasura.gateway.className | default "envoy" }}
+  listeners:
+    {{- if $useTLS }}
+    - name: https
+      hostname: {{ .Values.hasura.gateway.host | quote }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ .Values.hasura.gateway.tlsSecretName | quote }}
+    {{- else }}
+    - name: http
+      hostname: {{ .Values.hasura.gateway.host | quote }}
+      port: 80
+      protocol: HTTP
+    {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "indexer.fullname" . }}
+{{- with .Values.hasura.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  parentRefs:
+    - name: {{ include "indexer.fullname" . }}
+      sectionName: {{ $section }}
+  hostnames:
+    - {{ .Values.hasura.gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ include "indexer.fullname" . }}
+          port: 8080
+{{- if .Values.hasura.gateway.cors.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ include "indexer.fullname" . }}-cors
+{{- with .Values.hasura.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ include "indexer.fullname" . }}
+  cors:
+    {{- with .Values.hasura.gateway.cors.allowOrigins }}
+    allowOrigins:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.hasura.gateway.cors.allowMethods }}
+    allowMethods:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.hasura.gateway.cors.allowHeaders }}
+    allowHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.hasura.gateway.cors.exposeHeaders }}
+    exposeHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.hasura.gateway.cors.maxAge }}
+    maxAge: {{ . | quote }}
+    {{- end }}
+    allowCredentials: {{ .Values.hasura.gateway.cors.allowCredentials }}
+{{- end }}
+{{- $bt := or .Values.hasura.gateway.rateLimit.enabled .Values.hasura.gateway.timeout.enabled .Values.hasura.gateway.connection.enabled }}
+{{- if $bt }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: {{ include "indexer.fullname" . }}-backend-traffic
+{{- with .Values.hasura.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ include "indexer.fullname" . }}
+  {{- if .Values.hasura.gateway.rateLimit.enabled }}
+  rateLimit:
+    type: Local
+    local:
+      rules:
+        {{- toYaml .Values.hasura.gateway.rateLimit.rules | nindent 8 }}
+  {{- end }}
+  {{- if .Values.hasura.gateway.timeout.enabled }}
+  timeout:
+    {{- with .Values.hasura.gateway.timeout.tcp }}
+    tcp:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.hasura.gateway.timeout.http }}
+    http:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.hasura.gateway.connection.enabled }}
+  connection:
+    bufferLimit: {{ .Values.hasura.gateway.connection.bufferLimit | quote }}
+  {{- end }}
+{{- end }}
+{{- if .Values.hasura.gateway.client.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: {{ include "indexer.fullname" . }}-client-traffic
+{{- with .Values.hasura.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ include "indexer.fullname" . }}
+  connection:
+    bufferLimit: {{ .Values.hasura.gateway.client.bufferLimit | quote }}
+{{- end }}
+{{- end }}

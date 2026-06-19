@@ -258,4 +258,170 @@ spec:
                   number: 14000
 {{- end }}
 
+{{- $gateway := $indexerConfig.gateway | default dict }}
+{{- if $gateway.enabled }}
+{{- $_ := required "gateway.host is required when gateway.enabled is true" $gateway.host }}
+{{- $useTLS := ne ($gateway.tlsSecretName | toString) "" }}
+{{- $section := ternary "https" "http" $useTLS }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: nexus
+  namespace: {{ .Release.Namespace }}
+{{- with $gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- with $gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  gatewayClassName: {{ $gateway.className | default "envoy" }}
+  listeners:
+    {{- if $useTLS }}
+    - name: https
+      hostname: {{ $gateway.host | quote }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ $gateway.tlsSecretName | quote }}
+    {{- else }}
+    - name: http
+      hostname: {{ $gateway.host | quote }}
+      port: 80
+      protocol: HTTP
+    {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nexus
+  namespace: {{ .Release.Namespace }}
+{{- with $gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  parentRefs:
+    - name: nexus
+      sectionName: {{ $section }}
+  hostnames:
+    - {{ $gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: nexus
+          port: 14000
+{{- $cors := $gateway.cors | default dict }}
+{{- if $cors.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: nexus-cors
+  namespace: {{ .Release.Namespace }}
+{{- with $gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: nexus
+  cors:
+    {{- with $cors.allowOrigins }}
+    allowOrigins:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $cors.allowMethods }}
+    allowMethods:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $cors.allowHeaders }}
+    allowHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $cors.exposeHeaders }}
+    exposeHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $cors.maxAge }}
+    maxAge: {{ . | quote }}
+    {{- end }}
+    allowCredentials: {{ $cors.allowCredentials | default false }}
+{{- end }}
+{{- $rl := $gateway.rateLimit | default dict }}
+{{- $to := $gateway.timeout | default dict }}
+{{- $conn := $gateway.connection | default dict }}
+{{- $client := $gateway.client | default dict }}
+{{- $bt := or $rl.enabled $to.enabled $conn.enabled }}
+{{- if $bt }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: nexus-backend-traffic
+  namespace: {{ .Release.Namespace }}
+{{- with $gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: nexus
+  {{- if $rl.enabled }}
+  rateLimit:
+    type: Local
+    local:
+      rules:
+        {{- toYaml $rl.rules | nindent 8 }}
+  {{- end }}
+  {{- if $to.enabled }}
+  timeout:
+    {{- with $to.tcp }}
+    tcp:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $to.http }}
+    http:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if $conn.enabled }}
+  connection:
+    bufferLimit: {{ $conn.bufferLimit | quote }}
+  {{- end }}
+{{- end }}
+{{- if $client.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: nexus-client-traffic
+  namespace: {{ .Release.Namespace }}
+{{- with $gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: nexus
+  connection:
+    bufferLimit: {{ $client.bufferLimit | quote }}
+{{- end }}
+{{- end }}
+
 {{- end }}

@@ -138,6 +138,112 @@ ingress:
     host: "" # e.g. faucet-api.mavryk.network
     tls: []
 
+# Gateway API alternative to `ingress` above. Mutually exclusive in practice:
+# enable one or the other. When enabled, creates a Gateway + HTTPRoute pair
+# routing /info, /challenge, /verify, /status (+ optionally /) to the faucet
+# Service on port 3000 (/) targets port 8080 when enableUI is true.
+gateway:
+  enabled: false
+  className: envoy
+  host: ""
+  # Annotations on the Gateway resource (e.g. cert-manager.io/cluster-issuer).
+  annotations: {}
+  labels: {}
+  # Name of the Secret holding the TLS cert for the HTTPS listener. Leave
+  # empty to create an HTTP-only listener.
+  tlsSecretName: ""
+  # CORS — replaces nginx `enable-cors` / `cors-allow-*` annotations. Rendered
+  # as an Envoy Gateway SecurityPolicy targeting the Gateway.
+  cors:
+    enabled: false
+    allowOrigins:
+      - "*"
+    allowMethods:
+      - GET
+      - POST
+      - OPTIONS
+    allowHeaders: []
+    exposeHeaders:
+      - "*"
+    maxAge: 1h
+    allowCredentials: false
+  # Local (per-pod) rate limit — replaces nginx `limit-rps` /
+  # `limit-burst-multiplier`. Rendered into the BackendTrafficPolicy.
+  rateLimit:
+    enabled: false
+    rules:
+      - limit:
+          requests: 5
+          unit: Second
+  # Upstream (Envoy → backend) timeouts — replaces nginx
+  # `proxy-connect-timeout` / `proxy-read-timeout` / `proxy-send-timeout`.
+  # Rendered into the BackendTrafficPolicy. `tcp` and `http` blocks are
+  # passed verbatim, so any field Envoy Gateway's BackendTrafficPolicy
+  # `spec.timeout.{tcp,http}` accepts works here.
+  timeout:
+    enabled: false
+    tcp:
+      connectTimeout: 1h
+    http:
+      connectionIdleTimeout: 1h
+      requestTimeout: 1h
+  # Upstream per-connection buffer limit — closest analogue to nginx
+  # `proxy-buffer-size`. Rendered into the BackendTrafficPolicy. nginx's
+  # `proxy-buffers-number` and `proxy-max-temp-file-size` have no Envoy
+  # equivalent (Envoy streams natively, doesn't spill to disk).
+  connection:
+    enabled: false
+    bufferLimit: "32Ki"
+  # Downstream (client → Envoy) per-connection buffer limit — closest
+  # analogue to nginx `proxy-buffering off`. Envoy already streams by
+  # default; this just caps how much it holds for a slow client. Rendered
+  # as a ClientTrafficPolicy.
+  client:
+    enabled: false
+    bufferLimit: "32Ki"
+
+  # Separate Gateway for the backend API. Use this when the frontend is hosted
+  # externally (e.g. Cloudflare) and the backend needs its own public hostname.
+  backend:
+    enabled: false
+    className: envoy
+    host: ""
+    annotations: {}
+    labels: {}
+    tlsSecretName: ""
+    cors:
+      enabled: false
+      allowOrigins:
+        - "*"
+      allowMethods:
+        - GET
+        - POST
+        - OPTIONS
+      allowHeaders: []
+      exposeHeaders:
+        - "*"
+      maxAge: 1h
+      allowCredentials: false
+    rateLimit:
+      enabled: false
+      rules:
+        - limit:
+            requests: 5
+            unit: Second
+    timeout:
+      enabled: false
+      tcp:
+        connectTimeout: 1h
+      http:
+        connectionIdleTimeout: 1h
+        requestTimeout: 1h
+    connection:
+      enabled: false
+      bufferLimit: "32Ki"
+    client:
+      enabled: false
+      bufferLimit: "32Ki"
+
 imagePullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ""

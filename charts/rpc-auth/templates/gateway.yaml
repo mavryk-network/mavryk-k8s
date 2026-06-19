@@ -1,0 +1,204 @@
+{{- if .Values.gateway.enabled }}
+{{- $_ := required "gateway.host is required when gateway.enabled is true" .Values.gateway.host }}
+{{- $useTLS := ne (.Values.gateway.tlsSecretName | toString) "" -}}
+{{- $section := ternary "https" "http" $useTLS -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rpc-auth
+  namespace: {{ .Release.Namespace }}
+{{- with .Values.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className | default "envoy" }}
+  listeners:
+    {{- if $useTLS }}
+    - name: https
+      hostname: {{ .Values.gateway.host | quote }}
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ .Values.gateway.tlsSecretName | quote }}
+    {{- else }}
+    - name: http
+      hostname: {{ .Values.gateway.host | quote }}
+      port: 80
+      protocol: HTTP
+    {{- end }}
+---
+# Vending-machine: clients exchange a chain id for a nonce, then post signed
+# data to receive a secret URL. No upstream auth; the rpc-auth service does
+# its own request validation.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: rpc-vending-machine
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+    - name: rpc-auth
+      sectionName: {{ $section }}
+  hostnames:
+    - {{ .Values.gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /vending-machine
+      backendRefs:
+        - name: rpc-auth
+          port: 8080
+---
+# Mavryk RPC: clients use the secret URL to access the node RPC. Each request
+# is authorized by the rpc-auth /auth endpoint via ext_authz (the Gateway
+# API equivalent of nginx's auth-url annotation). The secret nonce sits at
+# /mavryk-node-rpc/{nonce}/{rpc path}; URLRewrite strips the prefix so the
+# upstream sees the bare RPC path.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mavryk-rpc
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+    - name: rpc-auth
+      sectionName: {{ $section }}
+  hostnames:
+    - {{ .Values.gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /mavryk-node-rpc
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: mavryk-node-rpc
+          port: 8732
+---
+# Envoy Gateway SecurityPolicy: replaces the nginx auth-url annotation by
+# calling rpc-auth /auth as an ext_authz HTTP server for the mavryk-rpc
+# HTTPRoute only. A non-2xx response from rpc-auth blocks the request.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: mavryk-rpc-auth
+  namespace: {{ .Release.Namespace }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: mavryk-rpc
+  extAuth:
+    http:
+      backendRefs:
+        - name: rpc-auth
+          port: 8080
+      path: /auth
+{{- if .Values.gateway.cors.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: rpc-auth-cors
+  namespace: {{ .Release.Namespace }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: rpc-auth
+  cors:
+    {{- with .Values.gateway.cors.allowOrigins }}
+    allowOrigins:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.allowMethods }}
+    allowMethods:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.allowHeaders }}
+    allowHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.exposeHeaders }}
+    exposeHeaders:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.cors.maxAge }}
+    maxAge: {{ . | quote }}
+    {{- end }}
+    allowCredentials: {{ .Values.gateway.cors.allowCredentials }}
+{{- end }}
+{{- $bt := or .Values.gateway.rateLimit.enabled .Values.gateway.timeout.enabled .Values.gateway.connection.enabled }}
+{{- if $bt }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: rpc-auth-backend-traffic
+  namespace: {{ .Release.Namespace }}
+{{- with .Values.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: rpc-auth
+  {{- if .Values.gateway.rateLimit.enabled }}
+  rateLimit:
+    type: Local
+    local:
+      rules:
+        {{- toYaml .Values.gateway.rateLimit.rules | nindent 8 }}
+  {{- end }}
+  {{- if .Values.gateway.timeout.enabled }}
+  timeout:
+    {{- with .Values.gateway.timeout.tcp }}
+    tcp:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.gateway.timeout.http }}
+    http:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.gateway.connection.enabled }}
+  connection:
+    bufferLimit: {{ .Values.gateway.connection.bufferLimit | quote }}
+  {{- end }}
+{{- end }}
+{{- if .Values.gateway.client.enabled }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: rpc-auth-client-traffic
+  namespace: {{ .Release.Namespace }}
+{{- with .Values.gateway.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: rpc-auth
+  connection:
+    bufferLimit: {{ .Values.gateway.client.bufferLimit | quote }}
+{{- end }}
+{{- end }}
