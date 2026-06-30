@@ -654,9 +654,14 @@ protocols:
 #     ## now available — mutually exclusive in practice, enable one.
 #     ingress:
 #       enabled: false
-#       # Hostname/FQDN to use as the Ingress rule's host (required when
-#       # enabled). Pass as a bare host, no scheme.
-#       host: "" # e.g. basenet.api.mavryk.network
+#       # Hostnames/FQDNs to use as the Ingress rules' hosts (required when
+#       # enabled). Pass bare hosts, no scheme. One rule is generated per
+#       # entry, so a single API can be reached on several hostnames (e.g.
+#       # api.mavryk.network and mainnet.api.mavryk.network on the same
+#       # mainnet instance).
+#       hosts: []
+#       #  - api.mavryk.network
+#       #  - mainnet.api.mavryk.network
 #       annotations: {}
 #       className: ""
 #       labels: {}
@@ -668,7 +673,13 @@ protocols:
 #     gateway:
 #       enabled: false
 #       className: envoy
-#       host: "" # e.g. basenet.api.mavryk.network
+#       # Hostnames the Gateway listens on (required when enabled). One
+#       # listener is generated per entry — all share `tlsSecretName`, so
+#       # pair multi-host TLS with a wildcard cert covering every entry, or
+#       # leave `tlsSecretName` empty for HTTP-only listeners.
+#       hosts: []
+#       #  - api.mavryk.network
+#       #  - mainnet.api.mavryk.network
 #       # Annotations on the Gateway (e.g. cert-manager.io/cluster-issuer).
 #       annotations: {}
 #       labels: {}
@@ -744,9 +755,11 @@ protocols:
 #
 #     ingress:
 #       enabled: false
-#       # Hostname/FQDN to use as the Ingress rule's host (required when
-#       # enabled). Pass as a bare host, no scheme.
-#       host: "" # basenet.nexus.mavryk.network
+#       # Hostnames/FQDNs to use as the Ingress rules' hosts (required when
+#       # enabled). Pass bare hosts, no scheme. One rule is generated per
+#       # entry.
+#       hosts: []
+#       #  - basenet.nexus.mavryk.network
 #       annotations: {}
 #       className: ""
 #       labels: {}
@@ -759,7 +772,12 @@ protocols:
 #     gateway:
 #       enabled: false
 #       className: envoy
-#       host: "" # basenet.nexus.mavryk.network
+#       # Hostnames the Gateway listens on (required when enabled). One
+#       # listener is generated per entry — all share `tlsSecretName`, so
+#       # pair multi-host TLS with a wildcard cert covering every entry, or
+#       # leave `tlsSecretName` empty for HTTP-only listeners.
+#       hosts: []
+#       #  - basenet.nexus.mavryk.network
 #       # Annotations on the Gateway (e.g. cert-manager.io/cluster-issuer).
 #       annotations: {}
 #       labels: {}

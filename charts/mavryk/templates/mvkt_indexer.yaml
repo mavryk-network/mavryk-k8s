@@ -342,14 +342,18 @@ spec:
             storage: {{ required "DB storage size must be specified" $mvkt_indexer.storage  }}
   {{- end }}
 
+{{- $name := .Values.mvkt_indexer_statefulset.name }}
 {{- $ingress := $mvkt_indexer.ingress | default dict }}
 {{- if $ingress.enabled }}
-{{- $_ := required "ingress.host is required when ingress.enabled is true" $ingress.host }}
+{{- $ingressHosts := $ingress.hosts | default list }}
+{{- if eq (len $ingressHosts) 0 }}
+{{- fail "ingress.hosts is required when ingress.enabled is true" }}
+{{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.mvkt_indexer_statefulset.name }}
+  name: {{ $name }}
   namespace: {{ .Release.Namespace }}
 {{- with $ingress.labels }}
   labels:
@@ -372,28 +376,33 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    - host: {{ $ingress.host }}
+    {{- range $h := $ingressHosts }}
+    - host: {{ $h | quote }}
       http:
         paths:
           - pathType: {{ $ingress.pathType | default "Prefix" }}
             path: /
             backend:
               service:
-                name: {{ .Values.mvkt_indexer_statefulset.name }}
+                name: {{ $name }}
                 port:
                   number: 5000
+    {{- end }}
 {{- end }}
 
 {{- $gateway := $mvkt_indexer.gateway | default dict }}
 {{- if $gateway.enabled }}
-{{- $_ := required "gateway.host is required when gateway.enabled is true" $gateway.host }}
+{{- $gatewayHosts := $gateway.hosts | default list }}
+{{- if eq (len $gatewayHosts) 0 }}
+{{- fail "gateway.hosts is required when gateway.enabled is true" }}
+{{- end }}
 {{- $useTLS := ne ($gateway.tlsSecretName | toString) "" }}
-{{- $section := ternary "https" "http" $useTLS }}
+{{- $proto := ternary "https" "http" $useTLS }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: {{ .Values.mvkt_indexer_statefulset.name }}
+  name: {{ $name }}
   namespace: {{ .Release.Namespace }}
 {{- with $gateway.labels }}
   labels:
@@ -406,9 +415,10 @@ metadata:
 spec:
   gatewayClassName: {{ $gateway.className | default "envoy" }}
   listeners:
+    {{- range $i, $h := $gatewayHosts }}
     {{- if $useTLS }}
-    - name: https
-      hostname: {{ $gateway.host | quote }}
+    - name: {{ printf "https-%d" $i }}
+      hostname: {{ $h | quote }}
       port: 443
       protocol: HTTPS
       tls:
@@ -417,16 +427,17 @@ spec:
           - kind: Secret
             name: {{ $gateway.tlsSecretName | quote }}
     {{- else }}
-    - name: http
-      hostname: {{ $gateway.host | quote }}
+    - name: {{ printf "http-%d" $i }}
+      hostname: {{ $h | quote }}
       port: 80
       protocol: HTTP
+    {{- end }}
     {{- end }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ .Values.mvkt_indexer_statefulset.name }}
+  name: {{ $name }}
   namespace: {{ .Release.Namespace }}
 {{- with $gateway.labels }}
   labels:
@@ -434,17 +445,18 @@ metadata:
 {{- end }}
 spec:
   parentRefs:
-    - name: {{ .Values.mvkt_indexer_statefulset.name }}
-      sectionName: {{ $section }}
+    - name: {{ $name }}
   hostnames:
-    - {{ $gateway.host | quote }}
+    {{- range $h := $gatewayHosts }}
+    - {{ $h | quote }}
+    {{- end }}
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: {{ .Values.mvkt_indexer_statefulset.name }}
+        - name: {{ $name }}
           port: 5000
 {{- $cors := $gateway.cors | default dict }}
 {{- if $cors.enabled }}
