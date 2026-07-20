@@ -18,7 +18,7 @@ rpcUrl: https://rpc.mavryk.network
 # End Aggregators
 aggregatorsAddresses: []
 
-# Name of the secret to use to fill the /etc/secret.json of Signatory.
+# Name of the secret to use to fill the /etc/secret.json of Mavseal.
 # The Secret used should look like this:
 # ```
 # apiVersion: v1
@@ -32,10 +32,10 @@ aggregatorsAddresses: []
 #     ]
 # kind: Secret
 # metadata:
-#   name: signatory-secret
+#   name: mavseal-secret
 # type: Opaque
 # ```
-signatorySecretName: signatory-secret
+mavsealSecretName: mavseal-secret
 
 # Address and public key of the Maven Finance Oracle
 # To become a Maven Finance Oracle, you need to be registered as a Satellite on Maven Finance
@@ -79,6 +79,16 @@ fetchers:
     secretName: messari-secret
     key: MESSARI_API_KEY
   coingecko:
+    # Name of the secret holding the Coingecko API key. Optional: leave empty to use the
+    # public, heavily rate-limited API. A free "Demo" API key (sent via the
+    # `x-cg-demo-api-key` header) is strongly recommended to avoid boot-time rate limiting,
+    # especially when several oracles start behind the same egress IP.
+    secretName: ''
+    key: COINGECKO_API_KEY
+    # API tier the key belongs to: 'demo' (free Demo key, api.coingecko.com) or
+    # 'pro' (any paid key — Lite/Analyst/Pro/Enterprise — pro-api.coingecko.com).
+    # Only used when secretName is set.
+    plan: demo
     # List of coingecko supported coin ids (separated by a comma)
     # Coingecko sorts its listed coins and token by their IDs instead of their symbols
     # This can lead to errors when two tokens share the same symbol but have different IDs (exemple: USDT on Ethereum and USDT on Mavryk)
@@ -101,16 +111,16 @@ images:
     repository: mavenfinance/maven-oracles
     tag: main
     imagePullPolicy: IfNotPresent
-  signatory:
+  mavseal:
     imagePullSecrets: null
-    registry: docker.io
-    repository: mavrykdynamics/signatory
-    tag: v0.3.3-beta-rc1-amd64
+    registry: ghcr.io
+    repository: mavryk-network/mavseal
+    tag: mavryk-v1.2.3-amd64
     imagePullPolicy: IfNotPresent
 
-# Resource limits and requests for the oracle pod and the signatory instance
+# Resource limits and requests for the oracle pod and the mavseal instance
 resources:
-  signatory:
+  mavseal:
     enabled: false
     requests:
       cpu: 50m

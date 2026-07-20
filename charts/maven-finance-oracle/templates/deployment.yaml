@@ -34,7 +34,7 @@ spec:
             - name: MAVRYK_POLLING_INTERVAL_MILLISECONDS
               value: '{{ .Values.mavrykPollingIntervalMilliseconds }}'
             - name: SIGNER_URL
-              value: 'http://{{ .Values.name }}-signatory.{{ .Release.Namespace }}.svc.cluster.local:6732'
+              value: 'http://{{ .Values.name }}-mavseal.{{ .Release.Namespace }}.svc.cluster.local:6732'
             - name: RPC_URL
               value: '{{ .Values.rpcUrl }}'
             - name: P2P_BOOTSTRAP_PEERS
@@ -64,6 +64,15 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.fetchers.messari.secretName }}
                   key: {{ .Values.fetchers.messari.key }}
+            {{- if .Values.fetchers.coingecko.secretName }}
+            - name: COINGECKO_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.fetchers.coingecko.secretName }}
+                  key: {{ .Values.fetchers.coingecko.key }}
+            - name: COINGECKO_API_PLAN
+              value: '{{ .Values.fetchers.coingecko.plan }}'
+            {{- end }}
             - name: COINGECKO_SUPPORTED_IDS
               value: '{{ join "," .Values.fetchers.coingecko.supportedIds }}'
             - name: LOG_LEVEL

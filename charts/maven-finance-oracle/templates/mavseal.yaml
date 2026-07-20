@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ .Values.name }}-mavseal-config'
+data:
+  mavseal.yaml: |
+    server:
+      # Address/Port that Mavseal listens on
+      address: :6732
+      # Address/Port that Mavseal serves prometheus metrics on
+      utility_address: :9583
+
+    vaults:
+      # Name of vault
+      local_file_keys:
+        driver: file
+        config:
+          file: /etc/secret.json
+
+    # List enabled public keys hashes here
+    mavryk:
+      {{ .Values.mavryk.address }}:
+        log_payloads: true
+        # `allow` maps each permitted request type to the operation kinds it may
+        # contain (mavseal >= 1.2.0). Request types:
+        #   [block, endorsement, preendorsement, generic, failing_noop, pack]
+        # For `generic`, list the allowed operation kinds (transaction,
+        # delegation, origination, reveal, ...). The oracle only needs to push
+        # prices via generic transactions, plus failing_noop for proof-of-key
+        # signing. The old `allowed_operations`/`allowed_kinds` keys are
+        # deprecated and will be removed in a future mavseal release.
+        allow:
+          generic:
+            - transaction
+          failing_noop:
+          pack:
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ .Values.name }}-mavseal'
+  labels:
+    app: '{{ .Values.name }}-mavseal'
+spec:
+  clusterIP: None
+  ports:
+    - port: 6732
+      protocol: TCP
+      targetPort: 6732
+  selector:
+    app: '{{ .Values.name }}-mavseal'
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Values.name }}-mavseal'
+  labels:
+    app: '{{ .Values.name }}-mavseal'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: '{{ .Values.name }}-mavseal'
+  template:
+    metadata:
+      labels:
+        app: '{{ .Values.name }}-mavseal'
+    spec:
+      {{- if .Values.images.mavseal.imagePullSecrets }}
+      imagePullSecrets:
+          - name: '{{ .Values.images.mavseal.imagePullSecrets }}'
+      {{- end }}
+      volumes:
+        - name: mavseal-config
+          configMap:
+            name: '{{ .Values.name }}-mavseal-config'
+        - name: mavseal-secret
+          secret:
+            secretName: '{{ .Values.mavsealSecretName }}'
+      containers:
+        - name: mavseal
+          image: '{{ .Values.images.mavseal.registry }}/{{ .Values.images.mavseal.repository }}:{{ .Values.images.mavseal.tag }}'
+          imagePullPolicy: '{{ .Values.images.mavseal.imagePullPolicy }}'
+          # Pin the config path explicitly. mavseal's --config defaults to
+          # /etc/mavseal.yaml, but some published images bake a CMD pointing at
+          # the example config under /mavseal/mavseal.yaml; being explicit makes
+          # the mounted ConfigMap authoritative regardless of the image variant.
+          args:
+            - '-c'
+            - /etc/mavseal.yaml
+      {{- if .Values.resources.mavseal.enabled }}
+          resources:
+            requests:
+              cpu: '{{ .Values.resources.mavseal.requests.cpu }}'
+              memory: '{{ .Values.resources.mavseal.requests.memory }}'
+            limits:
+              cpu: '{{ .Values.resources.mavseal.limits.cpu }}'
+              memory: '{{ .Values.resources.mavseal.limits.memory }}'
+      {{- end }}
+          ports:
+            - containerPort: 6732
+              protocol: TCP
+          volumeMounts:
+            - name: mavseal-config
+              mountPath: /etc/mavseal.yaml
+              subPath: mavseal.yaml
+            - name: mavseal-secret
+              mountPath: /etc/secret.json
+              subPath: secret.json
