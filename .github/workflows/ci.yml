@@ -145,6 +145,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: list_containers_to_publish
     strategy:
+      # One broken image must not cancel the others' builds.
+      fail-fast: false
       matrix: ${{fromJson(needs.list_containers_to_publish.outputs.matrix)}}
 
     steps:
@@ -245,7 +247,9 @@ jobs:
 
   publish_helm_charts:
     runs-on: ubuntu-latest
-    needs: [test-helm-charts, lint_helm_charts]
+    # The published charts pin mavryk_k8s_images to the release version, so
+    # only publish them once every image of the release has been pushed.
+    needs: [test-helm-charts, lint_helm_charts, publish-to-ghcr]
     if: github.event_name == 'release' && github.event.action == 'created'
     steps:
       - name: Checkout

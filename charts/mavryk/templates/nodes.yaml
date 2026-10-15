@@ -54,8 +54,12 @@ spec:
         fsGroup: 1000
 {{- include "mavryk.nodeSelectorConfig" $ | indent 6 }}
 {{- include "mavryk.tolerationsConfig" $ | indent 6 }}
+{{- if hasKey $.node_vals "affinity" }}
 {{- include "mavryk.affinityConfig" $ | indent 6 }}
+{{- end }}
+{{- if hasKey $.node_vals "topology_spread_constraints" }}
 {{- include "mavryk.topologySpreadConstraintsConfig" $ | indent 6 }}
+{{- end }}
       volumes:
       {{- if (include "mavryk.doesZerotierConfigExist" $) }}
         - hostPath:

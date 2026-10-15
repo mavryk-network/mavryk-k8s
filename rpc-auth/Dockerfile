@@ -1,4 +1,8 @@
-FROM python:3.9.6-slim as builder
+# Both stages must use the same Debian release: the wheels built here link
+# against its libsecp256k1/libgmp/libsodium. python:3.9.6-slim was bullseye,
+# whose packages left security.debian.org when its LTS ended (2026-08-31),
+# while python:3.9-slim now follows trixie.
+FROM python:3.9-slim-bookworm AS builder
 
 RUN mkdir -p /var/rpc-auth/
 
@@ -29,7 +33,7 @@ RUN mkdir wheels \
   && pip wheel -r requirements.txt --use-pep517 \
   --wheel-dir ./wheels --no-cache-dir
 
-FROM python:3.9-slim AS src
+FROM python:3.9-slim-bookworm AS src
 
 WORKDIR /var/rpc-auth/
 

@@ -1,0 +1,40 @@
+# Scheduling options of a node class: node selector, tolerations, affinity,
+# topology spread constraints and minReadySeconds. plain-node sets none of
+# them and must render without any.
+nodes:
+  spread-node:
+    runs: [mavkit_node]
+    min_ready_seconds: 120
+    node_selector:
+      nodeSelectorKey: nodeSelectorValue
+    tolerations:
+      - key: mavryk-node
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchExpressions:
+                  - key: statefulset.kubernetes.io/pod-name
+                    operator: In
+                    values: [spread-node-0, spread-node-1]
+    topology_spread_constraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            node_class: spread-node
+    instances:
+      - {}
+      - {}
+      - {}
+  plain-node:
+    runs: [mavkit_node]
+    instances:
+      - {}
