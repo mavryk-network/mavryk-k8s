@@ -167,6 +167,21 @@ should_generate_unsafe_deterministic_data: false
 # - `node_selector`: Specify a kubernetes node selector in `key: value` format
 #     for your mavryk nodes.
 # - `tolerations`: Specify kubernetes tolerations as a list for your mavryk nodes.
+# - `affinity`: Kubernetes affinity rules (node affinity, pod affinity, pod
+#     anti-affinity) for the pods of this node class, in the format of the pod
+#     spec `affinity` field. E.g. keep bakers on different machines so losing
+#     one machine can't take too much stake offline.
+#     See: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+# - `topology_spread_constraints`: A list of Kubernetes topology spread
+#     constraints for the pods of this node class, in the format of the pod spec
+#     `topologySpreadConstraints` field. Spreads instances evenly across
+#     machines or zones even when there are more instances than machines.
+#     See: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+# - `min_ready_seconds`: Seconds a restarted instance must stay ready before
+#     the statefulset restarts the next one when the pod template changes
+#     (e.g. adding an `affinity` restarts every instance). For bakers, leave
+#     each node time to catch up and resume baking, so that two bakers are never
+#     down at the same time.
 # - `readiness_probe`: Attach a probe to the node. The probe checks whether
 #                    the most recent block is recent enough. If not, the
 #                    services will be unreachable. Defaults to True.
@@ -232,6 +247,23 @@ should_generate_unsafe_deterministic_data: false
 #         operator: "Equal"
 #         value: "true"
 #         effect: "NoSchedule"
+#     affinity:
+#       podAntiAffinity:
+#         preferredDuringSchedulingIgnoredDuringExecution:
+#           - weight: 100
+#             podAffinityTerm:
+#               topologyKey: kubernetes.io/hostname
+#               labelSelector:
+#                 matchLabels:
+#                   node_class: rolling-baking-node
+#     topology_spread_constraints:
+#       - maxSkew: 1
+#         topologyKey: kubernetes.io/hostname
+#         whenUnsatisfiable: ScheduleAnyway
+#         labelSelector:
+#           matchLabels:
+#             node_class: rolling-baking-node
+#     min_ready_seconds: 120
 #     storage_size: 15Gi
 #     images: # (optional field)
 #       mavkit: mavrykdynamics/mavryk:v...

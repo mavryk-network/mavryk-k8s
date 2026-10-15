@@ -463,3 +463,27 @@ tolerations:
 {{- "" }}
 {{- end }}
 {{- end }}
+
+{{/*
+  Affinity config section
+*/}}
+{{- define "mavryk.affinityConfig" -}}
+{{- if hasKey $.node_vals "affinity" }}
+affinity:
+{{ toYaml $.node_vals.affinity | indent 2 }}
+{{- else }}
+{{- "" }}
+{{- end }}
+{{- end }}
+
+{{/*
+  Topology spread constraints config section
+*/}}
+{{- define "mavryk.topologySpreadConstraintsConfig" -}}
+{{- if hasKey $.node_vals "topology_spread_constraints" }}
+topologySpreadConstraints:
+{{ toYaml $.node_vals.topology_spread_constraints | indent 2 }}
+{{- else }}
+{{- "" }}
+{{- end }}
+{{- end }}
